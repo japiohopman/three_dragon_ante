@@ -1,0 +1,8 @@
+{
+  "name": "The Dragon's Flagon: Artificer",
+  "description": "A tavern-themed minigame collection and NPC forge featuring Three-Dragon Ante, Memory, and Solitaire.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
