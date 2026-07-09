@@ -1111,6 +1111,26 @@ export const useGameStore = create<GameStore>((set, get) => ({
           });
       }
 
+      if (effect.stealCard) {
+          const { from, to, count } = effect.stealCard;
+          const fromHand = from === 'player' ? [...(updates.playerHand || state.playerHand)] : [...(updates.opponentHand || state.opponentHand)];
+          const toHand = to === 'player' ? [...(updates.playerHand || state.playerHand)] : [...(updates.opponentHand || state.opponentHand)];
+
+          for (let i = 0; i < count; i++) {
+              if (fromHand.length > 0 && toHand.length < HAND_LIMIT) {
+                  const idx = Math.floor(Math.random() * fromHand.length);
+                  const card = fromHand.splice(idx, 1)[0];
+                  toHand.push(card);
+              }
+          }
+
+          if (from === 'player') updates.playerHand = fromHand;
+          else updates.opponentHand = fromHand;
+
+          if (to === 'player') updates.playerHand = toHand;
+          else updates.opponentHand = toHand;
+      }
+
       if (effect.drawCards) {
            const { count, target } = effect.drawCards;
            get().ensureDeckSupply(count * 2);

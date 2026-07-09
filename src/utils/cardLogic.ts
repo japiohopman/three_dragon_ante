@@ -29,8 +29,8 @@ export const resolveCardPower = (
     // --- EVIL DRAGONS ---
     case 'Red Dragon':
       effect.goldChange = { [opponentId]: -1, [playerId]: 1 };
-      effect.discard = { target: opponentId, count: 1, criteria: 'random' };
-      effect.log = `${card.name}: ${opponentId} pays 1 gold and loses a random card.`;
+      effect.stealCard = { from: opponentId, to: playerId, count: 1, criteria: 'random' };
+      effect.log = `${card.name}: ${opponentId} pays 1 gold and you steal a random card from them.`;
       break;
 
     case 'Blue Dragon':
