@@ -77,7 +77,10 @@ async function startServer() {
       // Target repository info (Inferred from environment or defaults)
       const REPO_OWNER = process.env.REPO_OWNER || "japiohopman";
       const REPO_NAME = process.env.REPO_NAME || "artificer";
-      const FILE_PATH = `src/constants/vault/${npc.id}.json`;
+
+      // Sanitize NPC ID to prevent path traversal
+      const safeId = npc.id.replace(/[^a-z0-9_-]/gi, '_');
+      const FILE_PATH = `src/constants/vault/${safeId}.json`;
       const MESSAGE = `Forge: Summoning ${npc.name} to the Guild Vault`;
 
       const content = Buffer.from(JSON.stringify(npc, null, 2)).toString("base64");
