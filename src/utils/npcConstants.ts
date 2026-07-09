@@ -1,7 +1,7 @@
 
 import { NPCData } from '../types';
 
-const BASE_NPC_URL = 'https://raw.githubusercontent.com/japiohopman/artificer/main/public/assets/images/npcs/images/';
+const BASE_NPC_URL = 'https://raw.githubusercontent.com/japiohopman/artificer/main/public/assets/atlas/characters/npc/images/';
 const BASE_BG_URL = 'https://raw.githubusercontent.com/japiohopman/artificer/main/public/assets/images/shop_location_backgrounds/';
 
 const createNPC = (
