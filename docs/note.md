@@ -1,0 +1,1 @@
+is good to have solitaire when there are no npc/s around!
