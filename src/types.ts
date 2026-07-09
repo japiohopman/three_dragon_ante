@@ -100,6 +100,13 @@ export interface GameEffect {
     criteria?: 'random' | 'choice' | 'weaker-dragon';
   };
 
+  stealCard?: {
+    from: PlayerId;
+    to: PlayerId;
+    count: number;
+    criteria: 'random';
+  };
+
   // Complex Logic Triggers
   interaction?: InteractionRequest;
 
