@@ -55,7 +55,7 @@ describe('resolveCardPower', () => {
 
     const effect = resolveCardPower(card, mockState, 'player');
     expect(effect.goldChange).toEqual({ opponent: -1, player: 1 });
-    expect(effect.discard).toEqual({ target: 'opponent', count: 1, criteria: 'random' });
+    expect(effect.stealCard).toEqual({ from: 'opponent', to: 'player', count: 1, criteria: 'random' });
   });
 
   it('White Dragon should fizzle if no mortals are in play', () => {
