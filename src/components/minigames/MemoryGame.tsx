@@ -5,7 +5,7 @@ import { VALID_SPRITES } from '../../utils/constants';
 import { getIcon } from '../../assets/icons';
 import { useAnimationStore } from '../../store/useAnimationStore';
 import { playSound, playAmbience } from '../../services/soundService';
-import { PERSONA_REGISTRY } from '../../constants/npcLines';
+import { getNPCPersona } from '../../constants/npcLines';
 import { motion, AnimatePresence } from 'motion/react';
 
 import { NPCData } from '../../types';
@@ -39,7 +39,7 @@ const MemoryGame: React.FC<MemoryGameProps> = ({ onBack, opponent }) => {
   const speak = useCallback((eventType: string, duration: number = 3000) => {
       if (speechTimeout.current) clearTimeout(speechTimeout.current);
 
-      const persona = PERSONA_REGISTRY[opponent.id] || PERSONA_REGISTRY.tabaxi_alchemist;
+      const persona = getNPCPersona(opponent.id);
 
       // Map the move event to a persona seed category
       let seedType: 'start' | 'power' | 'victory' | 'defeat' | 'thinking' = 'thinking';
