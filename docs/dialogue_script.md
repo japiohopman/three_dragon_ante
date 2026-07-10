@@ -76,7 +76,7 @@ This script defines the dialogue for the 5 key situations in Three-Dragon Ante. 
 
 ## 5. [ARCH_WORKER]
 - **Start:**
-  - "A honest game for a honest coin! Pull up a chair."
+  - "An honest game for an honest coin! Pull up a chair."
   - "Nothing like a game after a long day at the forge. Care for a round?"
   - "I play like I work: steady and hard. You ready?"
 - **Power:**
