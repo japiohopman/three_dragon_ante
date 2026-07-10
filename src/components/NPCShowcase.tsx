@@ -5,7 +5,7 @@ import NPC from './NPC';
 import { AppMode, NPCEmotion, NPCData } from '../types';
 import { getIcon } from '../assets/icons';
 import { playSound } from '../services/soundService';
-import { PERSONA_REGISTRY } from '../constants/npcLines';
+import { getNPCPersona } from '../constants/npcLines';
 import { useEffect } from 'react';
 
 const EMOTIONS: NPCEmotion[] = [
@@ -27,7 +27,7 @@ const NPCShowcase: React.FC<NPCShowcaseProps> = ({ onSelectGame }) => {
   useEffect(() => {
     const fetchIntro = () => {
         setIsLoading(true);
-        const persona = PERSONA_REGISTRY[currentNPC.id] || PERSONA_REGISTRY.tabaxi_alchemist;
+        const persona = getNPCPersona(currentNPC.id);
         const intro = persona.seeds.start[Math.floor(Math.random() * persona.seeds.start.length)];
         setIntroduction(intro);
         setIsLoading(false);

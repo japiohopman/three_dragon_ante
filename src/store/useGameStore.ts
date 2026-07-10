@@ -6,7 +6,7 @@ import { resolveCardPower, checkFlightFormation } from '../utils/cardLogic';
 import { useAnimationStore, SpecialEffectType } from './useAnimationStore';
 import { playSound } from '../services/soundService';
 import { NPC_LIST } from '../utils/npcConstants';
-import { PERSONA_REGISTRY } from '../constants/npcLines';
+import { getNPCPersona } from '../constants/npcLines';
 
 interface GameStore extends GameState {
   startGame: (duration: number, skill: PlayerSkill) => void;
@@ -112,7 +112,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
         const state = get();
         const currentNPC = NPC_LIST.find(n => n.id === state.npcId);
         if (currentNPC) {
-            const persona = PERSONA_REGISTRY[currentNPC.id] || PERSONA_REGISTRY.tabaxi_alchemist;
+            const persona = getNPCPersona(currentNPC.id);
 
             // Map the event string to a persona seed category
             let seedType: 'start' | 'power' | 'victory' | 'defeat' | 'thinking' = 'thinking';
