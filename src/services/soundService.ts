@@ -61,6 +61,17 @@ export const SOUND_CONFIG = {
   SOLITAIRE_WIN: { path: 'System/game_solitaire_win.mp3', category: 'sfx', volume: 0.8 },
   FEEDBACK_SUCCESS: { path: 'System/feedback_success.mp3', category: 'sfx', volume: 0.6 },
   FEEDBACK_FAIL: { path: 'System/feedback_fail.mp3', category: 'sfx', volume: 0.5 },
+
+  // NPC Voice Archetype Placeholders (Future .wav integration)
+  VOICE_SAGE: { path: 'voice/sage_generic.wav', category: 'sfx', volume: 0.8 },
+  VOICE_WARRIOR: { path: 'voice/warrior_generic.wav', category: 'sfx', volume: 0.8 },
+  VOICE_NOBLE: { path: 'voice/noble_generic.wav', category: 'sfx', volume: 0.8 },
+  VOICE_SCOUNDREL: { path: 'voice/scoundrel_generic.wav', category: 'sfx', volume: 0.8 },
+  VOICE_WORKER: { path: 'voice/worker_generic.wav', category: 'sfx', volume: 0.8 },
+  VOICE_HOST: { path: 'voice/host_generic.wav', category: 'sfx', volume: 0.8 },
+  VOICE_STALKER: { path: 'voice/stalker_generic.wav', category: 'sfx', volume: 0.8 },
+  VOICE_ADEPT: { path: 'voice/adept_generic.wav', category: 'sfx', volume: 0.8 },
+  VOICE_WILD: { path: 'voice/wild_generic.wav', category: 'sfx', volume: 0.8 },
 } as const;
 
 export type SoundName = keyof typeof SOUND_CONFIG;

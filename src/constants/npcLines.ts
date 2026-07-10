@@ -60,7 +60,7 @@ export const ARCHETYPES: Record<string, NPCSeedData> = {
     identity: "Worker: Boisterous, warm, thick regional accents, earthy. Energetic, rhythmic pacing.",
     vocabulary: ["honest", "coin", "anvil", "measure", "cut", "round", "sweat"],
     seeds: {
-      start: ["A honest game for a honest coin! Pull up a chair."],
+      start: ["An honest game for an honest coin! Pull up a chair."],
       power: ["Hard work pays off!"],
       victory: ["Ha! That's a round of drinks on me!"],
       defeat: ["Back to the anvil. I need to earn that back."],

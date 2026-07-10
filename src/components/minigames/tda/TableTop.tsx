@@ -157,14 +157,33 @@ const TableTop: React.FC = () => {
           {/* NPC Detail Area */}
           <div className="flex-1 overflow-y-auto p-8 flex flex-col gap-6 custom-scrollbar">
               <div className="flex flex-col items-center">
-                  <div className="relative w-full aspect-[3/2] rounded-2xl overflow-hidden border-4 border-amber-900/30 shadow-[0_0_50px_rgba(0,0,0,0.5)] bg-stone-950 group">
-                      <NPC
-                        npc={NPC_LIST.find(n => n.id === npcId) || NPC_LIST[0]}
-                        emotion={opponentEmotion}
-                        width={480}
-                        height={320}
-                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                      />
+                  <div className="relative w-full aspect-[3/2] rounded-2xl border-4 border-amber-900/30 shadow-[0_0_50px_rgba(0,0,0,0.5)] bg-stone-950 group">
+                      <div className="absolute inset-0 overflow-hidden rounded-xl">
+                        <NPC
+                          npc={NPC_LIST.find(n => n.id === npcId) || NPC_LIST[0]}
+                          emotion={opponentEmotion}
+                          width={480}
+                          height={320}
+                          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                        />
+                      </div>
+
+                      {/* Speech Bubble */}
+                      <AnimatePresence>
+                        {isTalking && npcLine && (
+                          <motion.div
+                            initial={{ opacity: 0, scale: 0.8, x: -20 }}
+                            animate={{ opacity: 1, scale: 1, x: 0 }}
+                            exit={{ opacity: 0, scale: 0.8, x: -20 }}
+                            className="absolute -right-24 top-1/4 z-50 bg-stone-100 text-stone-900 px-4 py-2 rounded-2xl shadow-[0_10px_30px_rgba(0,0,0,0.5)] min-w-[180px] max-w-[240px] border-2 border-stone-800"
+                          >
+                            <p className="font-serif italic text-[11px] leading-tight">"{npcLine}"</p>
+                            {/* Bubble Tail */}
+                            <div className="absolute -left-2 top-4 w-4 h-4 bg-stone-100 rotate-45" />
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+
                       {activePlayer === 'opponent' && (
                         <div className="absolute top-3 right-3 bg-stone-900/90 rounded-full p-2 border border-amber-500/50 shadow-xl animate-pulse">
                             {getIcon('ui', 'thinking', { size: 16, className: "text-amber-500" })}
@@ -308,23 +327,14 @@ const TableTop: React.FC = () => {
                 </div>
             </div>
 
-            {/* NPC SPEECH (Overlaid on Table) */}
-            <AnimatePresence>
-                {isTalking && npcLine && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 20 }}
-                    className="absolute bottom-8 left-1/2 -translate-x-1/2 z-50 bg-stone-950/90 backdrop-blur-xl border border-amber-900/40 px-6 py-3 rounded-2xl shadow-2xl max-w-md pointer-events-none"
-                  >
-                    <p className="text-amber-100 font-serif italic text-sm text-center leading-relaxed">"{npcLine}"</p>
-                  </motion.div>
-                )}
-            </AnimatePresence>
         </div>
 
         {/* PLAYER HAND (Spaced for maximum interaction area) */}
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 w-full flex justify-center items-end h-64 pointer-events-auto" onMouseLeave={() => setHoveredIndex(null)}>
+        <div
+          data-testid="player-hand"
+          className="absolute bottom-4 left-1/2 -translate-x-1/2 w-full flex justify-center items-end h-64 pointer-events-auto"
+          onMouseLeave={() => setHoveredIndex(null)}
+        >
             <AnimatePresence>
                 {playerHand.map((card, i) => (
                     <motion.div
@@ -340,6 +350,7 @@ const TableTop: React.FC = () => {
                         }}
                         className="absolute origin-bottom will-change-transform"
                         onMouseEnter={() => setHoveredIndex(i)}
+                        data-testid={`player-card-${i}`}
                     >
                         <Card
                             card={card}

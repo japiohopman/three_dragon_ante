@@ -107,6 +107,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   speak: (line: string, duration: number = 3000, dynamic: boolean = false) => {
     let finalLine = line;
+    let emotion: any = 'neutral';
 
     if (dynamic) {
         const state = get();
@@ -118,17 +119,18 @@ export const useGameStore = create<GameStore>((set, get) => ({
             let seedType: 'start' | 'power' | 'victory' | 'defeat' | 'thinking' = 'thinking';
             const lowerLine = line.toLowerCase();
 
-            if (lowerLine.includes('power')) seedType = 'power';
-            else if (lowerLine.includes('win') || lowerLine.includes('victory') || lowerLine.includes('triumph')) seedType = 'victory';
-            else if (lowerLine.includes('loss') || lowerLine.includes('lost') || lowerLine.includes('defeat')) seedType = 'defeat';
-            else if (lowerLine.includes('start') || lowerLine.includes('ante')) seedType = 'start';
+            if (lowerLine.includes('power')) { seedType = 'power'; emotion = 'surprised'; }
+            else if (lowerLine.includes('win') || lowerLine.includes('victory') || lowerLine.includes('triumph')) { seedType = 'victory'; emotion = 'happy'; }
+            else if (lowerLine.includes('loss') || lowerLine.includes('lost') || lowerLine.includes('defeat')) { seedType = 'defeat'; emotion = 'sad'; }
+            else if (lowerLine.includes('start') || lowerLine.includes('ante')) { seedType = 'start'; emotion = 'curious'; }
+            else if (lowerLine.includes('thinking')) { seedType = 'thinking'; emotion = 'skeptical'; }
 
             const options = persona.seeds[seedType];
             finalLine = options[Math.floor(Math.random() * options.length)];
         }
     }
 
-    set({ npcLine: finalLine, isTalking: true });
+    set({ npcLine: finalLine, isTalking: true, opponentEmotion: emotion });
     setTimeout(() => {
       const current = get().npcLine;
       if (current === finalLine) {
