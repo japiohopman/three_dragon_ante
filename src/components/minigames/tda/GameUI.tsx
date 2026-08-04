@@ -10,6 +10,7 @@ import { SPRITE_MAP, ATLAS_URL, HAND_LIMIT } from '../../../utils/constants';
 import { NPC_LIST } from '../../../utils/npcConstants';
 import RulebookModal from './RulebookModal';
 import { playSound } from '../../../services/soundService';
+import { formatPrice, formatWealth } from '../../../utils/currency';
 
 interface GameUIProps {
   onExit?: () => void;
@@ -261,12 +262,57 @@ const GameUI: React.FC<GameUIProps> = ({ onExit }) => {
             {/* LEFT: SESSION INFO & UTILITIES */}
             <div className="flex items-center gap-4 flex-1">
                 <div className="flex flex-col">
-                    <span className="text-[10px] uppercase tracking-[0.3em] text-stone-500 font-bold mb-0.5">Session</span>
+                    <span className="text-[10px] uppercase tracking-[0.3em] text-stone-500 font-bold mb-0.5">Session Purse</span>
                     <div className="flex items-center gap-3">
-                         <div className="flex items-center gap-1.5 text-amber-500">
-                             {getIcon('ui', 'gold-coin', { size: 14 })}
-                             <span className="font-gothic text-xl">{playerGold}</span>
-                         </div>
+                         {(() => {
+                             const w = formatWealth(playerGold);
+                             return (
+                                 <div className="flex items-center gap-2.5">
+                                     {w.pp > 0 && (
+                                         <div className="flex items-center gap-1 text-slate-100" title="Platinum Pieces">
+                                             {getIcon('ui', 'gold-coin', { size: 14, className: "text-slate-300" })}
+                                             <span className="font-gothic text-lg">{w.pp}</span>
+                                             <span className="text-[10px] text-slate-400 font-bold">pp</span>
+                                         </div>
+                                     )}
+                                     {w.gp > 0 && (
+                                         <div className="flex items-center gap-1 text-amber-500" title="Gold Pieces">
+                                             {getIcon('ui', 'gold-coin', { size: 14, className: "text-amber-500" })}
+                                             <span className="font-gothic text-lg">{w.gp}</span>
+                                             <span className="text-[10px] text-amber-600 font-bold">gp</span>
+                                         </div>
+                                     )}
+                                     {w.ep > 0 && (
+                                         <div className="flex items-center gap-1 text-cyan-500" title="Electrum Pieces">
+                                             {getIcon('ui', 'gold-coin', { size: 14, className: "text-cyan-600" })}
+                                             <span className="font-gothic text-lg">{w.ep}</span>
+                                             <span className="text-[10px] text-cyan-600 font-bold">ep</span>
+                                         </div>
+                                     )}
+                                     {w.sp > 0 && (
+                                         <div className="flex items-center gap-1 text-stone-400" title="Silver Pieces">
+                                             {getIcon('ui', 'gold-coin', { size: 14, className: "text-stone-400" })}
+                                             <span className="font-gothic text-lg">{w.sp}</span>
+                                             <span className="text-[10px] text-stone-500 font-bold">sp</span>
+                                         </div>
+                                     )}
+                                     {w.cp > 0 && (
+                                         <div className="flex items-center gap-1 text-amber-700" title="Copper Pieces">
+                                             {getIcon('ui', 'gold-coin', { size: 14, className: "text-amber-700" })}
+                                             <span className="font-gothic text-lg">{w.cp}</span>
+                                             <span className="text-[10px] text-amber-800 font-bold">cp</span>
+                                         </div>
+                                     )}
+                                     {playerGold === 0 && (
+                                         <div className="flex items-center gap-1 text-stone-600">
+                                             {getIcon('ui', 'gold-coin', { size: 14, className: "text-stone-600" })}
+                                             <span className="font-gothic text-lg">0</span>
+                                             <span className="text-[10px] text-stone-600 font-bold">cp</span>
+                                         </div>
+                                     )}
+                                 </div>
+                             );
+                         })()}
                          <div className="h-4 w-px bg-stone-800" />
                          <div className="flex items-center gap-2">
                              <button
@@ -450,14 +496,14 @@ const GameUI: React.FC<GameUIProps> = ({ onExit }) => {
                          {pendingInteraction.options.map((opt, idx) => {
                              const isCardAction = opt.value === 'give-card' || opt.value === 'discard-card';
                              const isPayAction = opt.value === 'pay-gold';
-                             const cost = opt.cost || 0;
+                             const costCp = (opt.cost || 0) * 100;
                              const hasCards = isCardAction ? selectableCards.length > 0 : true;
                              const isDisabled = (isCardAction && !hasCards);
 
                              let label = opt.label;
-                             if (isPayAction && playerGold < cost) {
-                                 const debtAmount = cost - Math.max(0, playerGold);
-                                 label = `${opt.label} (Debt: ${debtAmount})`;
+                             if (isPayAction && playerGold < costCp) {
+                                 const debtAmountCp = costCp - Math.max(0, playerGold);
+                                 label = `${opt.label} (Debt: ${formatPrice(debtAmountCp)})`;
                              }
 
                              return (
@@ -705,7 +751,7 @@ const GameUI: React.FC<GameUIProps> = ({ onExit }) => {
                </div>
 
                <p className="text-amber-400 font-gothic text-2xl mb-8">
-                   {gambitResult.winner === 'player' ? `+${gambitResult.potWon} Gold` : `-${gambitResult.potWon} Gold`}
+                   {gambitResult.winner === 'player' ? `+${formatPrice(gambitResult.potWon)}` : `-${formatPrice(gambitResult.potWon)}`}
                </p>
 
                <button
@@ -728,14 +774,14 @@ const GameUI: React.FC<GameUIProps> = ({ onExit }) => {
                        {getIcon('ui', 'crown', { size: 80, className: "text-yellow-400 mb-6 drop-shadow-lg animate-pulse" })}
                        <h2 className="text-6xl font-gothic text-transparent bg-clip-text bg-gradient-to-t from-yellow-600 to-yellow-200 mb-4">VICTORY</h2>
                        <p className="text-2xl text-stone-300 mb-2">Match Complete!</p>
-                       <p className="text-lg text-stone-400 mb-8">You have bested {getNPCName()} with {playerGold} gold.</p>
+                       <p className="text-lg text-stone-400 mb-8">You have bested {getNPCName()} with {formatPrice(playerGold)}.</p>
                    </>
                ) : (
                    <>
                        {getIcon('ui', 'skull', { size: 80, className: "text-stone-500 mb-6 drop-shadow-lg" })}
                        <h2 className="text-6xl font-gothic text-stone-600 mb-4">DEFEAT</h2>
                        <p className="text-2xl text-stone-400 mb-2">Match Complete.</p>
-                       <p className="text-lg text-stone-500 mb-8">{getNPCName()} wins with {opponentGold} gold.</p>
+                       <p className="text-lg text-stone-500 mb-8">{getNPCName()} wins with {formatPrice(opponentGold)}.</p>
                    </>
                )}
 
