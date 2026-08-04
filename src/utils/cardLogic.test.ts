@@ -5,25 +5,41 @@ import { CardData, GameState } from '../types';
 
 describe('resolveCardPower', () => {
   const mockState: GameState = {
+    npcId: 'female_alchemist_tabaxi',
+    phase: 'player-turn',
+    round: 1,
+    pot: 1000,
     deck: [],
     discardPile: [],
-    antePile: [],
+    maxGambits: 3,
+    gambitsPlayed: 0,
+    playerSkill: 'none',
+    playerGold: 5000,
     playerHand: [],
-    opponentHand: [],
     playerFlight: [],
+    playerAnte: null,
+    opponentGold: 5000,
+    opponentHand: [],
     opponentFlight: [],
-    pot: 10,
-    playerGold: 50,
-    opponentGold: 50,
-    gambitPhase: 'round-1',
-    leader: 'player',
+    opponentAnte: null,
+    currentLeader: 'player',
+    activePlayer: 'player',
+    lastCardPlayed: null,
+    activeSpecialRules: {},
+    gambitResult: null,
+    pendingInteraction: null,
     notification: null,
     history: [],
-    isAIThinking: false,
-    gameMode: 'tda',
-    stakes: 0,
-    roundWinner: null,
-    gambitWinner: null
+    opponentEmotion: 'neutral',
+    npcLine: '',
+    isTalking: false,
+    characterStats: {
+      strength: 10,
+      dexterity: 10,
+      intelligence: 10,
+      wisdom: 10,
+      charisma: 10
+    }
   };
 
   it('Black Dragon should steal 2 gold from the pot', () => {

@@ -7,6 +7,7 @@ import Card from './Card';
 import NPC from '../../NPC';
 import { SPRITE_MAP, HAND_LIMIT } from '../../../utils/constants';
 import { NPC_LIST } from '../../../utils/npcConstants';
+import { formatPrice, formatWealth } from '../../../utils/currency';
 
 const TableTop: React.FC = () => {
   const {
@@ -208,16 +209,33 @@ const TableTop: React.FC = () => {
                        <span className="text-[10px] text-stone-500 uppercase font-bold tracking-widest">Enemy Purse</span>
                        {getIcon('ui', 'gold-coin', { size: 14, className: "text-amber-600" })}
                   </div>
-                  <div className="grid grid-cols-2 gap-3">
-                      <div className="flex flex-col">
-                          <span className="text-[8px] uppercase text-stone-600 font-bold">Gold Coins</span>
-                          <span className="font-gothic text-xl text-amber-100">{opponentGold} <span className="text-[10px] text-amber-500/60 uppercase ml-1">gp</span></span>
-                      </div>
-                      <div className="flex flex-col opacity-40">
-                          <span className="text-[8px] uppercase text-stone-600 font-bold">Silver</span>
-                          <span className="font-gothic text-xl text-stone-400">0 <span className="text-[10px] text-stone-500 uppercase ml-1">sp</span></span>
-                      </div>
-                  </div>
+                  {(() => {
+                      const oppWealth = formatWealth(opponentGold);
+                      return (
+                          <div className="grid grid-cols-5 gap-1 text-center">
+                              <div className={`flex flex-col ${oppWealth.pp > 0 ? '' : 'opacity-30'}`}>
+                                  <span className="text-[8px] uppercase text-stone-500 font-bold">PP</span>
+                                  <span className="font-gothic text-sm text-slate-200">{oppWealth.pp}</span>
+                              </div>
+                              <div className={`flex flex-col ${oppWealth.gp > 0 ? '' : 'opacity-30'}`}>
+                                  <span className="text-[8px] uppercase text-stone-500 font-bold">GP</span>
+                                  <span className="font-gothic text-sm text-amber-500">{oppWealth.gp}</span>
+                              </div>
+                              <div className={`flex flex-col ${oppWealth.ep > 0 ? '' : 'opacity-30'}`}>
+                                  <span className="text-[8px] uppercase text-stone-500 font-bold">EP</span>
+                                  <span className="font-gothic text-sm text-cyan-500">{oppWealth.ep}</span>
+                              </div>
+                              <div className={`flex flex-col ${oppWealth.sp > 0 ? '' : 'opacity-30'}`}>
+                                  <span className="text-[8px] uppercase text-stone-500 font-bold">SP</span>
+                                  <span className="font-gothic text-sm text-stone-400">{oppWealth.sp}</span>
+                              </div>
+                              <div className={`flex flex-col ${oppWealth.cp > 0 ? '' : 'opacity-30'}`}>
+                                  <span className="text-[8px] uppercase text-stone-500 font-bold">CP</span>
+                                  <span className="font-gothic text-sm text-amber-700">{oppWealth.cp}</span>
+                              </div>
+                          </div>
+                      );
+                  })()}
               </div>
           </div>
 
@@ -306,7 +324,7 @@ const TableTop: React.FC = () => {
                         </div>
                         <div className="flex items-center gap-3">
                             {getIcon('ui', 'gold-coin', { size: 24, className: "text-amber-500 drop-shadow-[0_0_10px_rgba(245,158,11,0.4)]" })}
-                            <span className="font-gothic text-5xl text-amber-100 drop-shadow-xl">{pot}</span>
+                            <span className="font-gothic text-3xl text-amber-100 drop-shadow-xl">{formatPrice(pot)}</span>
                         </div>
                     </div>
 

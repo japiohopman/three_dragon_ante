@@ -7,6 +7,7 @@ import { useAnimationStore, SpecialEffectType } from './useAnimationStore';
 import { playSound } from '../services/soundService';
 import { NPC_LIST } from '../utils/npcConstants';
 import { getNPCPersona } from '../constants/npcLines';
+import { formatPrice } from '../utils/currency';
 
 interface GameStore extends GameState {
   startGame: (duration: number, skill: PlayerSkill) => void;
@@ -47,11 +48,11 @@ const getInitialState = (): GameState => ({
   maxGambits: 3,
   gambitsPlayed: 0,
   playerSkill: 'none',
-  playerGold: 50,
+  playerGold: 5000,
   playerHand: [],
   playerFlight: [],
   playerAnte: null,
-  opponentGold: 50,
+  opponentGold: 5000,
   opponentHand: [],
   opponentFlight: [],
   opponentAnte: null,
@@ -286,10 +287,10 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const leader: PlayerId = playerAnte.strength >= opponentAnte.strength ? 'player' : 'opponent';
     const baseStake = Math.max(playerAnte.strength, opponentAnte.strength);
 
-    const playerStake = playerSkill === 'concentration' ? Math.max(0, baseStake - 1) : baseStake;
-    const opponentStake = baseStake;
+    const playerStake = (playerSkill === 'concentration' ? Math.max(0, baseStake - 1) : baseStake) * 100;
+    const opponentStake = baseStake * 100;
 
-    let msg = `Ante Reveal! Stake: ${baseStake} gold.`;
+    let msg = `Ante Reveal! Stake: ${formatPrice(baseStake * 100)}.`;
     if (playerSkill === 'concentration') {
         msg += " (Concentration)";
     }
@@ -301,10 +302,10 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const POS = getPos();
     // Visual Effects
     useAnimationStore.getState().spawnCoins(5, POS.PLAYER, POS.POT);
-    useAnimationStore.getState().triggerFloatingText(POS.PLAYER.x, POS.PLAYER.y, `-${playerStake}`, 'red');
+    useAnimationStore.getState().triggerFloatingText(POS.PLAYER.x, POS.PLAYER.y, `-${formatPrice(playerStake)}`, 'red');
 
     useAnimationStore.getState().spawnCoins(5, POS.OPPONENT, POS.POT);
-    useAnimationStore.getState().triggerFloatingText(POS.OPPONENT.x, POS.OPPONENT.y, `-${opponentStake}`, 'red');
+    useAnimationStore.getState().triggerFloatingText(POS.OPPONENT.x, POS.OPPONENT.y, `-${formatPrice(opponentStake)}`, 'red');
 
     // Trigger flash on strong ante collision
     if (baseStake >= 10) useAnimationStore.getState().triggerFlash('rgba(255, 204, 21, 0.3)');
@@ -516,13 +517,13 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const POS = getPos();
 
     if (optionValue === 'pay-gold') {
-       const cost = option.cost || 0;
-       updates.playerGold = playerGold - cost;
-       updates.pot = pot + cost;
+       const costCp = (option.cost || 0) * 100;
+       updates.playerGold = playerGold - costCp;
+       updates.pot = pot + costCp;
        playSound('GOLD_LOSS');
        useAnimationStore.getState().spawnCoins(3, POS.PLAYER, POS.POT);
-       useAnimationStore.getState().triggerFloatingText(POS.PLAYER.x, POS.PLAYER.y, `-${cost}`, 'red');
-       logMsg = `You pay ${cost} gold.`;
+       useAnimationStore.getState().triggerFloatingText(POS.PLAYER.x, POS.PLAYER.y, `-${formatPrice(costCp)}`, 'red');
+       logMsg = `You pay ${formatPrice(costCp)}.`;
     }
     else if (optionValue === 'give-card') {
        if (selectedCardId) {
@@ -553,28 +554,28 @@ export const useGameStore = create<GameStore>((set, get) => ({
         }
     }
     else if (optionValue === 'steal-pot') {
-        let amount = option.amount || 0;
-        let stolen = Math.min(pot, amount);
+        const amountCp = (option.amount || 0) * 100;
+        let stolenCp = Math.min(pot, amountCp);
 
-        if (state.playerSkill === 'sleight-of-hand' && pot > stolen) {
-             stolen += 1;
+        if (state.playerSkill === 'sleight-of-hand' && pot > stolenCp) {
+             stolenCp += 100;
         }
 
-        updates.pot = pot - stolen;
-        updates.playerGold = playerGold + stolen;
+        updates.pot = pot - stolenCp;
+        updates.playerGold = playerGold + stolenCp;
         playSound('GOLD_GAIN_LARGE');
         useAnimationStore.getState().spawnCoins(5, POS.POT, POS.PLAYER);
-        useAnimationStore.getState().triggerFloatingText(POS.PLAYER.x, POS.PLAYER.y, `+${stolen}`, 'gold');
-        logMsg = `Blue Dragon: You steal ${stolen} gold.`;
+        useAnimationStore.getState().triggerFloatingText(POS.PLAYER.x, POS.PLAYER.y, `+${formatPrice(stolenCp)}`, 'gold');
+        logMsg = `Blue Dragon: You steal ${formatPrice(stolenCp)}.`;
     }
     else if (optionValue === 'opp-pay') {
-        const amount = option.amount || 0;
-        updates.opponentGold = opponentGold - amount;
-        updates.pot = pot + amount;
+        const amountCp = (option.amount || 0) * 100;
+        updates.opponentGold = opponentGold - amountCp;
+        updates.pot = pot + amountCp;
         playSound('GOLD_LOSS');
         useAnimationStore.getState().spawnCoins(5, POS.OPPONENT, POS.POT);
-        useAnimationStore.getState().triggerFloatingText(POS.OPPONENT.x, POS.OPPONENT.y, `-${amount}`, 'red');
-        logMsg = `Blue Dragon: ${getNPCName(get().npcId)} pays ${amount} gold.`;
+        useAnimationStore.getState().triggerFloatingText(POS.OPPONENT.x, POS.OPPONENT.y, `-${formatPrice(amountCp)}`, 'red');
+        logMsg = `Blue Dragon: ${getNPCName(get().npcId)} pays ${formatPrice(amountCp)}.`;
     }
 
     set(updates);
@@ -601,8 +602,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
       const makePayOpt = options.find(o => o.value === 'opp-pay');
 
       if (stealOpt && makePayOpt) {
-          const amount = stealOpt.amount || 0;
-          if (pot >= amount) chosenOption = stealOpt;
+          const amountCp = (stealOpt.amount || 0) * 100;
+          if (pot >= amountCp) chosenOption = stealOpt;
           else chosenOption = makePayOpt;
       }
       else {
@@ -614,7 +615,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
           else if (payOption && giveCardOption) {
               const validCards = opponentHand.filter(giveCardOption.cardFilter || (() => false));
               if (validCards.length > 0) {
-                  if (opponentGold > 30 && (payOption.cost || 0) <= 5) chosenOption = payOption;
+                  if (opponentGold > 3000 && (payOption.cost || 0) <= 5) chosenOption = payOption;
                   else chosenOption = giveCardOption;
               } else chosenOption = payOption;
           }
@@ -622,13 +623,13 @@ export const useGameStore = create<GameStore>((set, get) => ({
       }
 
       if (chosenOption.value === 'pay-gold') {
-          const cost = chosenOption.cost || 0;
-          updates.opponentGold = opponentGold - cost;
-          updates.pot = pot + cost;
+          const costCp = (chosenOption.cost || 0) * 100;
+          updates.opponentGold = opponentGold - costCp;
+          updates.pot = pot + costCp;
           playSound('GOLD_LOSS');
           useAnimationStore.getState().spawnCoins(3, POS.OPPONENT, POS.POT);
-          useAnimationStore.getState().triggerFloatingText(POS.OPPONENT.x, POS.OPPONENT.y, `-${cost}`, 'red');
-          logMsg = `${getNPCName(get().npcId)} chooses to pay ${cost} gold.`;
+          useAnimationStore.getState().triggerFloatingText(POS.OPPONENT.x, POS.OPPONENT.y, `-${formatPrice(costCp)}`, 'red');
+          logMsg = `${getNPCName(get().npcId)} chooses to pay ${formatPrice(costCp)}.`;
       }
       else if (chosenOption.value === 'give-card') {
            const validCards = opponentHand.filter(chosenOption.cardFilter || (() => false));
@@ -659,32 +660,32 @@ export const useGameStore = create<GameStore>((set, get) => ({
            }
       }
       else if (chosenOption.value === 'steal-pot') {
-          let amount = chosenOption.amount || 0;
-          let stolen = Math.min(pot, amount);
-          updates.pot = pot - stolen;
-          updates.opponentGold = opponentGold + stolen;
+          const amountCp = (chosenOption.amount || 0) * 100;
+          let stolenCp = Math.min(pot, amountCp);
+          updates.pot = pot - stolenCp;
+          updates.opponentGold = opponentGold + stolenCp;
           playSound('GOLD_GAIN_LARGE');
           useAnimationStore.getState().spawnCoins(5, POS.POT, POS.OPPONENT);
-          useAnimationStore.getState().triggerFloatingText(POS.OPPONENT.x, POS.OPPONENT.y, `+${stolen}`, 'gold');
-          logMsg = `${getNPCName(get().npcId)} steals ${stolen} gold.`;
+          useAnimationStore.getState().triggerFloatingText(POS.OPPONENT.x, POS.OPPONENT.y, `+${formatPrice(stolenCp)}`, 'gold');
+          logMsg = `${getNPCName(get().npcId)} steals ${formatPrice(stolenCp)}.`;
       }
       else if (chosenOption.value === 'opp-pay') {
-          const amount = chosenOption.amount || 0;
-          let finalPay = amount;
-          if (state.playerSkill === 'bluff' && amount >= 2) finalPay -= 1;
+          const amountCp = (chosenOption.amount || 0) * 100;
+          let finalPayCp = amountCp;
+          if (state.playerSkill === 'bluff' && amountCp >= 200) finalPayCp -= 100;
 
-          updates.playerGold = playerGold - finalPay;
-          updates.pot = pot + amount;
+          updates.playerGold = playerGold - finalPayCp;
+          updates.pot = pot + amountCp;
 
-          if (state.playerSkill === 'bluff' && amount >= 2) {
-              updates.pot = pot + finalPay;
+          if (state.playerSkill === 'bluff' && amountCp >= 200) {
+              updates.pot = pot + finalPayCp;
               get().addNotification("(Bluff: You pay 1 gold less)");
           }
 
           playSound('GOLD_LOSS');
           useAnimationStore.getState().spawnCoins(5, POS.PLAYER, POS.POT);
-          useAnimationStore.getState().triggerFloatingText(POS.PLAYER.x, POS.PLAYER.y, `-${finalPay}`, 'red');
-          logMsg = `${getNPCName(get().npcId)} demands you pay ${amount} gold.`;
+          useAnimationStore.getState().triggerFloatingText(POS.PLAYER.x, POS.PLAYER.y, `-${formatPrice(finalPayCp)}`, 'red');
+          logMsg = `${getNPCName(get().npcId)} demands you pay ${formatPrice(amountCp)}.`;
       }
 
       set(updates);
@@ -713,50 +714,52 @@ export const useGameStore = create<GameStore>((set, get) => ({
             if (specialFlight.type === 'color') {
                  const dragons = flight.filter(c => c.type !== 'mortal').sort((a,b) => b.strength - a.strength);
                  const reward = dragons.length > 1 ? dragons[1].strength : dragons[0].strength;
+                 const rewardCp = reward * 100;
 
                  if (playerId === 'player') {
-                     get().addNotification(`COLOR FLIGHT! ${getNPCName(get().npcId)} pays ${reward} gold.`, 'gold-gain');
+                     get().addNotification(`COLOR FLIGHT! ${getNPCName(get().npcId)} pays ${formatPrice(rewardCp)}.`, 'gold-gain');
                      useAnimationStore.getState().spawnCoins(5, POS.OPPONENT, POS.PLAYER);
-                     useAnimationStore.getState().triggerFloatingText(POS.PLAYER.x, POS.PLAYER.y, `+${reward}`, 'gold');
-                     set(s => ({ opponentGold: s.opponentGold - reward, playerGold: s.playerGold + reward }));
+                     useAnimationStore.getState().triggerFloatingText(POS.PLAYER.x, POS.PLAYER.y, `+${formatPrice(rewardCp)}`, 'gold');
+                     set(s => ({ opponentGold: s.opponentGold - rewardCp, playerGold: s.playerGold + rewardCp }));
                  } else {
-                     get().addNotification(`${getNPCName(get().npcId).toUpperCase()} COLOR FLIGHT! You pay ${reward} gold.`, 'gold-loss');
-                     let finalPay = reward;
-                     if (state.playerSkill === 'bluff' && reward >= 2) {
-                         finalPay = reward - 1;
+                     get().addNotification(`${getNPCName(get().npcId).toUpperCase()} COLOR FLIGHT! You pay ${formatPrice(rewardCp)}.`, 'gold-loss');
+                     let finalPayCp = rewardCp;
+                     if (state.playerSkill === 'bluff' && rewardCp >= 200) {
+                         finalPayCp = rewardCp - 100;
                          get().addNotification("(Bluff: You pay 1 gold less)", 'info');
                      }
                      useAnimationStore.getState().spawnCoins(5, POS.PLAYER, POS.OPPONENT);
-                     useAnimationStore.getState().triggerFloatingText(POS.PLAYER.x, POS.PLAYER.y, `-${finalPay}`, 'red');
-                     set(s => ({ playerGold: s.playerGold - finalPay, opponentGold: s.opponentGold + finalPay }));
+                     useAnimationStore.getState().triggerFloatingText(POS.PLAYER.x, POS.PLAYER.y, `-${formatPrice(finalPayCp)}`, 'red');
+                     set(s => ({ playerGold: s.playerGold - finalPayCp, opponentGold: s.opponentGold + finalPayCp }));
                  }
             } else if (specialFlight.type === 'strength') {
                  const reward = specialFlight.strength || 0;
+                 const rewardCp = reward * 100;
                  if (playerId === 'player') {
-                     let finalReward = reward;
+                     let finalRewardCp = rewardCp;
                      let bonusMsg = '';
-                     if (state.playerSkill === 'sleight-of-hand' && state.pot > reward) {
-                         finalReward += 1;
+                     if (state.playerSkill === 'sleight-of-hand' && state.pot > rewardCp) {
+                         finalRewardCp += 100;
                          bonusMsg = ' (+1 Sleight)';
                      }
 
-                     get().addNotification(`STRENGTH FLIGHT! Steal ${reward}${bonusMsg} gold + Antes.`, 'gold-gain');
+                     get().addNotification(`STRENGTH FLIGHT! Steal ${formatPrice(rewardCp)}${bonusMsg} + Antes.`, 'gold-gain');
                      playSound('GOLD_GAIN_LARGE');
                      useAnimationStore.getState().spawnCoins(8, POS.POT, POS.PLAYER);
-                     useAnimationStore.getState().triggerFloatingText(POS.PLAYER.x, POS.PLAYER.y, `+${finalReward}`, 'gold');
+                     useAnimationStore.getState().triggerFloatingText(POS.PLAYER.x, POS.PLAYER.y, `+${formatPrice(finalRewardCp)}`, 'gold');
                      set(s => ({
-                         pot: Math.max(0, s.pot - finalReward),
-                         playerGold: s.playerGold + finalReward,
+                         pot: Math.max(0, s.pot - finalRewardCp),
+                         playerGold: s.playerGold + finalRewardCp,
                          playerHand: [...s.playerHand, ...(s.playerAnte ? [s.playerAnte] : []), ...(s.opponentAnte ? [s.opponentAnte] : [])],
                          playerAnte: null, opponentAnte: null
                      }));
                  } else {
-                     get().addNotification(`${getNPCName(get().npcId).toUpperCase()} STRENGTH FLIGHT! Steals ${reward} gold + Antes.`, 'gold-loss');
+                     get().addNotification(`${getNPCName(get().npcId).toUpperCase()} STRENGTH FLIGHT! Steals ${formatPrice(rewardCp)} + Antes.`, 'gold-loss');
                      useAnimationStore.getState().spawnCoins(8, POS.POT, POS.OPPONENT);
-                     useAnimationStore.getState().triggerFloatingText(POS.OPPONENT.x, POS.OPPONENT.y, `+${reward}`, 'gold');
+                     useAnimationStore.getState().triggerFloatingText(POS.OPPONENT.x, POS.OPPONENT.y, `+${formatPrice(rewardCp)}`, 'gold');
                      set(s => ({
-                         pot: Math.max(0, s.pot - reward),
-                         opponentGold: s.opponentGold + reward,
+                         pot: Math.max(0, s.pot - rewardCp),
+                         opponentGold: s.opponentGold + rewardCp,
                          opponentHand: [...s.opponentHand, ...(s.playerAnte ? [s.playerAnte] : []), ...(s.opponentAnte ? [s.opponentAnte] : [])],
                          playerAnte: null, opponentAnte: null
                      }));
@@ -799,7 +802,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       const POS = getPos();
 
       const costCard = deck[0];
-      const cost = costCard.strength;
+      const costCp = costCard.strength * 100;
       const deckAfterCost = deck.slice(1);
       const newDiscard = [...discardPile, costCard];
 
@@ -819,27 +822,27 @@ export const useGameStore = create<GameStore>((set, get) => ({
         }
 
         if (player === 'player') {
-            get().addNotification(`Buying Cards... Paid ${cost} gold.`, 'gold-loss');
+            get().addNotification(`Buying Cards... Paid ${formatPrice(costCp)}.`, 'gold-loss');
             playSound('GOLD_LOSS');
             playSound('CARD_DEAL');
             useAnimationStore.getState().spawnCoins(3, POS.PLAYER, POS.POT);
-            useAnimationStore.getState().triggerFloatingText(POS.PLAYER.x, POS.PLAYER.y, `-${cost}`, 'red');
+            useAnimationStore.getState().triggerFloatingText(POS.PLAYER.x, POS.PLAYER.y, `-${formatPrice(costCp)}`, 'red');
             set({
-                playerGold: playerGold - cost,
-                pot: pot + cost,
+                playerGold: playerGold - costCp,
+                pot: pot + costCp,
                 playerHand: [...get().playerHand, ...drawnCards],
                 deck: workingDeck,
                 discardPile: newDiscard
             });
         } else {
-            get().addNotification(`${getNPCName(get().npcId)} buys cards. Paid ${cost} gold.`);
+            get().addNotification(`${getNPCName(get().npcId)} buys cards. Paid ${formatPrice(costCp)}.`);
             playSound('GOLD_LOSS');
             playSound('CARD_DEAL');
             useAnimationStore.getState().spawnCoins(3, POS.OPPONENT, POS.POT);
-            useAnimationStore.getState().triggerFloatingText(POS.OPPONENT.x, POS.OPPONENT.y, `-${cost}`, 'red');
+            useAnimationStore.getState().triggerFloatingText(POS.OPPONENT.x, POS.OPPONENT.y, `-${formatPrice(costCp)}`, 'red');
             set({
-                opponentGold: opponentGold - cost,
-                pot: pot + cost,
+                opponentGold: opponentGold - costCp,
+                pot: pot + costCp,
                 opponentHand: [...get().opponentHand, ...drawnCards],
                 deck: workingDeck,
                 discardPile: newDiscard
@@ -915,21 +918,21 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
           const newPlayerGold = winner === 'player' ? playerGold + pot : playerGold;
           const newOpponentGold = winner === 'opponent' ? opponentGold + pot : opponentGold;
-          const msg = winner === 'player' ? `You Win ${pot} Gold!` : `${getNPCName(get().npcId)} Wins ${pot} Gold.`;
+          const msg = winner === 'player' ? `You Win ${formatPrice(pot)}!` : `${getNPCName(get().npcId)} Wins ${formatPrice(pot)}.`;
 
           if (winner === 'player') {
               playSound('GAMBIT_WIN');
               set({ opponentEmotion: 'angry' });
               setTimeout(() => set({ opponentEmotion: 'neutral' }), 4000);
               useAnimationStore.getState().spawnCoins(15, POS.POT, POS.PLAYER);
-              useAnimationStore.getState().triggerFloatingText(POS.PLAYER.x, POS.PLAYER.y, `+${pot}`, 'gold');
+              useAnimationStore.getState().triggerFloatingText(POS.PLAYER.x, POS.PLAYER.y, `+${formatPrice(pot)}`, 'gold');
           }
           if (winner === 'opponent') {
               playSound('GAMBIT_LOSS');
               set({ opponentEmotion: 'proud' });
               setTimeout(() => set({ opponentEmotion: 'neutral' }), 4000);
               useAnimationStore.getState().spawnCoins(15, POS.POT, POS.OPPONENT);
-              useAnimationStore.getState().triggerFloatingText(POS.OPPONENT.x, POS.OPPONENT.y, `+${pot}`, 'gold');
+              useAnimationStore.getState().triggerFloatingText(POS.OPPONENT.x, POS.OPPONENT.y, `+${formatPrice(pot)}`, 'gold');
           }
 
           const result = {
@@ -1030,39 +1033,40 @@ export const useGameStore = create<GameStore>((set, get) => ({
       if (effect.goldChange) {
           const { player, opponent, pot } = effect.goldChange;
 
-          let pDelta = player;
-          let oDelta = opponent;
+          let pDelta = (player || 0) * 100;
+          let oDelta = (opponent || 0) * 100;
+          const potDelta = (pot || 0) * 100;
 
-          if (pDelta && pDelta < -1 && state.playerSkill === 'bluff') pDelta += 1;
+          if (pDelta && pDelta < -100 && state.playerSkill === 'bluff') pDelta += 100;
 
           if (pDelta) {
              updates.playerGold = (state.playerGold || 0) + pDelta;
              if (pDelta > 0) {
-                 useAnimationStore.getState().spawnCoins(Math.min(5, pDelta), POS.POT, POS.PLAYER);
-                 useAnimationStore.getState().triggerFloatingText(POS.PLAYER.x, POS.PLAYER.y, `+${pDelta}`, 'gold');
+                 useAnimationStore.getState().spawnCoins(Math.min(5, pDelta / 100), POS.POT, POS.PLAYER);
+                 useAnimationStore.getState().triggerFloatingText(POS.PLAYER.x, POS.PLAYER.y, `+${formatPrice(pDelta)}`, 'gold');
              } else {
-                 useAnimationStore.getState().spawnCoins(Math.min(5, Math.abs(pDelta)), POS.PLAYER, POS.POT);
-                 useAnimationStore.getState().triggerFloatingText(POS.PLAYER.x, POS.PLAYER.y, `${pDelta}`, 'red');
+                 useAnimationStore.getState().spawnCoins(Math.min(5, Math.abs(pDelta) / 100), POS.PLAYER, POS.POT);
+                 useAnimationStore.getState().triggerFloatingText(POS.PLAYER.x, POS.PLAYER.y, `-${formatPrice(Math.abs(pDelta))}`, 'red');
              }
           }
 
           if (oDelta) {
               updates.opponentGold = (state.opponentGold || 0) + oDelta;
               if (oDelta > 0) {
-                  useAnimationStore.getState().spawnCoins(Math.min(5, oDelta), POS.POT, POS.OPPONENT);
-                  useAnimationStore.getState().triggerFloatingText(POS.OPPONENT.x, POS.OPPONENT.y, `+${oDelta}`, 'gold');
+                  useAnimationStore.getState().spawnCoins(Math.min(5, oDelta / 100), POS.POT, POS.OPPONENT);
+                  useAnimationStore.getState().triggerFloatingText(POS.OPPONENT.x, POS.OPPONENT.y, `+${formatPrice(oDelta)}`, 'gold');
               } else {
-                  useAnimationStore.getState().spawnCoins(Math.min(5, Math.abs(oDelta)), POS.OPPONENT, POS.POT);
-                  useAnimationStore.getState().triggerFloatingText(POS.OPPONENT.x, POS.OPPONENT.y, `${oDelta}`, 'red');
+                  useAnimationStore.getState().spawnCoins(Math.min(5, Math.abs(oDelta) / 100), POS.OPPONENT, POS.POT);
+                  useAnimationStore.getState().triggerFloatingText(POS.OPPONENT.x, POS.OPPONENT.y, `-${formatPrice(Math.abs(oDelta))}`, 'red');
               }
           }
 
-          if (pot) updates.pot = Math.max(0, (state.pot || 0) + pot);
+          if (potDelta) updates.pot = Math.max(0, (state.pot || 0) + potDelta);
 
-          if (pDelta && pDelta > 0 && pot && pot < 0 && state.playerSkill === 'sleight-of-hand') {
-              if (pDelta === 2) {
-                   updates.playerGold += 1;
-                   updates.pot -= 1;
+          if (pDelta && pDelta > 0 && potDelta && potDelta < 0 && state.playerSkill === 'sleight-of-hand') {
+              if (pDelta === 200) {
+                   updates.playerGold = (updates.playerGold || state.playerGold || 0) + 100;
+                   updates.pot = Math.max(0, (updates.pot || state.pot || 0) - 100);
                    get().addNotification("Sleight of Hand: +1 Gold.");
               }
           }
