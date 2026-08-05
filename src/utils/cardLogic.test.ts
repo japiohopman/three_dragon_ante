@@ -1,9 +1,36 @@
 
 import { describe, it, expect } from 'vitest';
 import { resolveCardPower } from './cardLogic';
-import { CardData, GameState } from '../types';
+import { CardData, GameState, PlayerState } from '../types';
 
 describe('resolveCardPower', () => {
+  const p0: PlayerState = {
+    id: 'player',
+    name: 'You',
+    isNpc: false,
+    gold: 5000,
+    hand: [],
+    flight: [],
+    ante: null,
+    emotion: 'neutral',
+    npcLine: '',
+    isTalking: false
+  };
+
+  const p1: PlayerState = {
+    id: 'npc_1',
+    name: 'Opponent',
+    isNpc: true,
+    npcId: 'female_alchemist_tabaxi',
+    gold: 5000,
+    hand: [],
+    flight: [],
+    ante: null,
+    emotion: 'neutral',
+    npcLine: '',
+    isTalking: false
+  };
+
   const mockState: GameState = {
     npcId: 'female_alchemist_tabaxi',
     phase: 'player-turn',
@@ -14,6 +41,12 @@ describe('resolveCardPower', () => {
     maxGambits: 3,
     gambitsPlayed: 0,
     playerSkill: 'none',
+
+    players: [p0, p1],
+    activePlayerIndex: 0,
+    currentLeaderIndex: 0,
+    focusedOpponentIndex: 1,
+
     playerGold: 5000,
     playerHand: [],
     playerFlight: [],
@@ -22,6 +55,9 @@ describe('resolveCardPower', () => {
     opponentHand: [],
     opponentFlight: [],
     opponentAnte: null,
+    opponentEmotion: 'neutral',
+    npcLine: '',
+    isTalking: false,
     currentLeader: 'player',
     activePlayer: 'player',
     lastCardPlayed: null,
@@ -30,9 +66,6 @@ describe('resolveCardPower', () => {
     pendingInteraction: null,
     notification: null,
     history: [],
-    opponentEmotion: 'neutral',
-    npcLine: '',
-    isTalking: false,
     characterStats: {
       strength: 10,
       dexterity: 10,

@@ -27,9 +27,23 @@ export interface StandardCardData {
   isFaceUp: boolean;
 }
 
-export type PlayerId = 'player' | 'opponent';
+export type PlayerId = string; // e.g. 'player', 'npc_1', 'npc_2', etc.
 
 export type PlayerSkill = 'none' | 'bluff' | 'sleight-of-hand' | 'concentration';
+
+export interface PlayerState {
+  id: PlayerId;
+  name: string;
+  isNpc: boolean;
+  npcId?: string;
+  gold: number;
+  hand: CardData[];
+  flight: BoardCard[];
+  ante: CardData | null;
+  emotion: NPCEmotion;
+  npcLine: string;
+  isTalking: boolean;
+}
 
 export type GamePhase =
   | 'lobby'
@@ -134,10 +148,16 @@ export interface ActiveSpecialRules {
   nextRoundLeader?: PlayerId; // Priest
 }
 
+export interface PlayerGambitScore {
+  playerId: PlayerId;
+  name: string;
+  strength: number;
+}
+
 export interface GambitResult {
-  winner: PlayerId | 'tie';
-  playerStrength: number;
-  opponentStrength: number;
+  winnerId: PlayerId | 'tie';
+  winnerName: string;
+  scores: PlayerGambitScore[];
   potWon: number;
   reason: string;
 }
@@ -188,7 +208,13 @@ export interface GameState {
   // RPG Elements
   playerSkill: PlayerSkill;
 
-  // Player State
+  // Multiplayer States
+  players: PlayerState[];
+  activePlayerIndex: number;
+  currentLeaderIndex: number;
+  focusedOpponentIndex: number; // For inspecting details of a specific AI player in HUD/TableTop
+
+  // Compatibility player-one states (synchronized with players[0])
   playerGold: number;
   playerHand: CardData[];
   playerFlight: BoardCard[];
@@ -203,11 +229,14 @@ export interface GameState {
     charisma: number;
   };
 
-  // Opponent State (Aldric)
+  // Compatibility opponent states (synchronized with players[focusedOpponentIndex])
   opponentGold: number;
   opponentHand: CardData[];
   opponentFlight: BoardCard[];
   opponentAnte: CardData | null;
+  opponentEmotion: NPCEmotion;
+  npcLine?: string;
+  isTalking?: boolean;
 
   // Round Logic
   currentLeader: PlayerId; // Who plays first this round
@@ -224,7 +253,4 @@ export interface GameState {
   // UI & Effects
   notification: Notification | null;
   history: string[]; // Log of actions
-  opponentEmotion: NPCEmotion;
-  npcLine?: string;
-  isTalking?: boolean;
 }

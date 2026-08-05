@@ -7,10 +7,14 @@ import Card from './Card';
 import NPC from '../../NPC';
 import { SPRITE_MAP, HAND_LIMIT } from '../../../utils/constants';
 import { NPC_LIST } from '../../../utils/npcConstants';
-import { formatPrice, formatWealth } from '../../../utils/currency';
+import { formatPrice, formatWealth, Money, fromCopper } from '../../../utils/currency';
+import { playSound } from '../../../services/soundService';
 
 const TableTop: React.FC = () => {
   const {
+    players,
+    focusedOpponentIndex,
+    setFocusedOpponentIndex,
     playerHand,
     opponentHand,
     playerFlight,
@@ -57,6 +61,34 @@ const TableTop: React.FC = () => {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const [showLog, setShowLog] = useState(false);
   const [browsingPile, setBrowsingPile] = useState<'deck' | 'discard' | null>(null);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [direction, setDirection] = useState(0);
+
+  // Helper to go to next opponent
+  const nextOpponent = () => {
+    if (players.length <= 2) return;
+    setDirection(1);
+    const nextIdx = focusedOpponentIndex === players.length - 1 ? 1 : focusedOpponentIndex + 1;
+    setFocusedOpponentIndex(nextIdx);
+    playSound('UI_CLICK');
+  };
+
+  // Helper to go to previous opponent
+  const prevOpponent = () => {
+    if (players.length <= 2) return;
+    setDirection(-1);
+    const prevIdx = focusedOpponentIndex === 1 ? players.length - 1 : focusedOpponentIndex - 1;
+    setFocusedOpponentIndex(prevIdx);
+    playSound('UI_CLICK');
+  };
+
+  const focusedOpponent = players[focusedOpponentIndex] || players[1];
+
+  React.useEffect(() => {
+    if (phase === 'opponent-turn' || (phase === 'round-start' && activePlayer !== 'player' && activePlayer !== null)) {
+      setIsDrawerOpen(true);
+    }
+  }, [phase, activePlayer]);
 
   const isPlayerTurn = (phase === 'player-turn' && activePlayer === 'player') ||
                        (phase === 'round-start' && currentLeader === 'player');
@@ -210,7 +242,7 @@ const TableTop: React.FC = () => {
                        {getIcon('ui', 'gold-coin', { size: 14, className: "text-amber-600" })}
                   </div>
                   {(() => {
-                      const oppWealth = formatWealth(opponentGold);
+                      const oppWealth: Money = fromCopper(opponentGold, true);
                       return (
                           <div className="grid grid-cols-5 gap-1 text-center">
                               <div className={`flex flex-col ${oppWealth.pp > 0 ? '' : 'opacity-30'}`}>
@@ -285,35 +317,62 @@ const TableTop: React.FC = () => {
             </div>
 
             {/* --- TABLE CONTENT --- */}
-            <div className="relative z-10 w-full h-full flex flex-col items-center py-8">
+            <div className="relative z-10 w-full h-full flex flex-col items-center py-6">
 
-                {/* OPPONENT FLIGHT */}
-                <div className="w-full h-1/4 flex flex-col items-center justify-start gap-2">
-                    <div className="relative w-full flex justify-center items-start h-20 pointer-events-none scale-75 origin-top opacity-80">
-                        <AnimatePresence>
-                            {opponentHand.map((card, i) => (
-                                <motion.div
-                                    key={card.id}
-                                    layoutId={card.id}
-                                    animate={getFanStyle(i, opponentHand.length, false)}
-                                    className="absolute origin-top"
-                                >
-                                    <Card card={card} isFaceUp={false} disabled size="sm" />
-                                </motion.div>
-                            ))}
-                        </AnimatePresence>
-                    </div>
-                    <div className="flex justify-center gap-3 h-24 mt-[-15px]">
-                        {opponentFlight.map((card) => (
-                            <motion.div key={card.id} layoutId={card.id} className="transform scale-[0.75] origin-top hover:scale-95 transition-transform">
-                                <Card card={card} size="sm" glow={lastCardPlayed?.id === card.id ? 'red' : 'none'} />
-                            </motion.div>
-                        ))}
-                    </div>
+                {/* MULTIPLAYER SEATS */}
+                <div className="w-full flex justify-center gap-4 px-6 mb-4 min-h-[140px] pointer-events-auto">
+                    {players.slice(1).map((opp, index) => {
+                        const actualIdx = index + 1;
+                        const isFocused = actualIdx === focusedOpponentIndex;
+                        const isTurn = activePlayer === opp.id;
+
+                        return (
+                           <div
+                              key={opp.id}
+                              onClick={() => {
+                                  setFocusedOpponentIndex(actualIdx);
+                                  setIsDrawerOpen(true);
+                              }}
+                              className={`cursor-pointer transition-all p-2.5 rounded-xl flex flex-col items-center gap-1.5 w-32 sm:w-36 border-2 relative
+                                  ${isFocused ? 'bg-amber-950/30 border-amber-500 shadow-[0_0_15px_rgba(245,158,11,0.15)]' : 'bg-stone-900/60 border-stone-800 hover:border-stone-700'}
+                                  ${isTurn ? 'ring-2 ring-amber-500 ring-offset-2 ring-offset-stone-900 animate-pulse animate-duration-1000' : ''}
+                              `}
+                           >
+                               <div className="flex items-center gap-1">
+                                   <span className={`text-[11px] font-serif truncate max-w-[80px] ${isFocused ? 'text-amber-400 font-bold' : 'text-stone-300'}`}>
+                                       {opp.name}
+                                   </span>
+                                   {currentLeader === opp.id && getIcon('ui', 'crown', { size: 9, className: "text-amber-400" })}
+                               </div>
+
+                               <div className="flex items-center gap-1 bg-stone-950/60 px-1.5 py-0.5 rounded border border-stone-850">
+                                   {getIcon('ui', 'hand', { size: 9, className: "text-stone-500" })}
+                                   <span className="text-[9px] font-mono text-stone-400 font-bold">{opp.hand.length}</span>
+                               </div>
+
+                               <div className="flex justify-center gap-0.5 min-h-[40px] items-center">
+                                   {opp.flight.map((c) => (
+                                       <div key={c.id} className="transform scale-[0.4] w-6 h-8 flex items-center justify-center -mx-1.5">
+                                           <Card card={c} size="sm" glow={lastCardPlayed?.id === c.id ? 'red' : 'none'} disabled />
+                                       </div>
+                                   ))}
+                                   {opp.flight.length === 0 && (
+                                       <span className="text-[8px] text-stone-600 uppercase font-bold tracking-widest italic opacity-40">No Flight</span>
+                                   )}
+                               </div>
+
+                               {opp.isTalking && (
+                                   <div className="absolute -bottom-2 bg-stone-100 text-stone-950 px-1.5 py-0.5 rounded text-[8px] border border-stone-800 shadow-md max-w-[100px] truncate">
+                                       "{opp.npcLine}"
+                                   </div>
+                               )}
+                           </div>
+                        );
+                    })}
                 </div>
 
                 {/* BATTLEGROUND */}
-                <div className="flex-1 w-full flex items-center justify-center gap-16">
+                <div className="flex-1 w-full flex items-center justify-center gap-16 py-2">
                     <div className={`w-28 h-36 border-2 rounded-tl-[35px] rounded-br-[35px] flex items-center justify-center transition-all bg-black/30 ${opponentAnte ? 'border-amber-600/60 shadow-[0_0_30px_rgba(0,0,0,0.8)]' : 'border-stone-800/40'}`}>
                         {opponentAnte ? <motion.div key={opponentAnte.id} initial={{ opacity: 0, scale: 0.5 }} animate={{ opacity: 1, scale: 0.85 }}><Card card={opponentAnte} isFaceUp={phase !== 'ante-selection'} size="sm" /></motion.div> : <span className="text-[10px] text-stone-700 uppercase font-bold tracking-widest opacity-40">Opponent Ante</span>}
                     </div>
@@ -409,9 +468,20 @@ const TableTop: React.FC = () => {
                        {getIcon('ui', 'scroll', { size: 12, className: "text-amber-700" })}
                        <span className="text-[10px] uppercase font-bold tracking-widest text-stone-500">Tavern Records</span>
                    </div>
-                   <button onClick={() => setShowLog(!showLog)} className="text-[9px] uppercase tracking-widest text-amber-600 hover:text-amber-400 font-bold px-2 py-1 border border-amber-900/20 rounded-md transition-colors">
-                       {showLog ? 'Hide' : 'Show'}
-                   </button>
+                   <div className="flex gap-2">
+                       <button
+                           onClick={() => {
+                               playSound('UI_CLICK');
+                               setIsDrawerOpen(true);
+                           }}
+                           className="text-[9px] uppercase tracking-widest text-amber-500 hover:text-amber-400 font-bold px-2.5 py-1 border border-stone-800 hover:border-amber-500/50 bg-amber-950/20 rounded-md transition-colors flex items-center gap-1.5"
+                       >
+                           {getIcon('ui', 'search', { size: 10 })} Inspect
+                       </button>
+                       <button onClick={() => setShowLog(!showLog)} className="text-[9px] uppercase tracking-widest text-stone-500 hover:text-stone-400 font-bold px-2 py-1 border border-stone-800 rounded-md transition-colors">
+                           {showLog ? 'Hide' : 'Show'}
+                       </button>
+                   </div>
               </div>
               <div className={`flex-1 overflow-y-auto p-6 space-y-4 custom-scrollbar transition-opacity duration-300 ${showLog ? 'opacity-100' : 'opacity-0'}`}>
                   {useGameStore.getState().history.slice().reverse().map((entry, idx) => (
@@ -509,6 +579,186 @@ const TableTop: React.FC = () => {
                     </div>
                 </div>
             </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* 4. SLIDE-OUT OPPONENTS CAROUSEL DRAWER */}
+      <AnimatePresence>
+        {isDrawerOpen && focusedOpponent && (
+          <motion.div
+            initial={{ x: '100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '100%' }}
+            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+            className="absolute top-0 right-0 w-96 sm:w-[420px] h-full border-l border-stone-800 bg-stone-950/98 backdrop-blur-2xl shadow-[-20px_0_50px_rgba(0,0,0,0.85)] z-[140] flex flex-col pointer-events-auto"
+          >
+              {/* Drawer Header with Navigation */}
+              <div className="p-6 border-b border-stone-800 flex items-center justify-between bg-stone-900/40">
+                  <button
+                    onClick={prevOpponent}
+                    disabled={players.length <= 2}
+                    className="p-2 hover:bg-stone-800 disabled:opacity-30 disabled:cursor-not-allowed rounded-lg border border-stone-800 hover:border-stone-700 transition-colors text-amber-500"
+                    title="Previous Opponent"
+                  >
+                      {getIcon('ui', 'chevron_left', { size: 18 })}
+                  </button>
+
+                  <div className="text-center flex flex-col">
+                      <span className="text-[9px] uppercase tracking-[0.3em] text-stone-500 font-bold mb-0.5">Inspecting Opponent</span>
+                      <span className="text-lg text-amber-100 font-serif font-bold uppercase tracking-widest">{focusedOpponent.name}</span>
+                  </div>
+
+                  <button
+                    onClick={nextOpponent}
+                    disabled={players.length <= 2}
+                    className="p-2 hover:bg-stone-800 disabled:opacity-30 disabled:cursor-not-allowed rounded-lg border border-stone-800 hover:border-stone-700 transition-colors text-amber-500"
+                    title="Next Opponent"
+                  >
+                      {getIcon('ui', 'chevron_right', { size: 18 })}
+                  </button>
+              </div>
+
+              {/* Drawer Body - Panning Area */}
+              <div className="flex-1 overflow-y-auto custom-scrollbar p-6 flex flex-col gap-6 relative overflow-x-hidden">
+
+                  {/* Panning Container */}
+                  <AnimatePresence initial={false} custom={direction}>
+                      <motion.div
+                        key={focusedOpponent.id}
+                        custom={direction}
+                        variants={{
+                          enter: (dir: number) => ({
+                            x: dir > 0 ? 150 : -150,
+                            opacity: 0
+                          }),
+                          center: {
+                            x: 0,
+                            opacity: 1
+                          },
+                          exit: (dir: number) => ({
+                            x: dir < 0 ? 150 : -150,
+                            opacity: 0
+                          })
+                        }}
+                        initial="enter"
+                        animate="center"
+                        exit="exit"
+                        transition={{ type: 'tween', duration: 0.2 }}
+                        className="flex flex-col gap-6 w-full"
+                      >
+                          {/* Animated NPC Avatar */}
+                          <div className="relative w-full aspect-[4/3] rounded-xl border-2 border-stone-800 bg-stone-900 overflow-hidden shadow-lg">
+                              <NPC
+                                npc={NPC_LIST.find(n => n.id === focusedOpponent.npcId) || NPC_LIST[0]}
+                                emotion={focusedOpponent.emotion || 'neutral'}
+                                width={400}
+                                height={300}
+                                className="w-full h-full object-cover"
+                              />
+                              {activePlayer === focusedOpponent.id && (
+                                  <div className="absolute top-3 right-3 bg-amber-600/90 rounded-full p-2 border border-amber-400 shadow-xl animate-pulse">
+                                      {getIcon('ui', 'thinking', { size: 16, className: "text-stone-950" })}
+                                  </div>
+                              )}
+                          </div>
+
+                          {/* Coinage Purse */}
+                          <div className="bg-stone-900/60 rounded-xl p-4 border border-stone-800">
+                              <div className="flex items-center justify-between mb-2 border-b border-stone-800 pb-1">
+                                   <span className="text-[9px] text-stone-500 uppercase font-bold tracking-widest">Enemy Purse</span>
+                                   {getIcon('ui', 'gold-coin', { size: 12, className: "text-amber-500" })}
+                              </div>
+                              {(() => {
+                                  const oppWealth: Money = fromCopper(focusedOpponent.gold, true);
+                                  return (
+                                      <div className="grid grid-cols-5 gap-1 text-center">
+                                          <div className={`flex flex-col ${oppWealth.pp > 0 ? '' : 'opacity-30'}`}>
+                                              <span className="text-[8px] uppercase text-stone-500 font-bold">PP</span>
+                                              <span className="font-gothic text-xs text-slate-200">{oppWealth.pp}</span>
+                                          </div>
+                                          <div className={`flex flex-col ${oppWealth.gp > 0 ? '' : 'opacity-30'}`}>
+                                              <span className="text-[8px] uppercase text-stone-500 font-bold">GP</span>
+                                              <span className="font-gothic text-xs text-amber-500">{oppWealth.gp}</span>
+                                          </div>
+                                          <div className={`flex flex-col ${oppWealth.ep > 0 ? '' : 'opacity-30'}`}>
+                                              <span className="text-[8px] uppercase text-stone-500 font-bold">EP</span>
+                                              <span className="font-gothic text-xs text-cyan-500">{oppWealth.ep}</span>
+                                          </div>
+                                          <div className={`flex flex-col ${oppWealth.sp > 0 ? '' : 'opacity-30'}`}>
+                                              <span className="text-[8px] uppercase text-stone-500 font-bold">SP</span>
+                                              <span className="font-gothic text-xs text-stone-400">{oppWealth.sp}</span>
+                                          </div>
+                                          <div className={`flex flex-col ${oppWealth.cp > 0 ? '' : 'opacity-30'}`}>
+                                              <span className="text-[8px] uppercase text-stone-500 font-bold">CP</span>
+                                              <span className="font-gothic text-xs text-amber-700">{oppWealth.cp}</span>
+                                          </div>
+                                      </div>
+                                  );
+                              })()}
+                          </div>
+
+                          {/* Ante & Flight Section */}
+                          <div className="grid grid-cols-2 gap-4">
+                              {/* Ante Card */}
+                              <div className="flex flex-col items-center">
+                                  <span className="text-[9px] uppercase tracking-wider text-stone-500 font-bold mb-2">Ante Card</span>
+                                  {focusedOpponent.ante ? (
+                                      <Card card={focusedOpponent.ante} size="sm" isFaceUp={phase !== 'ante-selection'} />
+                                  ) : (
+                                      <div className="w-24 h-32 border-2 border-dashed border-stone-800 rounded-lg flex items-center justify-center bg-stone-900/20">
+                                          <span className="text-[8px] text-stone-600 uppercase font-bold tracking-widest">No Ante</span>
+                                      </div>
+                                  )}
+                              </div>
+
+                              {/* Hand Count */}
+                              <div className="flex flex-col items-center">
+                                  <span className="text-[9px] uppercase tracking-wider text-stone-500 font-bold mb-2">Hand Size</span>
+                                  <div className="flex flex-col items-center justify-center h-32 w-24 bg-stone-900/30 border border-stone-800 rounded-xl relative overflow-hidden">
+                                      <span className="text-4xl font-gothic text-stone-300 mb-1">{focusedOpponent.hand.length}</span>
+                                      <span className="text-[8px] text-stone-500 uppercase tracking-widest font-bold">Cards</span>
+                                      {/* Face down cards overlay effect */}
+                                      <div className="absolute -bottom-8 opacity-10 flex gap-1">
+                                          <div className="w-8 h-12 bg-amber-900 rounded transform rotate-[-10deg]" />
+                                          <div className="w-8 h-12 bg-amber-900 rounded transform rotate-[10deg]" />
+                                      </div>
+                                  </div>
+                              </div>
+                          </div>
+
+                          {/* Flight Cards list */}
+                          <div className="flex flex-col">
+                              <span className="text-[9px] uppercase tracking-wider text-stone-500 font-bold mb-3">Flight Played</span>
+                              <div className="flex flex-wrap gap-2.5 justify-center py-2 bg-stone-900/20 rounded-xl border border-stone-800 min-h-[100px] items-center px-4">
+                                  {focusedOpponent.flight.map((c) => (
+                                      <div key={c.id} className="transform hover:scale-105 transition-transform">
+                                          <Card card={c} size="sm" glow={lastCardPlayed?.id === c.id ? 'red' : 'none'} />
+                                      </div>
+                                  ))}
+                                  {focusedOpponent.flight.length === 0 && (
+                                      <span className="text-[10px] text-stone-600 uppercase font-bold tracking-widest italic">Flight is empty</span>
+                                  )}
+                              </div>
+                          </div>
+
+                      </motion.div>
+                  </AnimatePresence>
+
+              </div>
+
+              {/* Drawer Footer with close button */}
+              <div className="p-4 border-t border-stone-800 flex justify-center bg-stone-900/20">
+                  <button
+                    onClick={() => {
+                        playSound('UI_CLICK');
+                        setIsDrawerOpen(false);
+                    }}
+                    className="w-full py-3 bg-stone-800 hover:bg-stone-700 text-stone-300 hover:text-white rounded-lg border border-stone-700 transition-all text-xs font-bold uppercase tracking-widest"
+                  >
+                      Close Inspector
+                  </button>
+              </div>
           </motion.div>
         )}
       </AnimatePresence>
