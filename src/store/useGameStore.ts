@@ -1,6 +1,5 @@
-
 import { create } from 'zustand';
-import { GameState, CardData, PlayerId, GamePhase, GameEffect, InteractionRequest, BoardCard, PlayerSkill, NPCData } from '../types';
+import { GameState, CardData, PlayerId, GamePhase, GameEffect, InteractionRequest, BoardCard, PlayerSkill, NPCData, PlayerState, NPCEmotion } from '../types';
 import { generateDeck, shuffle, HAND_LIMIT } from '../utils/constants';
 import { resolveCardPower, checkFlightFormation } from '../utils/cardLogic';
 import { useAnimationStore, SpecialEffectType } from './useAnimationStore';
@@ -10,7 +9,7 @@ import { getNPCPersona } from '../constants/npcLines';
 import { formatPrice } from '../utils/currency';
 
 interface GameStore extends GameState {
-  startGame: (duration: number, skill: PlayerSkill) => void;
+  startGame: (duration: number, skill: PlayerSkill, opponentCount?: number) => void;
   startNextGambit: () => void;
   selectAnte: (cardId: string) => void;
   resolveAnte: () => void;
@@ -29,14 +28,19 @@ interface GameStore extends GameState {
   resetGame: () => void;
   setNPC: (npcId: string) => void;
   speak: (line: string, duration?: number, dynamic?: boolean) => void;
+  setFocusedOpponentIndex: (index: number) => void;
 }
 
 // DYNAMIC SCREEN COORDINATES
-const getPos = () => ({
-  PLAYER: { x: window.innerWidth / 2, y: window.innerHeight - 150 },
-  OPPONENT: { x: window.innerWidth / 2, y: 150 },
-  POT: { x: window.innerWidth / 2, y: window.innerHeight / 2 },
-});
+const getPos = (playerIndex: number, totalPlayers: number) => {
+  if (playerIndex === 0) {
+    return { x: window.innerWidth / 2, y: window.innerHeight - 150 };
+  }
+  const opponentCount = totalPlayers - 1;
+  const slotWidth = window.innerWidth / (opponentCount + 1);
+  const x = slotWidth * playerIndex;
+  return { x, y: 150 };
+};
 
 const getInitialState = (): GameState => ({
   npcId: 'female_alchemist_tabaxi',
@@ -48,14 +52,25 @@ const getInitialState = (): GameState => ({
   maxGambits: 3,
   gambitsPlayed: 0,
   playerSkill: 'none',
+
+  players: [],
+  activePlayerIndex: 0,
+  currentLeaderIndex: 0,
+  focusedOpponentIndex: 1,
+
   playerGold: 5000,
   playerHand: [],
   playerFlight: [],
   playerAnte: null,
+
   opponentGold: 5000,
   opponentHand: [],
   opponentFlight: [],
   opponentAnte: null,
+  opponentEmotion: 'neutral',
+  npcLine: '',
+  isTalking: false,
+
   currentLeader: 'player',
   activePlayer: 'player',
   lastCardPlayed: null,
@@ -64,9 +79,6 @@ const getInitialState = (): GameState => ({
   pendingInteraction: null,
   notification: null,
   history: [],
-  opponentEmotion: 'neutral',
-  npcLine: '',
-  isTalking: false,
   characterStats: {
     strength: 10,
     dexterity: 14,
@@ -75,11 +87,6 @@ const getInitialState = (): GameState => ({
     charisma: 16
   }
 });
-
-const getNPCName = (npcId?: string) => {
-    if (!npcId) return 'Opponent';
-    return NPC_LIST.find(n => n.id === npcId)?.name || 'Opponent';
-};
 
 const determineSpecialEffect = (card: CardData): SpecialEffectType => {
     const name = card.name.toLowerCase();
@@ -95,7 +102,50 @@ const determineSpecialEffect = (card: CardData): SpecialEffectType => {
     return null;
 };
 
-export const useGameStore = create<GameStore>((set, get) => ({
+export const useGameStore = create<GameStore>((set, get) => {
+
+  // Helper to synchronize array states to compatibility layer
+  const syncCompatibility = (draft: Partial<GameState>) => {
+    const players = draft.players || get().players;
+    if (!players || players.length === 0) return draft;
+
+    const focusedIdx = draft.focusedOpponentIndex !== undefined ? draft.focusedOpponentIndex : get().focusedOpponentIndex;
+    const safeFocusedIdx = (focusedIdx >= 1 && focusedIdx < players.length) ? focusedIdx : 1;
+
+    const p0 = players[0];
+    const op = players[safeFocusedIdx] || players[1] || p0;
+
+    const activeIndex = draft.activePlayerIndex !== undefined ? draft.activePlayerIndex : get().activePlayerIndex;
+    const activeId = players[activeIndex]?.id || 'player';
+
+    const leaderIndex = draft.currentLeaderIndex !== undefined ? draft.currentLeaderIndex : get().currentLeaderIndex;
+    const leaderId = players[leaderIndex]?.id || 'player';
+
+    return {
+      ...draft,
+      players,
+      focusedOpponentIndex: safeFocusedIdx,
+
+      playerGold: p0.gold,
+      playerHand: p0.hand,
+      playerFlight: p0.flight,
+      playerAnte: p0.ante,
+
+      opponentGold: op.gold,
+      opponentHand: op.hand,
+      opponentFlight: op.flight,
+      opponentAnte: op.ante,
+      opponentEmotion: op.emotion,
+      npcLine: op.npcLine,
+      isTalking: op.isTalking,
+      npcId: op.npcId || 'female_alchemist_tabaxi',
+
+      activePlayer: activeId,
+      currentLeader: leaderId
+    };
+  };
+
+  return {
   ...getInitialState(),
 
   resetGame: () => {
@@ -106,36 +156,57 @@ export const useGameStore = create<GameStore>((set, get) => ({
     set({ npcId });
   },
 
+  setFocusedOpponentIndex: (index: number) => {
+    const { players } = get();
+    if (index >= 1 && index < players.length) {
+      set(syncCompatibility({ focusedOpponentIndex: index }));
+    }
+  },
+
   speak: (line: string, duration: number = 3000, dynamic: boolean = false) => {
+    const state = get();
+    const focusedIdx = state.focusedOpponentIndex;
+    const op = state.players[focusedIdx];
+    if (!op) return;
+
     let finalLine = line;
-    let emotion: any = 'neutral';
+    let emotion: NPCEmotion = 'neutral';
 
-    if (dynamic) {
-        const state = get();
-        const currentNPC = NPC_LIST.find(n => n.id === state.npcId);
-        if (currentNPC) {
-            const persona = getNPCPersona(currentNPC.id);
+    if (dynamic && op.npcId) {
+        const persona = getNPCPersona(op.npcId);
+        let seedType: 'start' | 'power' | 'victory' | 'defeat' | 'thinking' = 'thinking';
+        const lowerLine = line.toLowerCase();
 
-            // Map the event string to a persona seed category
-            let seedType: 'start' | 'power' | 'victory' | 'defeat' | 'thinking' = 'thinking';
-            const lowerLine = line.toLowerCase();
+        if (lowerLine.includes('power')) { seedType = 'power'; emotion = 'surprised'; }
+        else if (lowerLine.includes('win') || lowerLine.includes('victory') || lowerLine.includes('triumph')) { seedType = 'victory'; emotion = 'happy'; }
+        else if (lowerLine.includes('loss') || lowerLine.includes('lost') || lowerLine.includes('defeat')) { seedType = 'defeat'; emotion = 'sad'; }
+        else if (lowerLine.includes('start') || lowerLine.includes('ante')) { seedType = 'start'; emotion = 'curious'; }
+        else if (lowerLine.includes('thinking')) { seedType = 'thinking'; emotion = 'skeptical'; }
 
-            if (lowerLine.includes('power')) { seedType = 'power'; emotion = 'surprised'; }
-            else if (lowerLine.includes('win') || lowerLine.includes('victory') || lowerLine.includes('triumph')) { seedType = 'victory'; emotion = 'happy'; }
-            else if (lowerLine.includes('loss') || lowerLine.includes('lost') || lowerLine.includes('defeat')) { seedType = 'defeat'; emotion = 'sad'; }
-            else if (lowerLine.includes('start') || lowerLine.includes('ante')) { seedType = 'start'; emotion = 'curious'; }
-            else if (lowerLine.includes('thinking')) { seedType = 'thinking'; emotion = 'skeptical'; }
-
-            const options = persona.seeds[seedType];
-            finalLine = options[Math.floor(Math.random() * options.length)];
-        }
+        const options = persona.seeds[seedType];
+        finalLine = options[Math.floor(Math.random() * options.length)];
     }
 
-    set({ npcLine: finalLine, isTalking: true, opponentEmotion: emotion });
+    const updatedPlayers = state.players.map((p, idx) => {
+       if (idx === focusedIdx) {
+          return { ...p, npcLine: finalLine, isTalking: true, emotion };
+       }
+       return p;
+    });
+
+    set(syncCompatibility({ players: updatedPlayers }));
+
     setTimeout(() => {
-      const current = get().npcLine;
-      if (current === finalLine) {
-        set({ isTalking: false });
+      const currentState = get();
+      const currentOp = currentState.players[focusedIdx];
+      if (currentOp && currentOp.npcLine === finalLine) {
+         const resetPlayers = currentState.players.map((p, idx) => {
+           if (idx === focusedIdx) {
+              return { ...p, isTalking: false };
+           }
+           return p;
+         });
+         set(syncCompatibility({ players: resetPlayers }));
       }
     }, duration);
   },
@@ -151,26 +222,59 @@ export const useGameStore = create<GameStore>((set, get) => ({
     }, duration);
   },
 
-  startGame: (duration: number, skill: PlayerSkill) => {
+  startGame: (duration: number, skill: PlayerSkill, opponentCount: number = 1) => {
     const deck = generateDeck();
-    const playerHand = deck.splice(0, 6);
-    const opponentHand = deck.splice(0, 6);
-    const currentNpcId = get().npcId;
+
+    // Choose unique NPCs from NPC_LIST
+    const shuffledNPCs = [...NPC_LIST].sort(() => Math.random() - 0.5);
+    const activeNPCs = shuffledNPCs.slice(0, Math.max(1, Math.min(5, opponentCount)));
+
+    const players: PlayerState[] = [
+      {
+        id: 'player',
+        name: 'You',
+        isNpc: false,
+        gold: 5000,
+        hand: deck.splice(0, 6),
+        flight: [],
+        ante: null,
+        emotion: 'neutral',
+        npcLine: '',
+        isTalking: false
+      }
+    ];
+
+    activeNPCs.forEach((npc, idx) => {
+      players.push({
+        id: `npc_${idx + 1}`,
+        name: npc.name,
+        isNpc: true,
+        npcId: npc.id,
+        gold: 5000,
+        hand: deck.splice(0, 6),
+        flight: [],
+        ante: null,
+        emotion: 'neutral',
+        npcLine: '',
+        isTalking: false
+      });
+    });
 
     playSound('CARD_SHUFFLE');
 
-    set({
+    set(syncCompatibility({
       ...getInitialState(),
-      npcId: currentNpcId,
+      players,
+      activePlayerIndex: 0,
+      currentLeaderIndex: 0,
+      focusedOpponentIndex: 1,
       maxGambits: duration,
       gambitsPlayed: 0,
       playerSkill: skill,
       phase: 'ante-selection',
       deck,
-      playerHand,
-      opponentHand,
       history: [`Match started! Duration: ${duration} Gambits. Skill: ${skill}. Select a card to Ante.`]
-    });
+    }));
   },
 
   ensureDeckSupply: (minNeeded: number = 1) => {
@@ -193,10 +297,10 @@ export const useGameStore = create<GameStore>((set, get) => ({
   },
 
   checkHandLimit: (player: PlayerId) => {
-      const { playerHand, opponentHand } = get();
-      const hand = player === 'player' ? playerHand : opponentHand;
-      if (hand.length >= HAND_LIMIT) {
-          get().addNotification(`${player === 'player' ? 'Your' : getNPCName(get().npcId) + "'s"} hand is full!`, 'alert');
+      const { players } = get();
+      const pState = players.find(p => p.id === player);
+      if (pState && pState.hand.length >= HAND_LIMIT) {
+          get().addNotification(`${pState.isNpc ? pState.name + "'s" : 'Your'} hand is full!`, 'alert');
           return true;
       }
       return false;
@@ -209,12 +313,9 @@ export const useGameStore = create<GameStore>((set, get) => ({
           set({ pendingInteraction: null });
           msg = "Forced Interaction clear.";
       }
-      if ((state.phase === 'player-turn' || state.phase === 'round-start') && state.activePlayer !== 'player') {
-          if (state.currentLeader === 'player' && state.phase === 'round-start') {
-              set({ activePlayer: 'player' });
-              msg = "Fixed: Set Active Player to You.";
-          }
-          else if (state.activePlayer === 'opponent') {
+      if (state.phase === 'player-turn' || state.phase === 'round-start') {
+          const activeP = state.players[state.activePlayerIndex];
+          if (activeP && activeP.isNpc) {
               get().aiTurn();
               msg = "Forced AI Turn.";
           }
@@ -228,150 +329,175 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   startNextGambit: () => {
     get().ensureDeckSupply(10);
-    const { deck, discardPile, playerHand, opponentHand, playerGold, opponentGold, playerSkill } = get();
+    const { deck, discardPile, players, playerSkill } = get();
 
-    set({
+    const resetPlayers = players.map(p => ({
+        ...p,
+        flight: [],
+        ante: null,
+        isTalking: false,
+        emotion: 'neutral' as NPCEmotion
+    }));
+
+    set(syncCompatibility({
         phase: 'ante-selection',
         round: 1,
         pot: 0,
         deck,
         discardPile,
-        playerHand,
-        opponentHand,
-        playerGold,
-        opponentGold,
+        players: resetPlayers,
         playerSkill,
-        playerFlight: [],
-        opponentFlight: [],
-        playerAnte: null,
-        opponentAnte: null,
         activeSpecialRules: {},
         pendingInteraction: null,
         lastCardPlayed: null,
         gambitResult: null,
         notification: { message: "New Gambit Begins!", type: 'info' }
-    });
+    }));
   },
 
   selectAnte: (cardId: string) => {
-    const { playerHand, opponentHand } = get();
-    const pCardIndex = playerHand.findIndex(c => c.id === cardId);
+    const { players } = get();
+    const p0 = players[0];
+    const pCardIndex = p0.hand.findIndex(c => c.id === cardId);
     if (pCardIndex === -1) return;
-    const pCard = playerHand[pCardIndex];
-    const newPlayerHand = [...playerHand];
-    newPlayerHand.splice(pCardIndex, 1);
 
-    const sortedAi = [...opponentHand].sort((a, b) => b.strength - a.strength);
-    const aiCard = sortedAi[0];
-    const aiCardIndex = opponentHand.findIndex(c => c.id === aiCard.id);
-    const newOpponentHand = [...opponentHand];
-    newOpponentHand.splice(aiCardIndex, 1);
+    const pCard = p0.hand[pCardIndex];
+    const newPHand = [...p0.hand];
+    newPHand.splice(pCardIndex, 1);
+
+    const updatedPlayers = players.map((p, idx) => {
+        if (idx === 0) {
+            return { ...p, hand: newPHand, ante: pCard };
+        } else {
+            // AI chooses their highest strength card as Ante
+            const sortedAi = [...p.hand].sort((a, b) => b.strength - a.strength);
+            const aiCard = sortedAi[0];
+            const aiCardIndex = p.hand.findIndex(c => c.id === aiCard.id);
+            const newAiHand = [...p.hand];
+            newAiHand.splice(aiCardIndex, 1);
+            return { ...p, hand: newAiHand, ante: aiCard };
+        }
+    });
 
     playSound('CARD_FLIP');
 
-    set({
-      playerAnte: pCard,
-      playerHand: newPlayerHand,
-      opponentAnte: aiCard,
-      opponentHand: newOpponentHand,
+    set(syncCompatibility({
+      players: updatedPlayers,
       phase: 'ante-reveal'
-    });
+    }));
 
     setTimeout(() => get().resolveAnte(), 1000);
   },
 
   resolveAnte: () => {
-    const { playerAnte, opponentAnte, playerGold, opponentGold, playerSkill } = get();
-    if (!playerAnte || !opponentAnte) return;
+    const { players, playerSkill } = get();
+    const activeAntes = players.map(p => p.ante).filter(Boolean) as CardData[];
+    if (activeAntes.length < players.length) return;
 
-    const leader: PlayerId = playerAnte.strength >= opponentAnte.strength ? 'player' : 'opponent';
-    const baseStake = Math.max(playerAnte.strength, opponentAnte.strength);
+    // Highest strength determines base stake
+    const baseStake = Math.max(...activeAntes.map(c => c.strength));
 
-    const playerStake = (playerSkill === 'concentration' ? Math.max(0, baseStake - 1) : baseStake) * 100;
-    const opponentStake = baseStake * 100;
+    // Determine the Leader index (highest strength ante card; player wins ties)
+    let bestLeaderIndex = 0;
+    let maxAnteStrength = -1;
 
-    let msg = `Ante Reveal! Stake: ${formatPrice(baseStake * 100)}.`;
+    players.forEach((p, idx) => {
+       if (p.ante && p.ante.strength > maxAnteStrength) {
+           maxAnteStrength = p.ante.strength;
+           bestLeaderIndex = idx;
+       }
+    });
+
+    const leaderId = players[bestLeaderIndex].id;
+
+    // Deduct stakes
+    let totalStakeGold = 0;
+    const updatedPlayers = players.map((p, idx) => {
+       let stake = baseStake * 100;
+       if (idx === 0 && playerSkill === 'concentration') {
+          stake = Math.max(0, baseStake - 1) * 100;
+       }
+       totalStakeGold += stake;
+
+       const POS = getPos(idx, players.length);
+       useAnimationStore.getState().spawnCoins(5, POS, { x: window.innerWidth / 2, y: window.innerHeight / 2 });
+       useAnimationStore.getState().triggerFloatingText(POS.x, POS.y, `-${formatPrice(stake)}`, 'red');
+
+       return { ...p, gold: p.gold - stake };
+    });
+
+    let msg = `Antes Revealed! Base Stake: ${formatPrice(baseStake * 100)}.`;
     if (playerSkill === 'concentration') {
         msg += " (Concentration)";
     }
 
     get().addNotification(msg);
-
     playSound('GOLD_LOSS');
 
-    const POS = getPos();
-    // Visual Effects
-    useAnimationStore.getState().spawnCoins(5, POS.PLAYER, POS.POT);
-    useAnimationStore.getState().triggerFloatingText(POS.PLAYER.x, POS.PLAYER.y, `-${formatPrice(playerStake)}`, 'red');
-
-    useAnimationStore.getState().spawnCoins(5, POS.OPPONENT, POS.POT);
-    useAnimationStore.getState().triggerFloatingText(POS.OPPONENT.x, POS.OPPONENT.y, `-${formatPrice(opponentStake)}`, 'red');
-
-    // Trigger flash on strong ante collision
     if (baseStake >= 10) useAnimationStore.getState().triggerFlash('rgba(255, 204, 21, 0.3)');
 
-    set((state) => ({
+    set(syncCompatibility({
       phase: 'round-start',
-      currentLeader: leader,
-      activePlayer: leader,
-      pot: state.pot + playerStake + opponentStake,
-      playerGold: state.playerGold - playerStake,
-      opponentGold: state.opponentGold - opponentStake,
-      history: [...state.history, msg]
+      currentLeaderIndex: bestLeaderIndex,
+      activePlayerIndex: bestLeaderIndex,
+      pot: get().pot + totalStakeGold,
+      players: updatedPlayers,
+      history: [...get().history, msg]
     }));
 
-    if (leader === 'player') playSound('TURN_START_PLAYER');
-    else playSound('TURN_START_AI');
+    const nextActive = players[bestLeaderIndex];
+    if (!nextActive.isNpc) {
+       playSound('TURN_START_PLAYER');
+    } else {
+       playSound('TURN_START_AI');
+    }
 
-    useAnimationStore.setState({ activePlayer: leader });
-    useAnimationStore.getState().triggerTurnBanner(leader, 1500);
+    useAnimationStore.setState({ activePlayer: nextActive.id });
+    useAnimationStore.getState().triggerTurnBanner(nextActive.id, 1500);
 
-    if (leader === 'opponent') {
+    if (nextActive.isNpc) {
       setTimeout(() => get().aiTurn(), 1500);
     }
   },
 
   playCard: (cardId: string) => {
     const state = get();
-    let { phase, activePlayer, playerHand, round, lastCardPlayed, playerFlight, pendingInteraction, currentLeader } = state;
-
-    if ((phase === 'round-start' && currentLeader === 'player' && activePlayer !== 'player') ||
-        (phase === 'player-turn' && activePlayer !== 'player')) {
-            get().addNotification("Synchronizing Turn State...", 'info');
-            set({ activePlayer: 'player' });
-            activePlayer = 'player';
-    }
+    let { phase, activePlayerIndex, players, round, lastCardPlayed, pendingInteraction, currentLeaderIndex } = state;
+    const humanPlayer = players[0];
 
     if (pendingInteraction) {
         get().addNotification("Resolve Interaction First!", 'alert');
         return;
     }
     if (phase !== 'round-start' && phase !== 'player-turn') return;
-    if (activePlayer !== 'player') return;
+    if (activePlayerIndex !== 0) return;
 
-    if (playerHand.length === 0) {
+    if (humanPlayer.hand.length === 0) {
        get().buyCard('player');
        return;
     }
 
-    const cardIndex = playerHand.findIndex(c => c.id === cardId);
+    const cardIndex = humanPlayer.hand.findIndex(c => c.id === cardId);
     if (cardIndex === -1) return;
 
-    const card = playerHand[cardIndex];
-    const newHand = [...playerHand];
+    const card = humanPlayer.hand[cardIndex];
+    const newHand = [...humanPlayer.hand];
     newHand.splice(cardIndex, 1);
 
     const playedCard = { ...card, owner: 'player' as PlayerId, playedAtRound: round };
-    const newFlight = [...playerFlight, playedCard];
+    const newFlight = [...humanPlayer.flight, playedCard];
 
     playSound('CARD_SLAM');
 
-    set({
-      playerHand: newHand,
-      playerFlight: newFlight,
+    const updatedPlayers = players.map((p, idx) => {
+        if (idx === 0) return { ...p, hand: newHand, flight: newFlight };
+        return p;
     });
 
-    // VFX Triggers
+    set(syncCompatibility({
+      players: updatedPlayers
+    }));
+
     if (card.strength >= 10) useAnimationStore.getState().triggerFlash();
     if (card.strength >= 13 || card.name.includes('Red') || card.name.includes('Tiamat')) {
        useAnimationStore.getState().triggerShake(2);
@@ -380,9 +506,21 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const isTriggered = !lastCardPlayed || card.strength <= lastCardPlayed.strength;
 
     if (isTriggered) {
-        // TRIGGER SPECIAL EFFECT
-        set({ opponentEmotion: 'surprised' });
-        setTimeout(() => set({ opponentEmotion: 'neutral' }), 2000);
+        // Trigger surprised response from a random AI player
+        const randOpp = 1 + Math.floor(Math.random() * (players.length - 1));
+        const surprisedPlayers = updatedPlayers.map((p, idx) => {
+            if (idx === randOpp) return { ...p, emotion: 'surprised' as NPCEmotion };
+            return p;
+        });
+        set(syncCompatibility({ players: surprisedPlayers }));
+        setTimeout(() => {
+            const resetOpps = get().players.map((p, idx) => {
+                if (idx === randOpp) return { ...p, emotion: 'neutral' as NPCEmotion };
+                return p;
+            });
+            set(syncCompatibility({ players: resetOpps }));
+        }, 2000);
+
         const vfx = determineSpecialEffect(card);
         if (vfx) {
             useAnimationStore.getState().triggerSpecialEffect(vfx);
@@ -400,8 +538,6 @@ export const useGameStore = create<GameStore>((set, get) => ({
         get().applyGameEffect(effect);
     } else {
         get().addNotification(`${card.name} played (Too Strong)`, 'info');
-        set({ opponentEmotion: 'proud' });
-        setTimeout(() => set({ opponentEmotion: 'neutral' }), 2000);
     }
 
     const currentState = get();
@@ -412,15 +548,17 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   aiTurn: () => {
     const state = get();
-    const { opponentHand, lastCardPlayed, round, opponentFlight } = state;
+    const { players, activePlayerIndex, lastCardPlayed, round } = state;
+    const aiPlayer = players[activePlayerIndex];
+    if (!aiPlayer || !aiPlayer.isNpc) return;
 
-    if (opponentHand.length <= 1) {
-        get().buyCard('opponent');
+    if (aiPlayer.hand.length <= 1) {
+        get().buyCard(aiPlayer.id);
     }
-    const currentHand = get().opponentHand;
+    const currentHand = get().players[activePlayerIndex].hand;
 
     if (currentHand.length === 0) {
-        get().finishTurn('opponent');
+        get().finishTurn(aiPlayer.id);
         return;
     }
 
@@ -451,15 +589,19 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const newHand = [...currentHand];
     newHand.splice(bestIndex, 1);
 
-    const playedCard = { ...card, owner: 'opponent' as PlayerId, playedAtRound: round };
-    const newFlight = [...opponentFlight, playedCard];
+    const playedCard = { ...card, owner: aiPlayer.id, playedAtRound: round };
+    const newFlight = [...aiPlayer.flight, playedCard];
 
     playSound('CARD_SLAM');
 
-    set({
-      opponentHand: newHand,
-      opponentFlight: newFlight,
+    const updatedPlayers = players.map((p, idx) => {
+        if (idx === activePlayerIndex) return { ...p, hand: newHand, flight: newFlight };
+        return p;
     });
+
+    set(syncCompatibility({
+      players: updatedPlayers
+    }));
 
     if (card.strength >= 10) useAnimationStore.getState().triggerFlash();
     if (card.strength >= 13 || card.name.includes('Red') || card.name.includes('Tiamat')) {
@@ -469,9 +611,19 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const isTriggered = !lastCardPlayed || card.strength <= lastCardPlayed.strength;
 
     if (isTriggered) {
-        // TRIGGER SPECIAL EFFECT
-        set({ opponentEmotion: 'happy' });
-        setTimeout(() => set({ opponentEmotion: 'neutral' }), 2000);
+        const withEmotion = get().players.map((p, idx) => {
+            if (idx === activePlayerIndex) return { ...p, emotion: 'happy' as NPCEmotion };
+            return p;
+        });
+        set(syncCompatibility({ players: withEmotion }));
+        setTimeout(() => {
+            const resetOpps = get().players.map((p, idx) => {
+                if (idx === activePlayerIndex) return { ...p, emotion: 'neutral' as NPCEmotion };
+                return p;
+            });
+            set(syncCompatibility({ players: resetOpps }));
+        }, 2000);
+
         const vfx = determineSpecialEffect(card);
         if (vfx) {
             useAnimationStore.getState().triggerSpecialEffect(vfx);
@@ -484,21 +636,20 @@ export const useGameStore = create<GameStore>((set, get) => ({
             if (vfx === 'chromatic') playSound('CHROMATIC_SHIFT');
         }
 
-        get().addNotification(`${getNPCName(get().npcId)} triggers ${card.name}!`, 'power');
+        get().addNotification(`${aiPlayer.name} triggers ${card.name}!`, 'power');
         get().speak(`${card.name} Power Triggered`, 3000, true);
-        const effect = resolveCardPower(card, get(), 'opponent');
+        const effect = resolveCardPower(card, get(), aiPlayer.id);
         get().applyGameEffect(effect);
     } else {
-        get().addNotification(`${getNPCName(get().npcId)} plays ${card.name}.`, 'info');
+        get().addNotification(`${aiPlayer.name} plays ${card.name}.`, 'info');
         if (Math.random() > 0.7) get().speak("Thinking about current hand", 3000, true);
-        set({ opponentEmotion: 'neutral' });
     }
 
     const currentState = get();
     if (!currentState.pendingInteraction) {
-        setTimeout(() => get().finishTurn('opponent'), 500);
+        setTimeout(() => get().finishTurn(aiPlayer.id), 500);
     } else {
-        if (currentState.pendingInteraction.target === 'opponent') {
+        if (currentState.pendingInteraction.target !== 'player') {
             setTimeout(() => get().resolveAiInteraction(), 1500);
         }
     }
@@ -506,49 +657,63 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   respondToInteraction: (optionValue: string, selectedCardId?: string) => {
     const state = get();
-    const { pendingInteraction, playerHand, opponentHand, playerGold, opponentGold, pot, discardPile } = state;
+    const { pendingInteraction, players, pot, discardPile } = state;
     if (!pendingInteraction) return;
 
+    const p0 = players[0];
     const option = pendingInteraction.options.find(o => o.value === optionValue);
     if (!option) return;
 
-    const updates: Partial<GameState> = { pendingInteraction: null };
     let logMsg = "";
-    const POS = getPos();
+    let updatedPlayers = [...players];
+    let updatedPot = pot;
+
+    const POS = getPos(0, players.length);
 
     if (optionValue === 'pay-gold') {
        const costCp = (option.cost || 0) * 100;
-       updates.playerGold = playerGold - costCp;
-       updates.pot = pot + costCp;
+       updatedPlayers = players.map((p, idx) => {
+           if (idx === 0) return { ...p, gold: p.gold - costCp };
+           return p;
+       });
+       updatedPot = pot + costCp;
        playSound('GOLD_LOSS');
-       useAnimationStore.getState().spawnCoins(3, POS.PLAYER, POS.POT);
-       useAnimationStore.getState().triggerFloatingText(POS.PLAYER.x, POS.PLAYER.y, `-${formatPrice(costCp)}`, 'red');
+       useAnimationStore.getState().spawnCoins(3, POS, { x: window.innerWidth / 2, y: window.innerHeight / 2 });
+       useAnimationStore.getState().triggerFloatingText(POS.x, POS.y, `-${formatPrice(costCp)}`, 'red');
        logMsg = `You pay ${formatPrice(costCp)}.`;
     }
     else if (optionValue === 'give-card') {
        if (selectedCardId) {
-           const cardIndex = playerHand.findIndex(c => c.id === selectedCardId);
+           const cardIndex = p0.hand.findIndex(c => c.id === selectedCardId);
            if (cardIndex > -1) {
-               const card = playerHand[cardIndex];
-               const newHand = [...playerHand];
-               newHand.splice(cardIndex, 1);
-               updates.playerHand = newHand;
-               updates.opponentHand = [...opponentHand, card];
+               const card = p0.hand[cardIndex];
+               const newPHand = p0.hand.filter(c => c.id !== selectedCardId);
+
+               // Give to the active player or source card owner
+               const recipientIdx = state.activePlayerIndex;
+               updatedPlayers = players.map((p, idx) => {
+                   if (idx === 0) return { ...p, hand: newPHand };
+                   if (idx === recipientIdx) return { ...p, hand: [...p.hand, card] };
+                   return p;
+               });
+
                playSound('CARD_SLIDE');
-               logMsg = `You give ${card.name} to ${getNPCName(get().npcId)}.`;
+               logMsg = `You give ${card.name} to ${players[recipientIdx].name}.`;
            }
        }
     }
     else if (optionValue === 'discard-card') {
         if (selectedCardId) {
-            const cardIndex = playerHand.findIndex(c => c.id === selectedCardId);
+            const cardIndex = p0.hand.findIndex(c => c.id === selectedCardId);
             if (cardIndex > -1) {
-               const card = playerHand[cardIndex];
-               const newHand = [...playerHand];
-               newHand.splice(cardIndex, 1);
-               updates.playerHand = newHand;
-               updates.discardPile = [...discardPile, card];
+               const card = p0.hand[cardIndex];
+               const newHand = p0.hand.filter(c => c.id !== selectedCardId);
+               updatedPlayers = players.map((p, idx) => {
+                   if (idx === 0) return { ...p, hand: newHand };
+                   return p;
+               });
                playSound('CARD_SLIDE');
+               set({ discardPile: [...discardPile, card] });
                logMsg = `You discard ${card.name}.`;
             }
         }
@@ -561,39 +726,65 @@ export const useGameStore = create<GameStore>((set, get) => ({
              stolenCp += 100;
         }
 
-        updates.pot = pot - stolenCp;
-        updates.playerGold = playerGold + stolenCp;
+        updatedPot = pot - stolenCp;
+        updatedPlayers = players.map((p, idx) => {
+           if (idx === 0) return { ...p, gold: p.gold + stolenCp };
+           return p;
+        });
+
         playSound('GOLD_GAIN_LARGE');
-        useAnimationStore.getState().spawnCoins(5, POS.POT, POS.PLAYER);
-        useAnimationStore.getState().triggerFloatingText(POS.PLAYER.x, POS.PLAYER.y, `+${formatPrice(stolenCp)}`, 'gold');
+        useAnimationStore.getState().spawnCoins(5, { x: window.innerWidth / 2, y: window.innerHeight / 2 }, POS);
+        useAnimationStore.getState().triggerFloatingText(POS.x, POS.y, `+${formatPrice(stolenCp)}`, 'gold');
         logMsg = `Blue Dragon: You steal ${formatPrice(stolenCp)}.`;
     }
     else if (optionValue === 'opp-pay') {
         const amountCp = (option.amount || 0) * 100;
-        updates.opponentGold = opponentGold - amountCp;
-        updates.pot = pot + amountCp;
+
+        // Take from the active player index
+        const payIdx = state.activePlayerIndex;
+        const payPlayer = players[payIdx];
+        const payPOS = getPos(payIdx, players.length);
+
+        updatedPlayers = players.map((p, idx) => {
+            if (idx === payIdx) return { ...p, gold: p.gold - amountCp };
+            if (idx === 0) return { ...p, gold: p.gold + amountCp };
+            return p;
+        });
+
         playSound('GOLD_LOSS');
-        useAnimationStore.getState().spawnCoins(5, POS.OPPONENT, POS.POT);
-        useAnimationStore.getState().triggerFloatingText(POS.OPPONENT.x, POS.OPPONENT.y, `-${formatPrice(amountCp)}`, 'red');
-        logMsg = `Blue Dragon: ${getNPCName(get().npcId)} pays ${formatPrice(amountCp)}.`;
+        useAnimationStore.getState().spawnCoins(5, payPOS, POS);
+        useAnimationStore.getState().triggerFloatingText(payPOS.x, payPOS.y, `-${formatPrice(amountCp)}`, 'red');
+        useAnimationStore.getState().triggerFloatingText(POS.x, POS.y, `+${formatPrice(amountCp)}`, 'gold');
+        logMsg = `Blue Dragon: ${payPlayer.name} pays you ${formatPrice(amountCp)}.`;
     }
 
-    set(updates);
+    set(syncCompatibility({
+      players: updatedPlayers,
+      pot: updatedPot,
+      pendingInteraction: null
+    }));
+
     if (logMsg) get().addNotification(logMsg);
 
     setTimeout(() => {
-        get().finishTurn(state.activePlayer);
+        get().finishTurn(state.players[state.activePlayerIndex].id);
     }, 1000);
   },
 
   resolveAiInteraction: () => {
       const state = get();
-      const { pendingInteraction, opponentHand, opponentGold, playerGold, pot, discardPile } = state;
-      if (!pendingInteraction || pendingInteraction.target !== 'opponent') return;
+      const { pendingInteraction, players, pot, discardPile } = state;
+      if (!pendingInteraction) return;
 
-      const updates: Partial<GameState> = { pendingInteraction: null };
+      const aiIdx = players.findIndex(p => p.id === pendingInteraction.target);
+      if (aiIdx === -1) return;
+      const aiPlayer = players[aiIdx];
+
       let logMsg = "";
-      const POS = getPos();
+      let updatedPlayers = [...players];
+      let updatedPot = pot;
+
+      const POS = getPos(aiIdx, players.length);
 
       const options = pendingInteraction.options;
       let chosenOption = options[0];
@@ -613,9 +804,9 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
           if (discardOption) chosenOption = discardOption;
           else if (payOption && giveCardOption) {
-              const validCards = opponentHand.filter(giveCardOption.cardFilter || (() => false));
+              const validCards = aiPlayer.hand.filter(giveCardOption.cardFilter || (() => false));
               if (validCards.length > 0) {
-                  if (opponentGold > 3000 && (payOption.cost || 0) <= 5) chosenOption = payOption;
+                  if (aiPlayer.gold > 3000 && (payOption.cost || 0) <= 5) chosenOption = payOption;
                   else chosenOption = giveCardOption;
               } else chosenOption = payOption;
           }
@@ -624,78 +815,100 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
       if (chosenOption.value === 'pay-gold') {
           const costCp = (chosenOption.cost || 0) * 100;
-          updates.opponentGold = opponentGold - costCp;
-          updates.pot = pot + costCp;
+          updatedPlayers = players.map((p, idx) => {
+              if (idx === aiIdx) return { ...p, gold: p.gold - costCp };
+              return p;
+          });
+          updatedPot = pot + costCp;
           playSound('GOLD_LOSS');
-          useAnimationStore.getState().spawnCoins(3, POS.OPPONENT, POS.POT);
-          useAnimationStore.getState().triggerFloatingText(POS.OPPONENT.x, POS.OPPONENT.y, `-${formatPrice(costCp)}`, 'red');
-          logMsg = `${getNPCName(get().npcId)} chooses to pay ${formatPrice(costCp)}.`;
+          useAnimationStore.getState().spawnCoins(3, POS, { x: window.innerWidth / 2, y: window.innerHeight / 2 });
+          useAnimationStore.getState().triggerFloatingText(POS.x, POS.y, `-${formatPrice(costCp)}`, 'red');
+          logMsg = `${aiPlayer.name} chooses to pay ${formatPrice(costCp)}.`;
       }
       else if (chosenOption.value === 'give-card') {
-           const validCards = opponentHand.filter(chosenOption.cardFilter || (() => false));
+           const validCards = aiPlayer.hand.filter(chosenOption.cardFilter || (() => false));
            validCards.sort((a,b) => a.strength - b.strength);
            const cardToGive = validCards[0];
 
            if (cardToGive) {
-               const idx = opponentHand.findIndex(c => c.id === cardToGive.id);
-               const newHand = [...opponentHand];
-               newHand.splice(idx, 1);
-               updates.opponentHand = newHand;
-               updates.playerHand = [...state.playerHand, cardToGive];
+               const newAiHand = aiPlayer.hand.filter(c => c.id !== cardToGive.id);
+               // Give card back to the original source player (index 0 for player, or active player)
+               const recipientIdx = 0; // human player
+               updatedPlayers = players.map((p, idx) => {
+                   if (idx === aiIdx) return { ...p, hand: newAiHand };
+                   if (idx === recipientIdx) return { ...p, hand: [...p.hand, cardToGive] };
+                   return p;
+               });
+
                playSound('CARD_SLIDE');
-               logMsg = `${getNPCName(get().npcId)} gives you ${cardToGive.name}.`;
+               logMsg = `${aiPlayer.name} gives you ${cardToGive.name}.`;
            }
       }
       else if (chosenOption.value === 'discard-card') {
-           const sortedHand = [...opponentHand].sort((a,b) => a.strength - b.strength);
+           const sortedHand = [...aiPlayer.hand].sort((a,b) => a.strength - b.strength);
            const card = sortedHand[0];
            if (card) {
-                const idx = opponentHand.findIndex(c => c.id === card.id);
-                const newHand = [...opponentHand];
-                newHand.splice(idx, 1);
-                updates.opponentHand = newHand;
-                updates.discardPile = [...discardPile, card];
+                const newAiHand = aiPlayer.hand.filter(c => c.id !== card.id);
+                updatedPlayers = players.map((p, idx) => {
+                    if (idx === aiIdx) return { ...p, hand: newAiHand };
+                    return p;
+                });
                 playSound('CARD_SLIDE');
-                logMsg = `${getNPCName(get().npcId)} discards ${card.name}.`;
+                set({ discardPile: [...discardPile, card] });
+                logMsg = `${aiPlayer.name} discards ${card.name}.`;
            }
       }
       else if (chosenOption.value === 'steal-pot') {
           const amountCp = (chosenOption.amount || 0) * 100;
           let stolenCp = Math.min(pot, amountCp);
-          updates.pot = pot - stolenCp;
-          updates.opponentGold = opponentGold + stolenCp;
+          updatedPot = pot - stolenCp;
+          updatedPlayers = players.map((p, idx) => {
+              if (idx === aiIdx) return { ...p, gold: p.gold + stolenCp };
+              return p;
+          });
           playSound('GOLD_GAIN_LARGE');
-          useAnimationStore.getState().spawnCoins(5, POS.POT, POS.OPPONENT);
-          useAnimationStore.getState().triggerFloatingText(POS.OPPONENT.x, POS.OPPONENT.y, `+${formatPrice(stolenCp)}`, 'gold');
-          logMsg = `${getNPCName(get().npcId)} steals ${formatPrice(stolenCp)}.`;
+          useAnimationStore.getState().spawnCoins(5, { x: window.innerWidth / 2, y: window.innerHeight / 2 }, POS);
+          useAnimationStore.getState().triggerFloatingText(POS.x, POS.y, `+${formatPrice(stolenCp)}`, 'gold');
+          logMsg = `${aiPlayer.name} steals ${formatPrice(stolenCp)}.`;
       }
       else if (chosenOption.value === 'opp-pay') {
           const amountCp = (chosenOption.amount || 0) * 100;
           let finalPayCp = amountCp;
           if (state.playerSkill === 'bluff' && amountCp >= 200) finalPayCp -= 100;
 
-          updates.playerGold = playerGold - finalPayCp;
-          updates.pot = pot + amountCp;
+          updatedPlayers = players.map((p, idx) => {
+              if (idx === 0) return { ...p, gold: p.gold - finalPayCp };
+              if (idx === aiIdx) return { ...p, gold: p.gold + amountCp };
+              return p;
+          });
+          updatedPot = pot + amountCp;
 
           if (state.playerSkill === 'bluff' && amountCp >= 200) {
-              updates.pot = pot + finalPayCp;
+              updatedPot = pot + finalPayCp;
               get().addNotification("(Bluff: You pay 1 gold less)");
           }
 
           playSound('GOLD_LOSS');
-          useAnimationStore.getState().spawnCoins(5, POS.PLAYER, POS.POT);
-          useAnimationStore.getState().triggerFloatingText(POS.PLAYER.x, POS.PLAYER.y, `-${formatPrice(finalPayCp)}`, 'red');
-          logMsg = `${getNPCName(get().npcId)} demands you pay ${formatPrice(amountCp)}.`;
+          const p0POS = getPos(0, players.length);
+          useAnimationStore.getState().spawnCoins(5, p0POS, POS);
+          useAnimationStore.getState().triggerFloatingText(p0POS.x, p0POS.y, `-${formatPrice(finalPayCp)}`, 'red');
+          useAnimationStore.getState().triggerFloatingText(POS.x, POS.y, `+${formatPrice(amountCp)}`, 'gold');
+          logMsg = `${aiPlayer.name} demands you pay ${formatPrice(amountCp)}.`;
       }
 
-      set(updates);
+      set(syncCompatibility({
+        players: updatedPlayers,
+        pot: updatedPot,
+        pendingInteraction: null
+      }));
+
       if (logMsg) {
           get().addNotification(logMsg);
           get().speak(logMsg);
       }
 
       setTimeout(() => {
-          get().finishTurn(state.activePlayer);
+          get().finishTurn(state.players[state.activePlayerIndex].id);
       }, 1000);
   },
 
@@ -703,9 +916,15 @@ export const useGameStore = create<GameStore>((set, get) => ({
       const state = get();
       if (state.phase === 'gambit-end' || state.phase === 'game-over') return;
 
-      const flight = playerId === 'player' ? state.playerFlight : state.opponentFlight;
+      const pIdx = state.players.findIndex(p => p.id === playerId);
+      if (pIdx === -1) return;
+      const playerState = state.players[pIdx];
+
+      const flight = playerState.flight;
       const lastPlayed = flight[flight.length - 1];
-      const POS = getPos();
+
+      let updatedPlayers = [...state.players];
+      let updatedPot = state.pot;
 
       if (lastPlayed) {
           const specialFlight = checkFlightFormation(flight, lastPlayed);
@@ -716,98 +935,109 @@ export const useGameStore = create<GameStore>((set, get) => ({
                  const reward = dragons.length > 1 ? dragons[1].strength : dragons[0].strength;
                  const rewardCp = reward * 100;
 
-                 if (playerId === 'player') {
-                     get().addNotification(`COLOR FLIGHT! ${getNPCName(get().npcId)} pays ${formatPrice(rewardCp)}.`, 'gold-gain');
-                     useAnimationStore.getState().spawnCoins(5, POS.OPPONENT, POS.PLAYER);
-                     useAnimationStore.getState().triggerFloatingText(POS.PLAYER.x, POS.PLAYER.y, `+${formatPrice(rewardCp)}`, 'gold');
-                     set(s => ({ opponentGold: s.opponentGold - rewardCp, playerGold: s.playerGold + rewardCp }));
-                 } else {
-                     get().addNotification(`${getNPCName(get().npcId).toUpperCase()} COLOR FLIGHT! You pay ${formatPrice(rewardCp)}.`, 'gold-loss');
-                     let finalPayCp = rewardCp;
-                     if (state.playerSkill === 'bluff' && rewardCp >= 200) {
-                         finalPayCp = rewardCp - 100;
-                         get().addNotification("(Bluff: You pay 1 gold less)", 'info');
+                 // All other active players pay rewardCp to this player
+                 updatedPlayers = state.players.map((p, idx) => {
+                     if (idx === pIdx) {
+                         const totalReceived = rewardCp * (state.players.length - 1);
+                         const POS = getPos(pIdx, state.players.length);
+                         useAnimationStore.getState().triggerFloatingText(POS.x, POS.y, `+${formatPrice(totalReceived)}`, 'gold');
+                         return { ...p, gold: p.gold + totalReceived };
+                     } else {
+                         let finalPayCp = rewardCp;
+                         if (idx === 0 && state.playerSkill === 'bluff' && rewardCp >= 200) {
+                             finalPayCp = rewardCp - 100;
+                             get().addNotification("(Bluff: You pay 1 gold less)", 'info');
+                         }
+                         const fromPOS = getPos(idx, state.players.length);
+                         const toPOS = getPos(pIdx, state.players.length);
+                         useAnimationStore.getState().spawnCoins(5, fromPOS, toPOS);
+                         useAnimationStore.getState().triggerFloatingText(fromPOS.x, fromPOS.y, `-${formatPrice(finalPayCp)}`, 'red');
+                         return { ...p, gold: p.gold - finalPayCp };
                      }
-                     useAnimationStore.getState().spawnCoins(5, POS.PLAYER, POS.OPPONENT);
-                     useAnimationStore.getState().triggerFloatingText(POS.PLAYER.x, POS.PLAYER.y, `-${formatPrice(finalPayCp)}`, 'red');
-                     set(s => ({ playerGold: s.playerGold - finalPayCp, opponentGold: s.opponentGold + finalPayCp }));
-                 }
+                 });
+
+                 get().addNotification(`${playerState.name.toUpperCase()} COLOR FLIGHT! Everybody pays them ${formatPrice(rewardCp)}.`, 'gold-gain');
             } else if (specialFlight.type === 'strength') {
                  const reward = specialFlight.strength || 0;
                  const rewardCp = reward * 100;
-                 if (playerId === 'player') {
-                     let finalRewardCp = rewardCp;
-                     let bonusMsg = '';
-                     if (state.playerSkill === 'sleight-of-hand' && state.pot > rewardCp) {
-                         finalRewardCp += 100;
-                         bonusMsg = ' (+1 Sleight)';
-                     }
 
-                     get().addNotification(`STRENGTH FLIGHT! Steal ${formatPrice(rewardCp)}${bonusMsg} + Antes.`, 'gold-gain');
-                     playSound('GOLD_GAIN_LARGE');
-                     useAnimationStore.getState().spawnCoins(8, POS.POT, POS.PLAYER);
-                     useAnimationStore.getState().triggerFloatingText(POS.PLAYER.x, POS.PLAYER.y, `+${formatPrice(finalRewardCp)}`, 'gold');
-                     set(s => ({
-                         pot: Math.max(0, s.pot - finalRewardCp),
-                         playerGold: s.playerGold + finalRewardCp,
-                         playerHand: [...s.playerHand, ...(s.playerAnte ? [s.playerAnte] : []), ...(s.opponentAnte ? [s.opponentAnte] : [])],
-                         playerAnte: null, opponentAnte: null
-                     }));
-                 } else {
-                     get().addNotification(`${getNPCName(get().npcId).toUpperCase()} STRENGTH FLIGHT! Steals ${formatPrice(rewardCp)} + Antes.`, 'gold-loss');
-                     useAnimationStore.getState().spawnCoins(8, POS.POT, POS.OPPONENT);
-                     useAnimationStore.getState().triggerFloatingText(POS.OPPONENT.x, POS.OPPONENT.y, `+${formatPrice(rewardCp)}`, 'gold');
-                     set(s => ({
-                         pot: Math.max(0, s.pot - rewardCp),
-                         opponentGold: s.opponentGold + rewardCp,
-                         opponentHand: [...s.opponentHand, ...(s.playerAnte ? [s.playerAnte] : []), ...(s.opponentAnte ? [s.opponentAnte] : [])],
-                         playerAnte: null, opponentAnte: null
-                     }));
+                 let finalRewardCp = rewardCp;
+                 let bonusMsg = '';
+                 if (pIdx === 0 && state.playerSkill === 'sleight-of-hand' && state.pot > rewardCp) {
+                     finalRewardCp += 100;
+                     bonusMsg = ' (+1 Sleight)';
                  }
+
+                 const toPOS = getPos(pIdx, state.players.length);
+                 playSound('GOLD_GAIN_LARGE');
+                 useAnimationStore.getState().spawnCoins(8, { x: window.innerWidth / 2, y: window.innerHeight / 2 }, toPOS);
+                 useAnimationStore.getState().triggerFloatingText(toPOS.x, toPOS.y, `+${formatPrice(finalRewardCp)}`, 'gold');
+
+                 // Collect all player antes
+                 const collectedAntes: CardData[] = [];
+                 updatedPlayers = state.players.map((p, idx) => {
+                     if (p.ante) collectedAntes.push(p.ante);
+                     if (idx === pIdx) {
+                         return { ...p, gold: p.gold + finalRewardCp, ante: null };
+                     }
+                     return { ...p, ante: null };
+                 });
+
+                 updatedPlayers[pIdx].hand = [...updatedPlayers[pIdx].hand, ...collectedAntes];
+                 updatedPot = Math.max(0, state.pot - finalRewardCp);
+
+                 get().addNotification(`${playerState.name.toUpperCase()} STRENGTH FLIGHT! Steals ${formatPrice(rewardCp)}${bonusMsg} + Todos Antes.`, 'gold-gain');
             }
           }
       }
 
-      const nextActive = playerId === 'player' ? 'opponent' : 'player';
-      set({
-          activePlayer: nextActive,
+      // Clockwise advancement
+      const nextActiveIndex = (pIdx + 1) % state.players.length;
+      const nextActive = state.players[nextActiveIndex];
+
+      set(syncCompatibility({
+          players: updatedPlayers,
+          pot: updatedPot,
+          activePlayerIndex: nextActiveIndex,
           lastCardPlayed: lastPlayed || state.lastCardPlayed,
-          phase: nextActive === 'player' ? 'player-turn' : 'opponent-turn'
-      });
+          phase: nextActive.isNpc ? 'opponent-turn' : 'player-turn'
+      }));
 
-      useAnimationStore.setState({ activePlayer: nextActive });
-      useAnimationStore.getState().triggerTurnBanner(nextActive, 1500);
+      useAnimationStore.setState({ activePlayer: nextActive.id });
+      useAnimationStore.getState().triggerTurnBanner(nextActive.id, 1500);
 
-      if (nextActive === 'player' && get().playerHand.length === 0) {
+      if (!nextActive.isNpc && nextActive.hand.length === 0) {
           setTimeout(() => {
               get().addNotification("Empty Hand! Auto-Buying...", 'alert');
               get().buyCard('player');
           }, 1200);
       }
 
-      const { playerFlight: pf, opponentFlight: of, round } = get();
-      const pPlayed = pf.some(c => c.playedAtRound === round);
-      const oPlayed = of.some(c => c.playedAtRound === round);
+      // Check if all players have played this round
+      const currentRound = get().round;
+      const allPlayed = get().players.every(p => p.flight.some(c => c.playedAtRound === currentRound));
 
-      if (pPlayed && oPlayed) {
+      if (allPlayed) {
           setTimeout(() => get().nextRound(), 1500);
-      } else if (nextActive === 'opponent') {
+      } else if (nextActive.isNpc) {
           setTimeout(() => get().aiTurn(), 1500);
       }
   },
 
   buyCard: (player) => {
       get().ensureDeckSupply(5);
-      const { deck, discardPile, pot, playerGold, opponentGold } = get();
-      const POS = getPos();
+      const { deck, discardPile, pot, players } = get();
+
+      const pIdx = players.findIndex(p => p.id === player);
+      if (pIdx === -1) return;
+      const pState = players[pIdx];
 
       const costCard = deck[0];
       const costCp = costCard.strength * 100;
       const deckAfterCost = deck.slice(1);
       const newDiscard = [...discardPile, costCard];
 
-      const currentHand = player === 'player' ? get().playerHand : get().opponentHand;
-      const needed = 4 - currentHand.length;
+      const needed = 4 - pState.hand.length;
 
       if (needed > 0) {
         const drawnCards = [];
@@ -821,43 +1051,36 @@ export const useGameStore = create<GameStore>((set, get) => ({
             drawnCards.push(workingDeck.shift() as CardData);
         }
 
-        if (player === 'player') {
-            get().addNotification(`Buying Cards... Paid ${formatPrice(costCp)}.`, 'gold-loss');
-            playSound('GOLD_LOSS');
-            playSound('CARD_DEAL');
-            useAnimationStore.getState().spawnCoins(3, POS.PLAYER, POS.POT);
-            useAnimationStore.getState().triggerFloatingText(POS.PLAYER.x, POS.PLAYER.y, `-${formatPrice(costCp)}`, 'red');
-            set({
-                playerGold: playerGold - costCp,
-                pot: pot + costCp,
-                playerHand: [...get().playerHand, ...drawnCards],
-                deck: workingDeck,
-                discardPile: newDiscard
-            });
-        } else {
-            get().addNotification(`${getNPCName(get().npcId)} buys cards. Paid ${formatPrice(costCp)}.`);
-            playSound('GOLD_LOSS');
-            playSound('CARD_DEAL');
-            useAnimationStore.getState().spawnCoins(3, POS.OPPONENT, POS.POT);
-            useAnimationStore.getState().triggerFloatingText(POS.OPPONENT.x, POS.OPPONENT.y, `-${formatPrice(costCp)}`, 'red');
-            set({
-                opponentGold: opponentGold - costCp,
-                pot: pot + costCp,
-                opponentHand: [...get().opponentHand, ...drawnCards],
-                deck: workingDeck,
-                discardPile: newDiscard
-            });
-        }
+        const POS = getPos(pIdx, players.length);
+        get().addNotification(`${pState.name} buys cards. Paid ${formatPrice(costCp)}.`);
+        playSound('GOLD_LOSS');
+        playSound('CARD_DEAL');
+        useAnimationStore.getState().spawnCoins(3, POS, { x: window.innerWidth / 2, y: window.innerHeight / 2 });
+        useAnimationStore.getState().triggerFloatingText(POS.x, POS.y, `-${formatPrice(costCp)}`, 'red');
+
+        const updatedPlayers = players.map((p, idx) => {
+            if (idx === pIdx) return { ...p, gold: p.gold - costCp, hand: [...p.hand, ...drawnCards] };
+            return p;
+        });
+
+        set(syncCompatibility({
+            players: updatedPlayers,
+            deck: workingDeck,
+            discardPile: newDiscard,
+            pot: pot + costCp
+        }));
       }
   },
 
   nextRound: () => {
     try {
-        const { round, playerFlight, opponentFlight, activeSpecialRules, currentLeader } = get();
+        const { round, players, activeSpecialRules, currentLeaderIndex } = get();
 
-        const pStrength = playerFlight.reduce((a,c) => a + c.strength, 0);
-        const oStrength = opponentFlight.reduce((a,c) => a + c.strength, 0);
-        const isTied = pStrength === oStrength;
+        // Calculate flights strength
+        const strengths = players.map(p => p.flight.reduce((a,c) => a + c.strength, 0));
+        const maxStr = Math.max(...strengths);
+        const uniqueLeaders = players.filter((p, idx) => strengths[idx] === maxStr);
+        const isTied = uniqueLeaders.length > 1;
 
         if (round >= 3 && !isTied) {
             get().endGambit();
@@ -866,32 +1089,37 @@ export const useGameStore = create<GameStore>((set, get) => ({
             get().addNotification("Flights Tied! Entering Sudden Death Round.");
         }
 
-        let nextLeader: PlayerId = currentLeader;
+        let nextLeaderIndex = currentLeaderIndex;
         if (activeSpecialRules.nextRoundLeader) {
-            nextLeader = activeSpecialRules.nextRoundLeader;
+            const rulesLeaderIdx = players.findIndex(p => p.id === activeSpecialRules.nextRoundLeader);
+            if (rulesLeaderIdx > -1) nextLeaderIndex = rulesLeaderIdx;
         } else {
-            const pCard = playerFlight.find(c => c.playedAtRound === round);
-            const oCard = opponentFlight.find(c => c.playedAtRound === round);
-            if (pCard && oCard) {
-                if (pCard.strength > oCard.strength) nextLeader = 'player';
-                else if (oCard.strength > pCard.strength) nextLeader = 'opponent';
-            }
+            // Leader of round is player with strongest card played in current round
+            let maxRoundStrength = -1;
+            players.forEach((p, idx) => {
+                const roundCard = p.flight.find(c => c.playedAtRound === round);
+                if (roundCard && roundCard.strength > maxRoundStrength) {
+                    maxRoundStrength = roundCard.strength;
+                    nextLeaderIndex = idx;
+                }
+            });
         }
 
-        set({
+        set(syncCompatibility({
             round: round + 1,
-            currentLeader: nextLeader,
-            activePlayer: nextLeader,
+            currentLeaderIndex: nextLeaderIndex,
+            activePlayerIndex: nextLeaderIndex,
             lastCardPlayed: null,
             activeSpecialRules: { ...activeSpecialRules, nextRoundLeader: undefined },
             phase: 'round-start'
-        });
+        }));
 
-        get().addNotification(`Round ${round + 1}. ${nextLeader === 'player' ? 'You lead.' : getNPCName(get().npcId) + ' leads.'}`);
-        useAnimationStore.setState({ activePlayer: nextLeader });
-        useAnimationStore.getState().triggerTurnBanner(nextLeader, 1500);
+        const nextLeader = players[nextLeaderIndex];
+        get().addNotification(`Round ${round + 1}. ${nextLeader.isNpc ? nextLeader.name + ' leads.' : 'You lead.'}`);
+        useAnimationStore.setState({ activePlayer: nextLeader.id });
+        useAnimationStore.getState().triggerTurnBanner(nextLeader.id, 1500);
 
-        if (nextLeader === 'opponent') setTimeout(() => get().aiTurn(), 2000);
+        if (nextLeader.isNpc) setTimeout(() => get().aiTurn(), 2000);
     } catch (error) {
         get().fixGameState();
     }
@@ -899,46 +1127,41 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   endGambit: () => {
       try {
-          const { playerFlight, opponentFlight, pot, playerGold, opponentGold, activeSpecialRules, playerHand, opponentHand, gambitsPlayed, maxGambits } = get();
-          const POS = getPos();
+          const { players, pot, activeSpecialRules, gambitsPlayed, maxGambits } = get();
 
-          const pStrength = playerFlight.reduce((acc, c) => acc + c.strength, 0);
-          const oStrength = opponentFlight.reduce((acc, c) => acc + c.strength, 0);
+          const scores = players.map(p => ({
+              playerId: p.id,
+              name: p.name,
+              strength: p.flight.reduce((acc, c) => acc + c.strength, 0)
+          }));
 
-          let winner: PlayerId | 'tie' = 'tie';
-          let reason = "Strength tied.";
+          let winnerIdx = 0;
+          let reason = "Strongest flight wins.";
 
           if (activeSpecialRules.weakestFlightWins) {
-              if (pStrength < oStrength) { winner = 'player'; reason = "Druid active: Weakest flight wins."; }
-              else if (oStrength < pStrength) { winner = 'opponent'; reason = "Druid active: Weakest flight wins."; }
+              scores.sort((a, b) => a.strength - b.strength);
+              reason = "Druid active: Weakest flight wins.";
           } else {
-              if (pStrength > oStrength) { winner = 'player'; reason = "Strongest flight wins."; }
-              else if (oStrength > pStrength) { winner = 'opponent'; reason = "Strongest flight wins."; }
+              scores.sort((a, b) => b.strength - a.strength);
           }
 
-          const newPlayerGold = winner === 'player' ? playerGold + pot : playerGold;
-          const newOpponentGold = winner === 'opponent' ? opponentGold + pot : opponentGold;
-          const msg = winner === 'player' ? `You Win ${formatPrice(pot)}!` : `${getNPCName(get().npcId)} Wins ${formatPrice(pot)}.`;
+          const winnerId = scores[0].playerId;
+          const winnerName = scores[0].name;
 
-          if (winner === 'player') {
-              playSound('GAMBIT_WIN');
-              set({ opponentEmotion: 'angry' });
-              setTimeout(() => set({ opponentEmotion: 'neutral' }), 4000);
-              useAnimationStore.getState().spawnCoins(15, POS.POT, POS.PLAYER);
-              useAnimationStore.getState().triggerFloatingText(POS.PLAYER.x, POS.PLAYER.y, `+${formatPrice(pot)}`, 'gold');
-          }
-          if (winner === 'opponent') {
-              playSound('GAMBIT_LOSS');
-              set({ opponentEmotion: 'proud' });
-              setTimeout(() => set({ opponentEmotion: 'neutral' }), 4000);
-              useAnimationStore.getState().spawnCoins(15, POS.POT, POS.OPPONENT);
-              useAnimationStore.getState().triggerFloatingText(POS.OPPONENT.x, POS.OPPONENT.y, `+${formatPrice(pot)}`, 'gold');
-          }
+          const updatedPlayers = players.map(p => {
+              if (p.id === winnerId) return { ...p, gold: p.gold + pot };
+              return p;
+          });
+
+          const winnerPOS = getPos(players.findIndex(p => p.id === winnerId), players.length);
+          playSound(winnerId === 'player' ? 'GAMBIT_WIN' : 'GAMBIT_LOSS');
+          useAnimationStore.getState().spawnCoins(15, { x: window.innerWidth / 2, y: window.innerHeight / 2 }, winnerPOS);
+          useAnimationStore.getState().triggerFloatingText(winnerPOS.x, winnerPOS.y, `+${formatPrice(pot)}`, 'gold');
 
           const result = {
-              winner,
-              playerStrength: pStrength,
-              opponentStrength: oStrength,
+              winnerId,
+              winnerName,
+              scores,
               potWon: pot,
               reason
           };
@@ -946,31 +1169,35 @@ export const useGameStore = create<GameStore>((set, get) => ({
           const newGambitsPlayed = gambitsPlayed + 1;
           set({ gambitsPlayed: newGambitsPlayed });
 
-          if (newPlayerGold <= 0 || newOpponentGold <= 0) {
-              set({
+          // Check if any player bankrupt
+          const anyBankrupt = updatedPlayers.some(p => p.gold <= 0);
+          if (anyBankrupt) {
+              const humanWon = updatedPlayers[0].gold > 0;
+              set(syncCompatibility({
                  phase: 'game-over',
                  pot: 0,
-                 playerGold: newPlayerGold,
-                 opponentGold: newOpponentGold,
+                 players: updatedPlayers,
                  notification: {
-                     message: newPlayerGold > newOpponentGold ? `Victory! ${getNPCName(get().npcId)} is bankrupt.` : "Defeat! You are out of gold.",
-                     type: newPlayerGold > newOpponentGold ? 'gold-gain' : 'alert'
+                     message: humanWon ? `Victory! An opponent is bankrupt.` : "Defeat! You are out of gold.",
+                     type: humanWon ? 'gold-gain' : 'alert'
                  }
-              });
+              }));
               return;
           }
 
           if (newGambitsPlayed >= maxGambits) {
-               set({
+               // Determine match winner based on gold
+               const sortedByGold = [...updatedPlayers].sort((a,b) => b.gold - a.gold);
+               const humanWon = sortedByGold[0].id === 'player';
+               set(syncCompatibility({
                  phase: 'game-over',
                  pot: 0,
-                 playerGold: newPlayerGold,
-                 opponentGold: newOpponentGold,
+                 players: updatedPlayers,
                  notification: {
-                     message: newPlayerGold >= newOpponentGold ? "Match Complete! You have the most gold." : `Match Complete! ${getNPCName(get().npcId)} wins on gold.`,
-                     type: newPlayerGold >= newOpponentGold ? 'gold-gain' : 'alert'
+                     message: humanWon ? "Match Complete! You have the most gold." : `Match Complete! ${sortedByGold[0].name} wins on gold.`,
+                     type: humanWon ? 'gold-gain' : 'alert'
                  }
-              });
+              }));
               return;
           }
 
@@ -987,44 +1214,44 @@ export const useGameStore = create<GameStore>((set, get) => ({
               return drawn;
           };
 
-          const pCount = Math.min(2, HAND_LIMIT - playerHand.length);
-          const oCount = Math.min(2, HAND_LIMIT - opponentHand.length);
-          const pDrawn = safeDraw(pCount);
-          const oDrawn = safeDraw(oCount);
+          // Everyone draws up to 2 cards
+          const finalPlayers = updatedPlayers.map(p => {
+              const drawCount = Math.min(2, HAND_LIMIT - p.hand.length);
+              const drawn = safeDraw(drawCount);
+              return { ...p, hand: [...p.hand, ...drawn] };
+          });
 
-          const newDiscard = [...get().discardPile, ...playerFlight, ...opponentFlight];
+          // Discard all flights
+          let discardFromFlights: CardData[] = [];
+          players.forEach(p => discardFromFlights = [...discardFromFlights, ...p.flight]);
+          const newDiscard = [...get().discardPile, ...discardFromFlights];
 
-          set({
+          set(syncCompatibility({
               phase: 'gambit-end',
               pot: 0,
-              playerGold: newPlayerGold,
-              opponentGold: newOpponentGold,
               deck: workingDeck,
-              playerHand: [...playerHand, ...pDrawn],
-              opponentHand: [...opponentHand, ...oDrawn],
-              playerFlight: [], opponentFlight: [], playerAnte: null, opponentAnte: null,
+              players: finalPlayers,
               discardPile: newDiscard,
               activeSpecialRules: {},
               gambitResult: result,
-              notification: { message: msg, type: winner === 'player' ? 'gold-gain' : 'gold-loss' }
-          });
+              notification: { message: `${winnerName} wins ${formatPrice(pot)}!`, type: winnerId === 'player' ? 'gold-gain' : 'gold-loss' }
+          }));
       } catch (error) {
           get().addNotification("Game Logic Error. Recovering...", 'alert');
-          set({
+          set(syncCompatibility({
               phase: 'gambit-end',
-              gambitResult: { winner: 'tie', playerStrength: 0, opponentStrength: 0, potWon: 0, reason: "Error Recovery" }
-          });
+              gambitResult: { winnerId: 'tie', winnerName: 'Nobody', scores: [], potWon: 0, reason: "Error Recovery" }
+          }));
       }
   },
 
   applyGameEffect: (effect: GameEffect) => {
       const state = get();
       const updates: any = {};
-      const POS = getPos();
 
       if (effect.interaction) {
           set({ pendingInteraction: effect.interaction });
-          if (effect.interaction.target === 'opponent') {
+          if (effect.interaction.target !== 'player') {
               setTimeout(() => get().resolveAiInteraction(), 1500);
           }
           return;
@@ -1039,33 +1266,34 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
           if (pDelta && pDelta < -100 && state.playerSkill === 'bluff') pDelta += 100;
 
-          if (pDelta) {
-             updates.playerGold = (state.playerGold || 0) + pDelta;
-             if (pDelta > 0) {
-                 useAnimationStore.getState().spawnCoins(Math.min(5, pDelta / 100), POS.POT, POS.PLAYER);
-                 useAnimationStore.getState().triggerFloatingText(POS.PLAYER.x, POS.PLAYER.y, `+${formatPrice(pDelta)}`, 'gold');
-             } else {
-                 useAnimationStore.getState().spawnCoins(Math.min(5, Math.abs(pDelta) / 100), POS.PLAYER, POS.POT);
-                 useAnimationStore.getState().triggerFloatingText(POS.PLAYER.x, POS.PLAYER.y, `-${formatPrice(Math.abs(pDelta))}`, 'red');
-             }
-          }
+          const updatedPlayers = state.players.map((p, idx) => {
+              let delta = 0;
+              if (idx === 0) delta = pDelta;
+              else if (idx === state.activePlayerIndex) delta = oDelta; // target is current active opponent
 
-          if (oDelta) {
-              updates.opponentGold = (state.opponentGold || 0) + oDelta;
-              if (oDelta > 0) {
-                  useAnimationStore.getState().spawnCoins(Math.min(5, oDelta / 100), POS.POT, POS.OPPONENT);
-                  useAnimationStore.getState().triggerFloatingText(POS.OPPONENT.x, POS.OPPONENT.y, `+${formatPrice(oDelta)}`, 'gold');
-              } else {
-                  useAnimationStore.getState().spawnCoins(Math.min(5, Math.abs(oDelta) / 100), POS.OPPONENT, POS.POT);
-                  useAnimationStore.getState().triggerFloatingText(POS.OPPONENT.x, POS.OPPONENT.y, `-${formatPrice(Math.abs(oDelta))}`, 'red');
+              if (delta) {
+                  const POS = getPos(idx, state.players.length);
+                  if (delta > 0) {
+                      useAnimationStore.getState().spawnCoins(Math.min(5, delta / 100), { x: window.innerWidth / 2, y: window.innerHeight / 2 }, POS);
+                      useAnimationStore.getState().triggerFloatingText(POS.x, POS.y, `+${formatPrice(delta)}`, 'gold');
+                  } else {
+                      useAnimationStore.getState().spawnCoins(Math.min(5, Math.abs(delta) / 100), POS, { x: window.innerWidth / 2, y: window.innerHeight / 2 });
+                      useAnimationStore.getState().triggerFloatingText(POS.x, POS.y, `-${formatPrice(Math.abs(delta))}`, 'red');
+                  }
+                  return { ...p, gold: p.gold + delta };
               }
-          }
+              return p;
+          });
 
+          updates.players = updatedPlayers;
           if (potDelta) updates.pot = Math.max(0, (state.pot || 0) + potDelta);
 
           if (pDelta && pDelta > 0 && potDelta && potDelta < 0 && state.playerSkill === 'sleight-of-hand') {
               if (pDelta === 200) {
-                   updates.playerGold = (updates.playerGold || state.playerGold || 0) + 100;
+                   updates.players = updatedPlayers.map((p, idx) => {
+                       if (idx === 0) return { ...p, gold: p.gold + 100 };
+                       return p;
+                   });
                    updates.pot = Math.max(0, (updates.pot || state.pot || 0) - 100);
                    get().addNotification("Sleight of Hand: +1 Gold.");
               }
@@ -1078,63 +1306,81 @@ export const useGameStore = create<GameStore>((set, get) => ({
               const s = get();
               const findTarget = (flight: BoardCard[]) =>
                   flight.filter(c => c.strength <= 7 && c.type !== 'mortal').sort((a,b) => b.strength - a.strength)[0];
+
               let targetCard: BoardCard | undefined;
-              let targetOwner: PlayerId = s.activePlayer === 'player' ? 'opponent' : 'player';
-              if (s.activePlayer === 'player') targetCard = findTarget(s.opponentFlight);
-              else targetCard = findTarget(s.playerFlight);
-              if (!targetCard) {
-                   targetOwner = s.activePlayer;
-                   if (s.activePlayer === 'player') targetCard = findTarget(s.playerFlight);
-                   else targetCard = findTarget(s.opponentFlight);
+              let targetPlayerIdx = -1;
+
+              // Search other players for weaker dragons
+              for (let i = 0; i < s.players.length; i++) {
+                  if (i !== s.activePlayerIndex) {
+                      const tCard = findTarget(s.players[i].flight);
+                      if (tCard) {
+                          targetCard = tCard;
+                          targetPlayerIdx = i;
+                          break;
+                      }
+                  }
               }
-              if (targetCard) {
-                  const flightKey = targetOwner === 'player' ? 'playerFlight' : 'opponentFlight';
-                  const currentFlight = s[flightKey as keyof GameState] as BoardCard[];
-                  const newFlight = currentFlight.filter(c => c.id !== targetCard!.id);
-                  set(s => ({
-                      [flightKey]: newFlight,
+
+              if (targetCard && targetPlayerIdx > -1) {
+                  const updatedPlayers = s.players.map((p, idx) => {
+                      if (idx === targetPlayerIdx) {
+                          return { ...p, flight: p.flight.filter(c => c.id !== targetCard!.id) };
+                      }
+                      return p;
+                  });
+                  set({
+                      players: updatedPlayers,
                       discardPile: [...s.discardPile, targetCard!]
-                  }));
+                  });
                   get().addNotification(`Dragonslayer kills ${targetCard.name}!`);
               }
-              if (Object.keys(updates).length > 0) set(updates);
+              if (Object.keys(updates).length > 0) set(syncCompatibility(updates));
               return;
           }
-          const targets = target === 'all' ? ['player', 'opponent'] : [target];
-          targets.forEach(t => {
-              const isPlayer = t === 'player';
-              const hand = isPlayer ? state.playerHand : state.opponentHand;
-              if (hand.length === 0) return;
-              if (criteria === 'random') {
-                   const idx = Math.floor(Math.random() * hand.length);
-                   const removed = hand[idx];
-                   const newHand = hand.filter((_, i) => i !== idx);
-                   if (isPlayer) updates.playerHand = newHand;
-                   else updates.opponentHand = newHand;
+
+          // Discard random card from targeted player
+          const updatedPlayers = state.players.map((p, idx) => {
+              const isTargeted = (target === 'all' && idx !== state.activePlayerIndex) || (target === 'opponent' && idx !== 0 && idx === state.focusedOpponentIndex);
+              if (isTargeted && p.hand.length > 0 && criteria === 'random') {
+                   const rIdx = Math.floor(Math.random() * p.hand.length);
+                   const removed = p.hand[rIdx];
+                   get().addNotification(`${p.name} lost a card to Red Dragon.`);
                    set(s => ({ discardPile: [...s.discardPile, removed] }));
-                   get().addNotification(`${isPlayer ? 'You' : getNPCName(get().npcId)} lost a card to Red Dragon.`);
+                   return { ...p, hand: p.hand.filter((_, i) => i !== rIdx) };
               }
+              return p;
           });
+          updates.players = updatedPlayers;
       }
 
       if (effect.stealCard) {
           const { from, to, count } = effect.stealCard;
-          const fromHand = from === 'player' ? [...(updates.playerHand || state.playerHand)] : [...(updates.opponentHand || state.opponentHand)];
-          const toHand = to === 'player' ? [...(updates.playerHand || state.playerHand)] : [...(updates.opponentHand || state.opponentHand)];
+          const fromIdx = state.players.findIndex(p => p.id === from);
+          const toIdx = state.players.findIndex(p => p.id === to);
 
-          for (let i = 0; i < count; i++) {
-              if (fromHand.length > 0 && toHand.length < HAND_LIMIT) {
-                  const idx = Math.floor(Math.random() * fromHand.length);
-                  const card = fromHand.splice(idx, 1)[0];
-                  toHand.push(card);
+          if (fromIdx > -1 && toIdx > -1) {
+              const fromPlayer = state.players[fromIdx];
+              const toPlayer = state.players[toIdx];
+
+              const fromHand = [...fromPlayer.hand];
+              const toHand = [...toPlayer.hand];
+
+              for (let i = 0; i < count; i++) {
+                  if (fromHand.length > 0 && toHand.length < HAND_LIMIT) {
+                      const idx = Math.floor(Math.random() * fromHand.length);
+                      const card = fromHand.splice(idx, 1)[0];
+                      toHand.push(card);
+                  }
               }
+
+              const updatedPlayers = state.players.map((p, idx) => {
+                  if (idx === fromIdx) return { ...p, hand: fromHand };
+                  if (idx === toIdx) return { ...p, hand: toHand };
+                  return p;
+              });
+              updates.players = updatedPlayers;
           }
-
-          if (from === 'player') updates.playerHand = fromHand;
-          else updates.opponentHand = fromHand;
-
-          if (to === 'player') updates.playerHand = toHand;
-          else updates.opponentHand = toHand;
       }
 
       if (effect.drawCards) {
@@ -1149,49 +1395,52 @@ export const useGameStore = create<GameStore>((set, get) => ({
                return drawn;
            };
 
-           if (target === 'player' || target === 'all') {
-               const hand = updates.playerHand || state.playerHand;
-               const space = HAND_LIMIT - hand.length;
-               if (space > 0) {
-                   const drawn = safeDraw(Math.min(count, space));
-                   updates.playerHand = [...hand, ...drawn];
-               } else {
-                   get().addNotification("Your hand is full!", 'alert');
+           const updatedPlayers = state.players.map((p, idx) => {
+               const isTargeted = (target === 'all') || (target === 'player' && idx === 0) || (target === 'opponent' && idx !== 0 && idx === state.activePlayerIndex);
+               if (isTargeted) {
+                   const space = HAND_LIMIT - p.hand.length;
+                   if (space > 0) {
+                       const drawn = safeDraw(Math.min(count, space));
+                       return { ...p, hand: [...p.hand, ...drawn] };
+                   } else if (idx === 0) {
+                       get().addNotification("Your hand is full!", 'alert');
+                   }
                }
-           }
-           if (target === 'opponent' || target === 'all') {
-               const hand = updates.opponentHand || state.opponentHand;
-               const space = HAND_LIMIT - hand.length;
-               if (space > 0) {
-                   const drawn = safeDraw(Math.min(count, space));
-                   updates.opponentHand = [...hand, ...drawn];
-               }
-           }
+               return p;
+           });
+
+           updates.players = updatedPlayers;
            updates.deck = deck;
       }
 
       if (effect.stealAnte) {
           const { target, count, criteria } = effect.stealAnte;
           const s = get();
-          const antes = [s.playerAnte, s.opponentAnte].filter(Boolean) as CardData[];
-          if (antes.length > 0) {
-              if (criteria === 'weakest') {
-                  antes.sort((a,b) => a.strength - b.strength);
-                  const toSteal = antes.slice(0, count);
-                  const targetHand = target === 'player' ? (updates.playerHand || s.playerHand) : (updates.opponentHand || s.opponentHand);
-                  const space = HAND_LIMIT - targetHand.length;
+          const activeAntes = s.players.map(p => p.ante).filter(Boolean) as CardData[];
+
+          if (activeAntes.length > 0 && criteria === 'weakest') {
+              activeAntes.sort((a,b) => a.strength - b.strength);
+              const toSteal = activeAntes.slice(0, count);
+              const targetIdx = s.players.findIndex(p => p.id === target);
+
+              if (targetIdx > -1) {
+                  const targetPlayer = s.players[targetIdx];
+                  const space = HAND_LIMIT - targetPlayer.hand.length;
                   const finalSteal = toSteal.slice(0, space);
+
                   if (finalSteal.length > 0) {
-                      if (target === 'player') {
-                          updates.playerHand = [...targetHand, ...finalSteal];
-                          get().addNotification(`You retrieved ${finalSteal.length} Ante card${finalSteal.length > 1 ? 's' : ''}.`);
-                      } else {
-                          updates.opponentHand = [...targetHand, ...finalSteal];
-                          get().addNotification(`${getNPCName(get().npcId)} retrieved ${finalSteal.length} Ante card${finalSteal.length > 1 ? 's' : ''}.`);
-                      }
-                      const stolenIds = finalSteal.map(c => c.id);
-                      if (s.playerAnte && stolenIds.includes(s.playerAnte.id)) updates.playerAnte = null;
-                      if (s.opponentAnte && stolenIds.includes(s.opponentAnte.id)) updates.opponentAnte = null;
+                      const updatedPlayers = s.players.map((p, idx) => {
+                          const isStolen = p.ante && finalSteal.some(fs => fs.id === p.ante!.id);
+                          if (idx === targetIdx) {
+                              return { ...p, hand: [...p.hand, ...finalSteal], ante: isStolen ? null : p.ante };
+                          }
+                          if (isStolen) {
+                              return { ...p, ante: null };
+                          }
+                          return p;
+                      });
+                      updates.players = updatedPlayers;
+                      get().addNotification(`${targetPlayer.name} retrieved ${finalSteal.length} Ante card${finalSteal.length > 1 ? 's' : ''}.`);
                   }
               }
           }
@@ -1199,14 +1448,16 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
       if (effect.specialAction === 'copy-evil-power') {
           const s = get();
-          const allDragons = [...s.playerFlight, ...s.opponentFlight];
-          const evilDragons = allDragons.filter(c => c.type === 'evil' && c.name !== 'Dracolich');
+          let evilDragons: BoardCard[] = [];
+          s.players.forEach(p => {
+              evilDragons = [...evilDragons, ...p.flight.filter(c => c.type === 'evil' && c.name !== 'Dracolich')];
+          });
           const strongest = evilDragons.sort((a,b) => b.strength - a.strength)[0];
           if (strongest) {
               get().addNotification(`Dracolich copies ${strongest.name}!`, 'power');
-              if (Object.keys(updates).length > 0) set(updates);
+              if (Object.keys(updates).length > 0) set(syncCompatibility(updates));
               setTimeout(() => {
-                 const subEffect = resolveCardPower(strongest, get(), s.activePlayer);
+                 const subEffect = resolveCardPower(strongest, get(), s.players[s.activePlayerIndex].id);
                  get().applyGameEffect(subEffect);
               }, 1000);
               return;
@@ -1216,17 +1467,18 @@ export const useGameStore = create<GameStore>((set, get) => ({
       if (effect.specialAction) {
           const rules = { ...state.activeSpecialRules };
           if (effect.specialAction === 'weakest-wins') rules.weakestFlightWins = true;
-          if (effect.specialAction === 'become-leader') rules.nextRoundLeader = state.activePlayer;
+          if (effect.specialAction === 'become-leader') rules.nextRoundLeader = state.players[state.activePlayerIndex].id;
           updates.activeSpecialRules = rules;
       }
 
       if (Object.keys(updates).length > 0) {
-          set(updates);
+          set(syncCompatibility(updates));
       }
 
       if (effect.specialAction === 'replace-with-top-deck') {
            const s = get();
-           const flight = s.activePlayer === 'player' ? [...s.playerFlight] : [...s.opponentFlight];
+           const activeP = s.players[s.activePlayerIndex];
+           const flight = [...activeP.flight];
            const oldCard = flight[flight.length - 1];
            if (oldCard && oldCard.name.includes('Copper')) {
                get().addNotification("Copper Dragon burrows...", 'info');
@@ -1236,14 +1488,19 @@ export const useGameStore = create<GameStore>((set, get) => ({
                    if (deck.length > 0) {
                        const newCard = deck.shift();
                        flight.pop();
-                       const replacedCard = { ...newCard!, owner: s2.activePlayer, playedAtRound: s2.round };
+                       const replacedCard = { ...newCard!, owner: activeP.id, playedAtRound: s2.round };
                        flight.push(replacedCard);
-                       const updateKey = s2.activePlayer === 'player' ? 'playerFlight' : 'opponentFlight';
-                       set({ deck, [updateKey]: flight, discardPile: [...s2.discardPile, oldCard] });
+
+                       const updatedPlayers = s2.players.map((p, idx) => {
+                           if (idx === s2.activePlayerIndex) return { ...p, flight };
+                           return p;
+                       });
+
+                       set(syncCompatibility({ deck, players: updatedPlayers, discardPile: [...s2.discardPile, oldCard] }));
                        get().addNotification(`...and returns as ${replacedCard.name}!`, 'power');
                        useAnimationStore.getState().triggerFlash();
                        setTimeout(() => {
-                           const newEffect = resolveCardPower(replacedCard, get(), s2.activePlayer);
+                           const newEffect = resolveCardPower(replacedCard, get(), activeP.id);
                            get().applyGameEffect(newEffect);
                        }, 1500);
                    }
@@ -1253,7 +1510,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
       if (effect.specialAction === 'trigger-all-good') {
           const s = get();
-          const flight = s.activePlayer === 'player' ? s.playerFlight : s.opponentFlight;
+          const activeP = s.players[s.activePlayerIndex];
+          const flight = activeP.flight;
           const goodDragons = flight.filter(c => c.type === 'good' && c.name !== 'Princess');
           if (goodDragons.length > 0) {
               let idx = 0;
@@ -1261,7 +1519,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
                   if (idx >= goodDragons.length) return;
                   const dragon = goodDragons[idx];
                   get().addNotification(`Princess inspires ${dragon.name}!`, 'power');
-                  const subEffect = resolveCardPower(dragon, get(), s.activePlayer);
+                  const subEffect = resolveCardPower(dragon, get(), activeP.id);
                   get().applyGameEffect(subEffect);
                   idx++;
                   if (idx < goodDragons.length) {
@@ -1274,15 +1532,16 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
       if (effect.specialAction === 'copy-ante') {
            const s = get();
-           const antes = [s.playerAnte, s.opponentAnte].filter(Boolean) as CardData[];
-           const strongest = antes.sort((a,b) => b.strength - a.strength)[0];
+           const activeAntes = s.players.map(p => p.ante).filter(Boolean) as CardData[];
+           const strongest = activeAntes.sort((a,b) => b.strength - a.strength)[0];
            if (strongest) {
                get().addNotification(`Archmage copies ante: ${strongest.name}!`, 'power');
                setTimeout(() => {
-                   const subEffect = resolveCardPower(strongest, get(), s.activePlayer);
+                   const subEffect = resolveCardPower(strongest, get(), s.players[s.activePlayerIndex].id);
                    get().applyGameEffect(subEffect);
                }, 1000);
            }
       }
   }
-}));
+};
+});

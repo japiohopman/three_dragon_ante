@@ -7,10 +7,13 @@ import Card from './Card';
 import NPC from '../../NPC';
 import { SPRITE_MAP, HAND_LIMIT } from '../../../utils/constants';
 import { NPC_LIST } from '../../../utils/npcConstants';
-import { formatPrice, formatWealth } from '../../../utils/currency';
+import { formatPrice, formatWealth, Money, fromCopper } from '../../../utils/currency';
 
 const TableTop: React.FC = () => {
   const {
+    players,
+    focusedOpponentIndex,
+    setFocusedOpponentIndex,
     playerHand,
     opponentHand,
     playerFlight,
@@ -210,7 +213,7 @@ const TableTop: React.FC = () => {
                        {getIcon('ui', 'gold-coin', { size: 14, className: "text-amber-600" })}
                   </div>
                   {(() => {
-                      const oppWealth = formatWealth(opponentGold);
+                      const oppWealth: Money = fromCopper(opponentGold, true);
                       return (
                           <div className="grid grid-cols-5 gap-1 text-center">
                               <div className={`flex flex-col ${oppWealth.pp > 0 ? '' : 'opacity-30'}`}>
@@ -285,35 +288,59 @@ const TableTop: React.FC = () => {
             </div>
 
             {/* --- TABLE CONTENT --- */}
-            <div className="relative z-10 w-full h-full flex flex-col items-center py-8">
+            <div className="relative z-10 w-full h-full flex flex-col items-center py-6">
 
-                {/* OPPONENT FLIGHT */}
-                <div className="w-full h-1/4 flex flex-col items-center justify-start gap-2">
-                    <div className="relative w-full flex justify-center items-start h-20 pointer-events-none scale-75 origin-top opacity-80">
-                        <AnimatePresence>
-                            {opponentHand.map((card, i) => (
-                                <motion.div
-                                    key={card.id}
-                                    layoutId={card.id}
-                                    animate={getFanStyle(i, opponentHand.length, false)}
-                                    className="absolute origin-top"
-                                >
-                                    <Card card={card} isFaceUp={false} disabled size="sm" />
-                                </motion.div>
-                            ))}
-                        </AnimatePresence>
-                    </div>
-                    <div className="flex justify-center gap-3 h-24 mt-[-15px]">
-                        {opponentFlight.map((card) => (
-                            <motion.div key={card.id} layoutId={card.id} className="transform scale-[0.75] origin-top hover:scale-95 transition-transform">
-                                <Card card={card} size="sm" glow={lastCardPlayed?.id === card.id ? 'red' : 'none'} />
-                            </motion.div>
-                        ))}
-                    </div>
+                {/* MULTIPLAYER SEATS */}
+                <div className="w-full flex justify-center gap-4 px-6 mb-4 min-h-[140px] pointer-events-auto">
+                    {players.slice(1).map((opp, index) => {
+                        const actualIdx = index + 1;
+                        const isFocused = actualIdx === focusedOpponentIndex;
+                        const isTurn = activePlayer === opp.id;
+
+                        return (
+                           <div
+                              key={opp.id}
+                              onClick={() => setFocusedOpponentIndex(actualIdx)}
+                              className={`cursor-pointer transition-all p-2.5 rounded-xl flex flex-col items-center gap-1.5 w-32 sm:w-36 border-2 relative
+                                  ${isFocused ? 'bg-amber-950/30 border-amber-500 shadow-[0_0_15px_rgba(245,158,11,0.15)]' : 'bg-stone-900/60 border-stone-800 hover:border-stone-700'}
+                                  ${isTurn ? 'ring-2 ring-amber-500 ring-offset-2 ring-offset-stone-900 animate-pulse' : ''}
+                              `}
+                           >
+                               <div className="flex items-center gap-1">
+                                   <span className={`text-[11px] font-serif truncate max-w-[80px] ${isFocused ? 'text-amber-400 font-bold' : 'text-stone-300'}`}>
+                                       {opp.name}
+                                   </span>
+                                   {currentLeader === opp.id && getIcon('ui', 'crown', { size: 9, className: "text-amber-400" })}
+                               </div>
+
+                               <div className="flex items-center gap-1 bg-stone-950/60 px-1.5 py-0.5 rounded border border-stone-850">
+                                   {getIcon('ui', 'hand', { size: 9, className: "text-stone-500" })}
+                                   <span className="text-[9px] font-mono text-stone-400 font-bold">{opp.hand.length}</span>
+                               </div>
+
+                               <div className="flex justify-center gap-0.5 min-h-[40px] items-center">
+                                   {opp.flight.map((c) => (
+                                       <div key={c.id} className="transform scale-[0.4] w-6 h-8 flex items-center justify-center -mx-1.5">
+                                           <Card card={c} size="sm" glow={lastCardPlayed?.id === c.id ? 'red' : 'none'} disabled />
+                                       </div>
+                                   ))}
+                                   {opp.flight.length === 0 && (
+                                       <span className="text-[8px] text-stone-600 uppercase font-bold tracking-widest italic opacity-40">No Flight</span>
+                                   )}
+                               </div>
+
+                               {opp.isTalking && (
+                                   <div className="absolute -bottom-2 bg-stone-100 text-stone-950 px-1.5 py-0.5 rounded text-[8px] border border-stone-800 shadow-md max-w-[100px] truncate">
+                                       "{opp.npcLine}"
+                                   </div>
+                               )}
+                           </div>
+                        );
+                    })}
                 </div>
 
                 {/* BATTLEGROUND */}
-                <div className="flex-1 w-full flex items-center justify-center gap-16">
+                <div className="flex-1 w-full flex items-center justify-center gap-16 py-2">
                     <div className={`w-28 h-36 border-2 rounded-tl-[35px] rounded-br-[35px] flex items-center justify-center transition-all bg-black/30 ${opponentAnte ? 'border-amber-600/60 shadow-[0_0_30px_rgba(0,0,0,0.8)]' : 'border-stone-800/40'}`}>
                         {opponentAnte ? <motion.div key={opponentAnte.id} initial={{ opacity: 0, scale: 0.5 }} animate={{ opacity: 1, scale: 0.85 }}><Card card={opponentAnte} isFaceUp={phase !== 'ante-selection'} size="sm" /></motion.div> : <span className="text-[10px] text-stone-700 uppercase font-bold tracking-widest opacity-40">Opponent Ante</span>}
                     </div>

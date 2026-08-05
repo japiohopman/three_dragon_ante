@@ -10,7 +10,7 @@ import { SPRITE_MAP, ATLAS_URL, HAND_LIMIT } from '../../../utils/constants';
 import { NPC_LIST } from '../../../utils/npcConstants';
 import RulebookModal from './RulebookModal';
 import { playSound } from '../../../services/soundService';
-import { formatPrice, formatWealth } from '../../../utils/currency';
+import { formatPrice, formatWealth, Money, fromCopper } from '../../../utils/currency';
 
 interface GameUIProps {
   onExit?: () => void;
@@ -78,6 +78,7 @@ const GameUI: React.FC<GameUIProps> = ({ onExit }) => {
   const [showRules, setShowRules] = useState(false);
   const [longTurn, setLongTurn] = useState(false);
   const [showLog, setShowLog] = useState(true);
+  const [opponentCount, setOpponentCount] = useState<number>(1);
 
   // --- WATCHDOG: AUTO-FIX STUCK AI ---
   useEffect(() => {
@@ -265,7 +266,7 @@ const GameUI: React.FC<GameUIProps> = ({ onExit }) => {
                     <span className="text-[10px] uppercase tracking-[0.3em] text-stone-500 font-bold mb-0.5">Session Purse</span>
                     <div className="flex items-center gap-3">
                          {(() => {
-                             const w = formatWealth(playerGold);
+                             const w: Money = fromCopper(playerGold, true);
                              return (
                                  <div className="flex items-center gap-2.5">
                                      {w.pp > 0 && (
@@ -677,10 +678,28 @@ const GameUI: React.FC<GameUIProps> = ({ onExit }) => {
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full max-w-2xl px-4 pb-8">
+                    <div className="col-span-full mb-6 flex flex-col items-center">
+                        <h3 className="text-amber-500 font-bold tracking-widest uppercase mb-3 drop-shadow-sm">Choose Opponents Count</h3>
+                        <div className="flex gap-2 bg-stone-900/60 p-1.5 rounded-xl border border-stone-800">
+                            {[1, 2, 3, 4, 5].map((count) => (
+                                <button
+                                    key={count}
+                                    onClick={() => {
+                                        playSound('UI_CLICK');
+                                        setOpponentCount(count);
+                                    }}
+                                    className={`px-5 py-2 rounded-lg font-gothic text-xl transition-all ${opponentCount === count ? 'bg-amber-600 text-stone-950 font-bold' : 'text-stone-400 hover:text-stone-200'}`}
+                                >
+                                    {count} Opponent{count > 1 ? 's' : ''}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
                     <button
                         onClick={() => {
                             playSound('UI_CLICK');
-                            startGame(3, selectedSkill);
+                            startGame(3, selectedSkill, opponentCount);
                         }}
                         onMouseEnter={() => playSound('UI_HOVER')}
                         disabled={selectedSkill === 'none'}
@@ -692,7 +711,7 @@ const GameUI: React.FC<GameUIProps> = ({ onExit }) => {
                     <button
                         onClick={() => {
                             playSound('UI_CLICK');
-                            startGame(6, selectedSkill);
+                            startGame(6, selectedSkill, opponentCount);
                         }}
                         onMouseEnter={() => playSound('UI_HOVER')}
                         disabled={selectedSkill === 'none'}
@@ -704,7 +723,7 @@ const GameUI: React.FC<GameUIProps> = ({ onExit }) => {
                     <button
                         onClick={() => {
                             playSound('UI_CLICK');
-                            startGame(9, selectedSkill);
+                            startGame(9, selectedSkill, opponentCount);
                         }}
                         onMouseEnter={() => playSound('UI_HOVER')}
                         disabled={selectedSkill === 'none'}
@@ -729,29 +748,30 @@ const GameUI: React.FC<GameUIProps> = ({ onExit }) => {
       {/* GAMBIT END */}
       {isGambitEnd && gambitResult && (
           <div className="absolute inset-0 bg-black/90 flex flex-col items-center justify-center z-[200] pointer-events-auto animate-in fade-in duration-700">
-               <div className={`p-6 rounded-full border-4 mb-6 ${gambitResult.winner === 'player' ? 'border-blue-500 bg-blue-900/30' : 'border-red-500 bg-red-900/30'}`}>
-                   {gambitResult.winner === 'player' ? getIcon('ui', 'trophy', { size: 64, className: "text-blue-400" }) : getIcon('ui', 'skull', { size: 64, className: "text-red-500" })}
+               <div className={`p-6 rounded-full border-4 mb-6 ${gambitResult.winnerId === 'player' ? 'border-blue-500 bg-blue-900/30' : 'border-red-500 bg-red-900/30'}`}>
+                   {gambitResult.winnerId === 'player' ? getIcon('ui', 'trophy', { size: 64, className: "text-blue-400" }) : getIcon('ui', 'skull', { size: 64, className: "text-red-500" })}
                </div>
 
                <h2 className="text-4xl font-gothic text-stone-100 mb-2">
-                   {gambitResult.winner === 'player' ? 'Gambit Won!' : 'Gambit Lost'}
+                   {gambitResult.winnerId === 'player' ? 'Gambit Won!' : `${gambitResult.winnerName} Won`}
                </h2>
 
                <p className="text-lg text-stone-400 italic mb-8">{gambitResult.reason}</p>
 
-               <div className="grid grid-cols-2 gap-8 mb-8 text-center border-t border-b border-stone-800 py-6 w-full max-w-lg bg-stone-900/50">
-                   <div>
-                       <div className="text-xs uppercase text-blue-500 font-bold mb-1">Your Strength</div>
-                       <div className="text-4xl font-gothic text-stone-100">{gambitResult.playerStrength}</div>
-                   </div>
-                   <div>
-                       <div className="text-xs uppercase text-red-500 font-bold mb-1">{getNPCName()}'s Strength</div>
-                       <div className="text-4xl font-gothic text-stone-100">{gambitResult.opponentStrength}</div>
-                   </div>
+               <div className="flex flex-col gap-2 mb-8 w-full max-w-lg bg-stone-900/50 border border-stone-800 p-6 rounded-xl text-center">
+                   <h4 className="text-xs uppercase tracking-widest text-stone-500 mb-4 font-bold">Flight Strengths</h4>
+                   {gambitResult.scores.map((score) => (
+                       <div key={score.playerId} className="flex justify-between items-center py-1 border-b border-stone-800/40 last:border-0">
+                           <span className={`text-base font-serif ${score.playerId === 'player' ? 'text-blue-400 font-bold' : 'text-stone-300'}`}>
+                               {score.name} {score.playerId === 'player' && '(You)'}
+                           </span>
+                           <span className="font-gothic text-xl text-stone-100">{score.strength}</span>
+                       </div>
+                   ))}
                </div>
 
                <p className="text-amber-400 font-gothic text-2xl mb-8">
-                   {gambitResult.winner === 'player' ? `+${formatPrice(gambitResult.potWon)}` : `-${formatPrice(gambitResult.potWon)}`}
+                   {gambitResult.winnerId === 'player' ? `+${formatPrice(gambitResult.potWon)}` : `-${formatPrice(gambitResult.potWon)}`}
                </p>
 
                <button
