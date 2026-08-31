@@ -1,0 +1,4 @@
+# --- add these lines to the existing .gitignore ---
+# Playwright debug/verification screenshots and run state — not source, don't commit
+verification/
+test-results/

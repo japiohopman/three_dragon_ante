@@ -1,0 +1,39 @@
+name: CI
+
+# Runs on every push and pull request against main.
+# Goal: catch a broken build/type-error/failing test before it reaches anyone's
+# review queue — the minimal smoke-test gate referenced in ROADMAP.md.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-and-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Type check
+        # package.json's "lint" script is `tsc --noEmit`.
+        run: npm run lint
+
+      - name: Unit tests
+        # package.json's "test" script is `vitest run src/`.
+        run: npm run test
+
+      - name: Build
+        # Real end-to-end check: vite build + the esbuild server bundle.
+        run: npm run build
