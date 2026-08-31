@@ -9,10 +9,10 @@ minigame.
 ## Now
 
 ### Active
+- [ ] **Repo hygiene — stop committing build/verification artifacts**
 
 ### Ready
 
-- [ ] **Repo hygiene — stop committing build/verification artifacts**
   - **Problem:** `verification/` (8.2MB of PNGs) and `test-results/.last-run.json` are
     tracked in git. These are Playwright debug screenshots and run-state, not source.
   - **Goal:** add `verification/` and `test-results/` to `.gitignore`, `git rm --cached` the

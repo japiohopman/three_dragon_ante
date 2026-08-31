@@ -1,3 +1,7 @@
 {
-  "activeSession": null
+  "activeSession": {
+    "name": "sessions/16147634067456442779",
+    "task": "**Repo hygiene — stop committing build/verification artifacts**",
+    "startedAt": "2026-08-31T21:26:37.607Z"
+  }
 }
