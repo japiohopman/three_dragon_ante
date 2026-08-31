@@ -995,10 +995,15 @@ export const useGameStore = create<GameStore>((set, get) => {
       const nextActiveIndex = (pIdx + 1) % state.players.length;
       const nextActive = state.players[nextActiveIndex];
 
+      const newFocusedOpponentIndex = (nextActiveIndex > 0 && nextActiveIndex < state.players.length)
+          ? nextActiveIndex
+          : state.focusedOpponentIndex;
+
       set(syncCompatibility({
           players: updatedPlayers,
           pot: updatedPot,
           activePlayerIndex: nextActiveIndex,
+          focusedOpponentIndex: newFocusedOpponentIndex,
           lastCardPlayed: lastPlayed || state.lastCardPlayed,
           phase: nextActive.isNpc ? 'opponent-turn' : 'player-turn'
       }));
