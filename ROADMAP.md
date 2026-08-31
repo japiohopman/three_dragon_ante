@@ -9,7 +9,7 @@ minigame.
 ## Now
 
 ### Active
-- [ ] **Repo hygiene — stop committing build/verification artifacts**
+- [x] **Repo hygiene — stop committing build/verification artifacts**
 
 ### Ready
 
