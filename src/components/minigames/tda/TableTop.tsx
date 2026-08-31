@@ -13,6 +13,7 @@ import { playSound } from '../../../services/soundService';
 const TableTop: React.FC = () => {
   const {
     players,
+    activePlayerIndex,
     focusedOpponentIndex,
     setFocusedOpponentIndex,
     playerHand,
@@ -83,6 +84,12 @@ const TableTop: React.FC = () => {
   };
 
   const focusedOpponent = players[focusedOpponentIndex] || players[1];
+
+  React.useEffect(() => {
+    if (activePlayerIndex > 0 && activePlayerIndex < players.length) {
+      setFocusedOpponentIndex(activePlayerIndex);
+    }
+  }, [activePlayerIndex, players.length, setFocusedOpponentIndex]);
 
   React.useEffect(() => {
     if (phase === 'opponent-turn' || (phase === 'round-start' && activePlayer !== 'player' && activePlayer !== null)) {
