@@ -156,6 +156,7 @@ const TableTop: React.FC = () => {
                   isPlayerTurn={isPlayerTurn}
                   selectAnte={selectAnte}
                   playCard={playCard}
+                  isLeader={currentLeader === 'player'}
                 />
             </div>
 

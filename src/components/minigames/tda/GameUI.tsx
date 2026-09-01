@@ -40,7 +40,8 @@ const GameUI: React.FC<GameUIProps> = ({ onExit }) => {
     fixGameState,
     resetGame,
     npcId,
-    characterStats
+    characterStats,
+    lastCardPlayed
   } = useGameStore();
 
   const { focusedCardId, hoveredCardId, setFocusedCard } = useAnimationStore();
@@ -52,6 +53,18 @@ const GameUI: React.FC<GameUIProps> = ({ onExit }) => {
 
   // AI State Check for subtle UI indicator
   const isAiThinking = activePlayer === 'opponent' || (isInteraction && pendingInteraction?.target === 'opponent');
+
+  // --- KEYBOARD SHORTCUTS (e.g. ? or h for Rulebook) ---
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement)?.tagName)) return;
+      if (e.key === '?' || e.key === 'h' || e.key === 'H') {
+        setShowRules((prev) => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   const showHud = !isLobby && !isGameOver;
 
@@ -204,6 +217,7 @@ const GameUI: React.FC<GameUIProps> = ({ onExit }) => {
         focusedCard={focusedCard}
         canPlayFocused={canPlayFocused}
         canAnteFocused={canAnteFocused}
+        lastCardPlayed={lastCardPlayed}
         onPlayFocused={handlePlayFocused}
         onSelectAnteFocused={handleSelectAnteFocused}
         onClose={() => setFocusedCard(null)}
