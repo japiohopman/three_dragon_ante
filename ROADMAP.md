@@ -9,7 +9,7 @@ minigame.
 ## Now
 
 ### Active
-- [x] **Repo hygiene — stop committing build/verification artifacts**
+- [ ] **CI pipeline — build/lint/test on every push and PR**
 
 ### Ready
 
@@ -21,7 +21,6 @@ minigame.
   - **Acceptance:** `git status` is clean after regenerating a Playwright run; repo clone
     size drops; CI still passes.
 
-- [ ] **CI pipeline — build/lint/test on every push and PR**
   - **Problem:** there is no `.github/workflows` CI at all yet — a broken build can land on
     `main` undetected.
   - **Goal:** add `.github/workflows/ci.yml` that runs `npm ci`, `npm run lint` (`tsc --noEmit`),

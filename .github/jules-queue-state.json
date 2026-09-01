@@ -1,7 +1,7 @@
 {
   "activeSession": {
-    "name": "sessions/16147634067456442779",
-    "task": "**Repo hygiene — stop committing build/verification artifacts**",
-    "startedAt": "2026-08-31T21:26:37.607Z"
+    "name": "sessions/18409853332024478661",
+    "task": "**CI pipeline — build/lint/test on every push and PR**",
+    "startedAt": "2026-09-01T01:02:56.509Z"
   }
 }
