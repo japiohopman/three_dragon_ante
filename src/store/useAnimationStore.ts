@@ -85,6 +85,7 @@ export const useAnimationStore = create<AnimationState>((set) => ({
   },
 
   spawnCoins: (count, start, end) => {
+    const MAX_CONCURRENT_COINS = 50;
     const newCoins: CoinParticle[] = [];
     for (let i = 0; i < count; i++) {
       // Add Jitter to destination so they land in a pile, not a single point
@@ -100,7 +101,13 @@ export const useAnimationStore = create<AnimationState>((set) => ({
         delay: i * 50 // Stagger by 50ms
       });
     }
-    set((state) => ({ activeCoins: [...state.activeCoins, ...newCoins] }));
+    set((state) => {
+      const combined = [...state.activeCoins, ...newCoins];
+      const trimmed = combined.length > MAX_CONCURRENT_COINS
+        ? combined.slice(combined.length - MAX_CONCURRENT_COINS)
+        : combined;
+      return { activeCoins: trimmed };
+    });
 
     // Auto clear after animation duration (approx 1.5s)
     setTimeout(() => {

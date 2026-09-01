@@ -8,6 +8,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=UnifrakturCook:wght@700&display=swap" rel="stylesheet">
+    <link rel="preload" as="image" href="https://github.com/japiohopman/artificer/blob/main/public/assets/images/three_dragons_ante_card_game/tda_cards.webp?raw=true" />
+    <link rel="preload" as="image" href="https://github.com/japiohopman/artificer/blob/main/public/assets/images/three_dragons_ante_card_game/tda_cards_small.webp?raw=true" />
     <style>
       body {
         background-color: #1c1917; /* stone-900 */
@@ -152,6 +154,29 @@
       }
       .animate-pulse-glow {
         animation: pulse-glow 1.5s infinite;
+      }
+
+      /* Coin Trajectory Optimization */
+      @keyframes coin-fly {
+        0% {
+          transform: translate3d(var(--start-x), var(--start-y), 0) scale(0.5) rotate(0deg);
+          opacity: 0;
+        }
+        10% {
+          opacity: 1;
+        }
+        70% {
+          transform: translate3d(var(--end-x), var(--end-y), 0) scale(1) rotate(540deg);
+          opacity: 1;
+        }
+        100% {
+          transform: translate3d(var(--end-x), var(--end-y), 0) scale(0.8) rotate(720deg);
+          opacity: 0;
+        }
+      }
+      .animate-coin-fly {
+        animation: coin-fly 1.2s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+        will-change: transform, opacity;
       }
 
       /* Coin Float */

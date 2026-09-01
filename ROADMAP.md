@@ -43,7 +43,7 @@ reads this file, it never edits it. Your review/merge of the PR is the real chec
     `npm run test` and `npm run build` still pass, no single game-logic file exceeds ~400
     lines without a documented reason.
 
-- [ ] **Performance pass — table VFX and sprite loading**
+- [x] **Performance pass — table VFX and sprite loading**
   - **Problem:** `TableTop.tsx` implements a DOM-based particle system for gold coins, and
     the card art relies on a single sprite atlas (`enhanced_tiamat.webp`) — worth confirming
     both are not causing jank on lower-end devices.
