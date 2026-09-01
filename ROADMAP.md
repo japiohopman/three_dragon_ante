@@ -54,7 +54,22 @@ reads this file, it never edits it. Your review/merge of the PR is the real chec
   - **Acceptance:** written before/after note in `docs/PERFORMANCE.md` (create if missing)
     with what was measured and what changed, even if the conclusion is "no change needed."
 
-- [x] **UX pass — onboarding and in-game clarity**
+- [ ] **Follow-up — finish the store split: two slices still over the 400-line bar**
+  - **Problem:** double-checked after the "split the largest monolithic files" task was
+    merged and checked off: `src/store/slices/turnSlice.ts` is 637 lines and
+    `src/store/slices/interactionSlice.ts` is 573 lines — both still well over the ~400-line
+    acceptance bar that task itself set, with no documented reason in the code or PR for
+    the exception. The split (useGameStore.ts → 7 slice files) is otherwise solid —
+    `npm run lint`, `npm run test`, and `npm run build` all pass clean against the current
+    `main`, this is specifically about finishing the acceptance bar these two files missed.
+  - **Goal:** split `turnSlice.ts` (gambit/turn flow) and `interactionSlice.ts` (interaction
+    resolution) further by responsibility, the same way the other slices already were, OR
+    if a further split would genuinely hurt readability (e.g. tightly-coupled turn-resolution
+    logic), add a short comment at the top of the file explaining why it stays as one file.
+  - **Acceptance:** either both files are under ~400 lines, or each carries an explicit
+    documented reason why not. `npm run lint`, `npm run test`, and `npm run build` still pass.
+
+- [ ] **UX pass — onboarding and in-game clarity**
   - **Problem:** `todo.md` flags the hand-limit warning as "visual only, logic exists" —
     worth a fresh look at whether new-player affordances (rulebook discoverability, hand
     limit, whose turn it is, what a click will do) are clear without prior knowledge of the
