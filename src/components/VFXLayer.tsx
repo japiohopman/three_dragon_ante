@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { useAnimationStore } from '../store/useAnimationStore';
 import { useGameStore } from '../store/useGameStore';
 
-// Sub-component to handle the mount->animate lifecycle for each coin
+// Sub-component rendering a coin particle driven purely by CSS keyframes
 const Coin: React.FC<{
   startX: number;
   startY: number;
@@ -12,51 +12,16 @@ const Coin: React.FC<{
   endY: number;
   delay: number;
 }> = ({ startX, startY, endX, endY, delay }) => {
-  const [style, setStyle] = useState<React.CSSProperties>({
-    left: `${startX}px`,
-    top: `${startY}px`,
-    opacity: 0,
-    transform: 'scale(0.5)'
-  });
-
-  useEffect(() => {
-    let mounted = true;
-
-    // Phase 1: Mount (Invisible but present)
-    const t1 = setTimeout(() => {
-        if (mounted) {
-            setStyle({
-                left: `${startX}px`,
-                top: `${startY}px`,
-                opacity: 1,
-                transform: `translate(${endX - startX}px, ${endY - startY}px) rotate(${Math.random() * 720}deg)`,
-                transition: `transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) ${delay}ms, opacity 0.3s ease-in ${delay}ms`
-            });
-        }
-    }, 50);
-
-    // Phase 2: Fade out at destination
-    const t2 = setTimeout(() => {
-        if (mounted) {
-            setStyle(prev => ({
-                ...prev,
-                opacity: 0,
-                transition: 'opacity 0.2s ease-out'
-            }));
-        }
-    }, 800 + delay);
-
-    return () => {
-        mounted = false;
-        clearTimeout(t1);
-        clearTimeout(t2);
-    };
-  }, [startX, startY, endX, endY, delay]);
-
   return (
     <div
-      className="absolute w-6 h-6 rounded-full bg-yellow-400 border-2 border-yellow-600 shadow-md flex items-center justify-center z-50 pointer-events-none"
-      style={style}
+      className="absolute top-0 left-0 w-6 h-6 rounded-full bg-yellow-400 border-2 border-yellow-600 shadow-md flex items-center justify-center z-50 pointer-events-none animate-coin-fly"
+      style={{
+        '--start-x': `${startX}px`,
+        '--start-y': `${startY}px`,
+        '--end-x': `${endX}px`,
+        '--end-y': `${endY}px`,
+        animationDelay: `${delay}ms`,
+      } as React.CSSProperties}
     >
        <div className="w-4 h-4 rounded-full border border-yellow-200/50" />
     </div>
