@@ -12,7 +12,7 @@ minigame.
 
 ### Ready
 
-- [ ] **Repo hygiene — stop committing build/verification artifacts**
+- [x] **Repo hygiene — stop committing build/verification artifacts**
   - **Problem:** `verification/` (8.2MB of PNGs) and `test-results/.last-run.json` are
     tracked in git. These are Playwright debug screenshots and run-state, not source.
   - **Goal:** add `verification/` and `test-results/` to `.gitignore`, `git rm --cached` the
@@ -21,7 +21,7 @@ minigame.
   - **Acceptance:** `git status` is clean after regenerating a Playwright run; repo clone
     size drops; CI still passes.
 
-- [ ] **CI pipeline — build/lint/test on every push and PR**
+- [x] **CI pipeline — build/lint/test on every push and PR**
   - **Problem:** there is no `.github/workflows` CI at all yet — a broken build can land on
     `main` undetected.
   - **Goal:** add `.github/workflows/ci.yml` that runs `npm ci`, `npm run lint` (`tsc --noEmit`),
