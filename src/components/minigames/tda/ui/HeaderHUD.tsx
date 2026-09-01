@@ -141,18 +141,31 @@ export const HeaderHUD: React.FC<HeaderHUDProps> = ({
               <span className="text-[9px] uppercase tracking-[0.3em] text-stone-500 font-bold mb-0.5">Character</span>
               <div className="flex items-center gap-3">
                    <div className="flex items-center gap-1.5">
-                       <div className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-stone-900 border border-stone-800">
-                           {getIcon('ui', 'hand', { size: 10, className: "text-stone-500" })}
-                           <span className="text-[10px] font-mono text-stone-400 font-bold">{playerHand.length}</span>
+                       <div className={`flex items-center gap-1 px-2 py-0.5 rounded border transition-all ${
+                           playerHand.length >= 10
+                             ? 'bg-red-950/80 border-red-500/80 text-red-300 animate-pulse shadow-[0_0_10px_rgba(239,68,68,0.3)]'
+                             : playerHand.length >= 8
+                             ? 'bg-amber-950/60 border-amber-600/60 text-amber-300'
+                             : 'bg-stone-900 border-stone-800 text-stone-400'
+                       }`} title={playerHand.length >= 10 ? "Hand Limit Reached (10/10)" : `Hand Cards: ${playerHand.length}/10`}>
+                           {getIcon('ui', 'hand', { size: 10, className: playerHand.length >= 10 ? 'text-red-400' : playerHand.length >= 8 ? 'text-amber-400' : 'text-stone-500' })}
+                           <span className="text-[10px] font-mono font-bold">
+                             {playerHand.length}/10
+                           </span>
+                           {playerHand.length >= 10 && (
+                             <span className="text-[8px] font-bold uppercase tracking-wider bg-red-900/80 text-red-200 px-1 rounded ml-0.5">FULL</span>
+                           )}
                        </div>
                        <span className="text-sm font-serif font-bold text-blue-400 uppercase tracking-widest">Player</span>
                    </div>
                    <button
                       onClick={() => setShowRules(true)}
-                      className="p-1.5 text-stone-500 hover:text-amber-500 transition-colors"
-                      title="Rulebook"
+                      className="px-2.5 py-1 bg-amber-950/40 hover:bg-amber-900/60 text-amber-300 hover:text-amber-200 border border-amber-800/60 hover:border-amber-500/80 rounded-md transition-all shadow-sm flex items-center gap-1.5 text-xs font-semibold group"
+                      title="Open Rulebook (Shortcut: ? or H)"
                    >
-                       {getIcon('ui', 'scroll', { size: 18 })}
+                       {getIcon('ui', 'scroll', { size: 16, className: "text-amber-400 group-hover:scale-110 transition-transform" })}
+                       <span>Rules</span>
+                       <span className="text-[10px] opacity-60 font-mono bg-stone-900/80 px-1 py-0.2 rounded border border-stone-800 ml-0.5">?</span>
                    </button>
               </div>
           </div>

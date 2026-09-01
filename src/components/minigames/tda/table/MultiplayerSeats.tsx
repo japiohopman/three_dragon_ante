@@ -36,11 +36,21 @@ export const MultiplayerSeats: React.FC<MultiplayerSeatsProps> = ({
                       ${isTurn ? 'ring-2 ring-amber-500 ring-offset-2 ring-offset-stone-900 animate-pulse animate-duration-1000' : ''}
                   `}
                >
+                   {isTurn && (
+                       <div className="absolute -top-2.5 bg-amber-500 text-stone-950 font-bold px-2 py-0.5 rounded-full text-[8px] uppercase tracking-wider shadow-md animate-pulse">
+                           Turn
+                       </div>
+                   )}
+
                    <div className="flex items-center gap-1">
                        <span className={`text-[11px] font-serif truncate max-w-[80px] ${isFocused ? 'text-amber-400 font-bold' : 'text-stone-300'}`}>
                            {opp.name}
                        </span>
-                       {currentLeader === opp.id && getIcon('ui', 'crown', { size: 9, className: "text-amber-400" })}
+                       {currentLeader === opp.id && (
+                           <span title="Round Leader" className="flex items-center gap-0.5 text-[8px] font-bold text-amber-400 bg-amber-950/80 px-1 py-0.2 rounded border border-amber-500/40">
+                               {getIcon('ui', 'crown', { size: 9, className: "text-amber-400" })} LEADER
+                           </span>
+                       )}
                    </div>
 
                    <div className="flex items-center gap-1 bg-stone-950/60 px-1.5 py-0.5 rounded border border-stone-850">

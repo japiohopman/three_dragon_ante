@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import Card from '../Card';
 import { CardData, GamePhase } from '../../../../types';
+import { getIcon } from '../../../../assets/icons';
 
 interface PlayerHandAreaProps {
   playerHand: CardData[];
@@ -11,6 +12,7 @@ interface PlayerHandAreaProps {
   isPlayerTurn: boolean;
   selectAnte: (id: string) => void;
   playCard: (id: string) => void;
+  isLeader?: boolean;
 }
 
 export const PlayerHandArea: React.FC<PlayerHandAreaProps> = ({
@@ -20,7 +22,8 @@ export const PlayerHandArea: React.FC<PlayerHandAreaProps> = ({
   phase,
   isPlayerTurn,
   selectAnte,
-  playCard
+  playCard,
+  isLeader = false
 }) => {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const isAntePhase = phase === 'ante-selection';
@@ -94,6 +97,41 @@ export const PlayerHandArea: React.FC<PlayerHandAreaProps> = ({
         className="absolute bottom-4 left-1/2 -translate-x-1/2 w-full flex justify-center items-end h-64 pointer-events-auto"
         onMouseLeave={() => setHoveredIndex(null)}
       >
+          {/* HAND LIMIT WARNING BANNER */}
+          {playerHand.length >= 10 && (
+              <div className="absolute -top-12 left-1/2 -translate-x-1/2 bg-red-950/90 border border-red-500/80 text-red-200 px-3 py-1 rounded-full text-xs font-bold shadow-xl flex items-center gap-1.5 animate-bounce z-50 pointer-events-none backdrop-blur-md">
+                  {getIcon('ui', 'skull', { size: 12, className: "text-red-400" })}
+                  <span>Hand Limit Reached (10/10) — Cannot draw or buy cards</span>
+              </div>
+          )}
+
+          {/* TURN & LEADER INDICATOR BANNER */}
+          {(isPlayerTurn || phase === 'ante-selection') && playerHand.length < 10 && (
+              <div className={`absolute -top-10 left-1/2 -translate-x-1/2 px-3.5 py-1 rounded-full text-xs font-bold uppercase tracking-widest shadow-xl flex items-center gap-1.5 z-40 pointer-events-none backdrop-blur-md border ${
+                  phase === 'ante-selection'
+                      ? 'bg-amber-900/90 border-amber-500/80 text-amber-200 animate-pulse'
+                      : isLeader
+                      ? 'bg-amber-500 border-amber-300 text-stone-950 shadow-[0_0_15px_rgba(245,158,11,0.5)]'
+                      : 'bg-emerald-950/90 border-emerald-500/80 text-emerald-200'
+              }`}>
+                  {phase === 'ante-selection' ? (
+                      <>
+                          {getIcon('ui', 'sparkles', { size: 12, className: "text-amber-400" })}
+                          <span>Ante Phase — Choose Card to Ante</span>
+                      </>
+                  ) : isLeader ? (
+                      <>
+                          {getIcon('ui', 'crown', { size: 12, className: "text-stone-950" })}
+                          <span>Your Turn — Round Leader</span>
+                      </>
+                  ) : (
+                      <>
+                          {getIcon('ui', 'sparkles', { size: 12, className: "text-emerald-400" })}
+                          <span>Your Turn — Play Card</span>
+                      </>
+                  )}
+              </div>
+          )}
           <AnimatePresence>
               {playerHand.map((card, i) => (
                   <motion.div
@@ -111,11 +149,20 @@ export const PlayerHandArea: React.FC<PlayerHandAreaProps> = ({
                       onMouseEnter={() => setHoveredIndex(i)}
                       data-testid={`player-card-${i}`}
                   >
+                      {isPlayerTurn && (
+                          <div className={`absolute -top-3 left-1/2 -translate-x-1/2 px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider shadow-md pointer-events-none border whitespace-nowrap z-20 ${
+                              (!lastCardPlayed || card.strength <= lastCardPlayed.strength)
+                                  ? 'bg-amber-950/90 border-amber-400 text-amber-300 shadow-[0_0_8px_rgba(245,158,11,0.4)]'
+                                  : 'bg-stone-900/90 border-stone-700 text-stone-400'
+                          }`}>
+                              {(!lastCardPlayed || card.strength <= lastCardPlayed.strength) ? '⚡ Power' : '⚔️ Str'}
+                          </div>
+                      )}
                       <Card
                           card={card}
                           onClick={() => { if (isAntePhase) selectAnte(card.id); else if (isPlayerTurn) playCard(card.id); }}
                           disabled={(!isPlayerTurn && !isAntePhase)}
-                          glow={(isPlayerTurn && lastCardPlayed && card.strength <= lastCardPlayed.strength) ? 'gold' : 'none'}
+                          glow={(isPlayerTurn && (!lastCardPlayed || card.strength <= lastCardPlayed.strength)) ? 'gold' : 'none'}
                           size="sm"
                       />
                   </motion.div>
