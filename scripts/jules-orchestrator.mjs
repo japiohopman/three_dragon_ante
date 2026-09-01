@@ -1,38 +1,47 @@
 #!/usr/bin/env node
 /**
- * Jules Queue Orchestrator (v2)
+ * Jules Queue Orchestrator (v3)
  *
- * Runs on a schedule (see .github/workflows/jules-orchestrator.yml — the "heartbeat", disabled
- * by default until one full manual cycle has been verified — see JULES_ORCHESTRATOR_SETUP.md).
+ * v2 tried to physically move task lines between "### Active" and "### Ready" in
+ * ROADMAP.md. That broke as soon as a task had multi-line content (Problem/Goal/
+ * Acceptance sub-bullets) under its checkbox — the script only moved the checkbox
+ * line itself, orphaning the description underneath it.
  *
- * Ties Jules sessions to ROADMAP.md's "## Now" section, which is structured as:
+ * v3 fixes this by never editing ROADMAP.md itself. Jules does that, as the last
+ * step of its own task, once it has actually verified the work (AGENT_RULES.md §1) —
+ * it flips its own task's "- [ ]" to "- [x]" IN PLACE, no moving required. This
+ * script only ever *reads* ROADMAP.md, to decide what to dispatch and whether a task
+ * is confirmed done.
+ *
+ * Ties Jules sessions to ROADMAP.md's "### Ready" list under "## Now":
  *
  *   ## Now
- *   ### Active
- *   - [ ] <task currently being worked by Jules — at most one at a time>
  *   ### Ready
- *   - [ ] <task the orchestrator is allowed to dispatch next>
+ *   - [ ] <task available to dispatch>
+ *   - [x] <task confirmed done by Jules, left in place>
  *   ### Blocked
  *   - [ ] <task waiting on a human decision — never dispatched>
  *   ### Human Review
  *   - [ ] <task that needs discussion before it's safe to hand to Jules — never dispatched>
  *
  * Flow each run:
- * 1. Load state (.github/jules-queue-state.json).
+ * 1. Load state (.github/jules-queue-state.json) — this is the ONLY place "what's
+ *    currently active" is tracked; ROADMAP.md never needs an "### Active" section.
  * 2. If a session is already active:
  *      - No PR yet -> stop, nothing to do.
- *      - PR open but not merged -> stop. Human review gate #1.
- *      - PR merged BUT the task's line under "### Active" in ROADMAP.md is still "- [ ]"
- *        -> stop. Human review gate #2 — a merge alone is not "done"; you (or CI) confirm
- *        it actually works by checking the box yourself.
- *      - PR merged AND the line is now "- [x]" -> the task is confirmed done. Remove the
- *        line from "### Active", clear the active session, fall through to dispatch next.
+ *      - PR open but not merged -> stop. Human gate: PR review/merge.
+ *      - PR merged BUT the task's checkbox in ROADMAP.md is still "- [ ]"
+ *        -> stop and log a warning — Jules said it opened a PR but didn't check its
+ *        own box, which shouldn't happen per AGENT_RULES.md §1. Needs a look.
+ *      - PR merged AND the checkbox is now "- [x]" -> confirmed done. Clear the
+ *        active session, fall through to dispatch next.
  * 3. If there's no active session:
- *      - Take the first "- [ ] ..." line under "### Ready".
- *      - None -> log "queue empty (or everything is Blocked/Human Review)" and stop.
- *      - Otherwise: move that line from "### Ready" to "### Active", start a new Jules
- *        session for it, and record it in state.
- * 4. Commit ROADMAP.md (if the task moved) and the state file together.
+ *      - Take the first "- [ ] ..." line under "### Ready" (top-level checkbox only,
+ *        sub-bullets like "  - **Problem:** ..." don't match and are left alone).
+ *      - None -> log "queue empty" and stop.
+ *      - Otherwise: start a new Jules session for it, record it in state. Do NOT
+ *        touch ROADMAP.md — Jules will check its own box when done.
+ * 4. Commit only the state file, if it changed.
  */
 
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
@@ -82,69 +91,36 @@ function extractPrNumber(prUrl) {
   return match ? Number(match[1]) : null;
 }
 
-/** Parses ROADMAP.md into its "## Now" subsections, keyed by heading name. */
-function parseNowSections(text) {
+/** Finds top-level "- [ ]" / "- [x]" checkbox lines under a given "###" heading inside "## Now". */
+function findTasksUnderHeading(text, headingName) {
   const lines = text.split('\n');
-  const sections = { Active: [], Ready: [], Blocked: [], 'Human Review': [] };
   let inNow = false;
-  let current = null;
-  const sectionLineRanges = {}; // name -> { start, end } line indices (inclusive), for editing
-
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i];
+  let inHeading = false;
+  const tasks = [];
+  for (const line of lines) {
     if (/^##\s+Now\b/i.test(line)) { inNow = true; continue; }
-    if (inNow && /^##\s+[^#]/.test(line)) break; // next top-level section — stop
+    if (inNow && /^##\s+[^#]/.test(line)) break; // left "## Now" entirely
     if (!inNow) continue;
-
-    const h3 = line.match(/^###\s+(Active|Ready|Blocked|Human Review)\s*$/i);
-    if (h3) {
-      current = Object.keys(sections).find(k => k.toLowerCase() === h3[1].toLowerCase());
-      if (sectionLineRanges[current]) sectionLineRanges[current].end = i;
-      sectionLineRanges[current] = { headingLine: i, start: i + 1, end: lines.length };
-      continue;
-    }
-    if (current) {
-      const task = line.match(/^- \[( |x)\]\s*(.+)$/i);
-      if (task) sections[current].push({ line: i, checked: task[1].toLowerCase() === 'x', text: task[2].trim() });
-    }
+    const h3 = line.match(/^###\s+(.+?)\s*$/);
+    if (h3) { inHeading = h3[1].toLowerCase() === headingName.toLowerCase(); continue; }
+    if (!inHeading) continue;
+    // Only unindented checkbox lines count as tasks — indented "  - **Problem:**" etc. don't match.
+    const task = line.match(/^- \[( |x)\]\s*(.+)$/i);
+    if (task) tasks.push({ checked: task[1].toLowerCase() === 'x', text: task[2].trim() });
   }
-  return { lines, sections, sectionLineRanges };
+  return tasks;
 }
 
-function findActiveLineStatus(roadmapText, taskText) {
-  const { sections } = parseNowSections(roadmapText);
-  return sections.Active.find(t => t.text === taskText) || null;
-}
-
-/** Moves a task line from Ready to the end of Active. Returns the updated file text. */
-function moveTaskToActive(roadmapText, taskText) {
-  const { lines, sections, sectionLineRanges } = parseNowSections(roadmapText);
-  const readyEntry = sections.Ready.find(t => t.text === taskText);
-  if (!readyEntry) throw new Error(`Could not find "${taskText}" under ### Ready`);
-
-  const newLines = lines.slice();
-  newLines.splice(readyEntry.line, 1); // remove from Ready
-  const activeHeadingLine = sectionLineRanges.Active.headingLine;
-  // Insert right after the "### Active" heading (index shifts by -1 if Ready was above Active,
-  // but Active is defined before Ready in the template, so no shift needed here).
-  newLines.splice(activeHeadingLine + 1, 0, `- [ ] ${taskText}`);
-  return newLines.join('\n');
-}
-
-/** Removes a (now-confirmed-done) task line from Active entirely. */
-function removeTaskFromActive(roadmapText, taskText) {
-  const { lines, sections } = parseNowSections(roadmapText);
-  const entry = sections.Active.find(t => t.text === taskText);
-  if (!entry) return roadmapText;
-  const newLines = lines.slice();
-  newLines.splice(entry.line, 1);
-  return newLines.join('\n');
+/** True if this exact task text appears checked off anywhere under "### Ready". */
+function isTaskConfirmedDone(roadmapText, taskText) {
+  const tasks = findTasksUnderHeading(roadmapText, 'Ready');
+  const match = tasks.find(t => t.text === taskText);
+  return match ? match.checked : false;
 }
 
 async function main() {
   const state = loadState();
-  let roadmapText = readFileSync(ROADMAP_PATH, 'utf8');
-  let roadmapChanged = false;
+  const roadmapText = readFileSync(ROADMAP_PATH, 'utf8');
   let stateChanged = false;
 
   if (state.activeSession) {
@@ -161,48 +137,47 @@ async function main() {
 
     const pr = await githubFetch(`pulls/${prNumber}`);
     if (!pr.merged) {
-      console.log(`PR #${prNumber} is open but not merged yet — waiting for review (gate 1).`);
+      console.log(`PR #${prNumber} is open but not merged yet — waiting for review.`);
       return;
     }
 
-    const activeLine = findActiveLineStatus(roadmapText, state.activeSession.task);
-    if (!activeLine || !activeLine.checked) {
+    if (!isTaskConfirmedDone(roadmapText, state.activeSession.task)) {
       console.log(
-        `PR #${prNumber} is merged, but "${state.activeSession.task}" is not yet checked ` +
-        `off under ### Active in ROADMAP.md — waiting for manual confirmation (gate 2).`
+        `PR #${prNumber} is merged, but "${state.activeSession.task}" is still "- [ ]" in ` +
+        `ROADMAP.md. Jules should have checked its own box per AGENT_RULES.md §1 — this needs ` +
+        `a manual look before the queue advances further.`
       );
       return;
     }
 
     console.log(`"${state.activeSession.task}" is merged AND confirmed done. Advancing the queue.`);
-    roadmapText = removeTaskFromActive(roadmapText, state.activeSession.task);
-    roadmapChanged = true;
     state.activeSession = null;
     stateChanged = true;
   }
 
   if (!state.activeSession) {
-    const { sections } = parseNowSections(roadmapText);
-    const next = sections.Ready.find(t => !t.checked);
+    const tasks = findTasksUnderHeading(roadmapText, 'Ready');
+    const next = tasks.find(t => !t.checked);
     if (!next) {
-      console.log('Nothing in ### Ready to dispatch (queue empty, or everything is Blocked / Human Review).');
-      if (roadmapChanged || stateChanged) {
-        writeFileSync(ROADMAP_PATH, roadmapText);
-        saveState(state);
-        commitAndPush();
-      }
+      console.log('Nothing left unchecked under ### Ready (queue empty).');
+      if (stateChanged) { saveState(state); commitAndPush(); }
       return;
     }
 
     console.log(`Dispatching next task: ${next.text}`);
-    roadmapText = moveTaskToActive(roadmapText, next.text);
-    roadmapChanged = true;
 
     const prompt = [
       'Read AGENT.MD, AGENT_RULES.md, and ROADMAP.md before starting.',
-      'Your task from the "### Ready" queue (now moved to "### Active"):',
+      'Your task from ROADMAP.md\'s "### Ready" list:',
       next.text,
-      "Follow AGENT_RULES.md strictly — especially: don't claim something works without running it, and stay inside the relevant module.",
+      "Follow AGENT_RULES.md strictly — especially: don't claim something works without " +
+      "running it, and stay inside the relevant module.",
+      'When you are done AND you have personally verified it works (per AGENT_RULES.md §1), ' +
+      'edit ROADMAP.md yourself and change this task\'s own checkbox line from ' +
+      `"- [ ] ${next.text}" to "- [x] ${next.text}" — in place, don't move or delete the ` +
+      'Problem/Goal/Acceptance bullets underneath it. Include that edit in the same PR. ' +
+      "If you could not fully verify it, leave the checkbox unchecked and say why in the PR " +
+      'description instead.',
     ].join('\n\n');
 
     const session = await julesFetch('sessions', {
@@ -219,8 +194,7 @@ async function main() {
     stateChanged = true;
   }
 
-  if (roadmapChanged) writeFileSync(ROADMAP_PATH, roadmapText);
-  if (roadmapChanged || stateChanged) {
+  if (stateChanged) {
     saveState(state);
     commitAndPush();
   }
@@ -229,7 +203,7 @@ async function main() {
 function commitAndPush() {
   execSync('git config user.name "jules-orchestrator[bot]"');
   execSync('git config user.email "jules-orchestrator@users.noreply.github.com"');
-  execSync(`git add ${STATE_PATH} ${ROADMAP_PATH}`);
+  execSync(`git add ${STATE_PATH}`);
   try {
     execSync('git commit -m "chore: advance Jules queue"');
     execSync('git push');

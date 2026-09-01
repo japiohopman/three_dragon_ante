@@ -1,13 +1,10 @@
 name: Jules Queue Orchestrator
 
-# The "heartbeat" — but see the commented-out schedule below. It starts OFF on purpose:
-# run this manually (workflow_dispatch) and verify one full Ready -> Jules -> PR -> your
-# review -> merge -> checkbox -> next-task cycle before enabling the cron. Uncomment the
-# `schedule:` block only after that first cycle has gone exactly as expected.
+# The "heartbeat". Runs every 15 minutes via cron, or manually via workflow_dispatch.
 
 on:
-   schedule:
-     - cron: '*/15 * * * *'
+  schedule:
+    - cron: '*/15 * * * *'
   workflow_dispatch: {}
 
 permissions:

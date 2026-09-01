@@ -6,28 +6,30 @@ this file is the polish pass — performance, UX, repo hygiene, and getting the 
 ready to eventually live inside [artificer](https://github.com/japiohopman/artificer) as a
 minigame.
 
+Jules checks its own boxes: once it has personally verified a task (per AGENT_RULES.md §1),
+it flips that task's own `- [ ]` to `- [x]` in the same PR — the orchestrator script only
+reads this file, it never edits it. Your review/merge of the PR is the real checkpoint.
+
 ## Now
 
-### Active
-
 ### Ready
+
 - [x] **CI pipeline — build/lint/test on every push and PR**
+  - **Problem:** there was no `.github/workflows` CI at all — a broken build could land on
+    `main` undetected.
+  - **Goal:** add `.github/workflows/ci.yml` that runs `npm ci`, `npm run lint` (`tsc --noEmit`),
+    `npm run test` (`vitest run src/`), and `npm run build` on push/PR to `main`.
+  - **Acceptance:** workflow is green on a clean checkout; a deliberately broken type or a
+    failing test actually fails the workflow (verify once, then revert the deliberate break).
 
 - [x] **Repo hygiene — stop committing build/verification artifacts**
-  - **Problem:** `verification/` (8.2MB of PNGs) and `test-results/.last-run.json` are
+  - **Problem:** `verification/` (8.2MB of PNGs) and `test-results/.last-run.json` were
     tracked in git. These are Playwright debug screenshots and run-state, not source.
   - **Goal:** add `verification/` and `test-results/` to `.gitignore`, `git rm --cached` the
     currently-tracked copies (keep them on disk locally, just untrack them), and confirm
     nothing in the app or CI depends on those paths being present in the repo.
   - **Acceptance:** `git status` is clean after regenerating a Playwright run; repo clone
     size drops; CI still passes.
-
-  - **Problem:** there is no `.github/workflows` CI at all yet — a broken build can land on
-    `main` undetected.
-  - **Goal:** add `.github/workflows/ci.yml` that runs `npm ci`, `npm run lint` (`tsc --noEmit`),
-    `npm run test` (`vitest run src/`), and `npm run build` on push/PR to `main`.
-  - **Acceptance:** workflow is green on a clean checkout; a deliberately broken type or a
-    failing test actually fails the workflow (verify once, then revert the deliberate break).
 
 - [ ] **Performance pass — split the largest monolithic files**
   - **Problem:** `src/store/useGameStore.ts` (~1550 lines), `src/components/minigames/tda/GameUI.tsx`
@@ -64,14 +66,14 @@ minigame.
     (don't commit new PNGs into the tracked tree — see the repo-hygiene task above).
 
 - [ ] **Artificer-readiness — define the TDA engine's integration boundary**
+  - **Problem:** no clear boundary exists yet between the TDA engine and this repo's own
+    shell, and artificer doesn't yet have a minigame-hosting pattern to target.
   - **Goal:** without assuming artificer's exact integration API yet, identify and document
     what a clean "drop this minigame into another app" boundary would look like for the TDA
     engine (`src/components/minigames/tda/`, `utils/cardLogic.ts`, the relevant
     `useGameStore` slices): what's genuinely engine/logic vs. what's this repo's own
-    shell (routing, audio manager, NPC system).
-  - **Goal:** write `docs/ARTIFICER_INTEGRATION.md` describing that boundary and what would
-    need to change to embed it elsewhere, without doing the extraction yet — this is a
-    scoping task, not a refactor.
+    shell (routing, audio manager, NPC system). Write `docs/ARTIFICER_INTEGRATION.md`
+    describing that boundary — this is a scoping task, not a refactor.
   - **Acceptance:** the doc exists, is concrete about which files/exports form the boundary,
     and flags any hard dependencies (Gemini API calls, this repo's own audio/NPC systems)
     that a host app would need to supply or stub.

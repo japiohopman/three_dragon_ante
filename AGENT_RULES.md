@@ -4,12 +4,18 @@
 > document is about *how* you're allowed to work through it.
 
 ## 1. Don't mark it `[x]` until you've watched it work
-A checked box (or a task moved out of `### Active`) is a claim that you personally ran the app
-and observed the behavior — not that you wrote code you believe should produce it.
+A checked box is a claim that you personally ran the app and observed the behavior — not
+that you wrote code you believe should produce it. You (Jules) are the one who checks the
+box, as the last step of your own PR, once you've verified — the orchestrator only reads
+this file, it never edits it, and no one else will check it for you.
 - Run `npm run dev` (or `npm run test` / `npm run build` as relevant) and check the affected
   screen or behavior before checking a box.
-- If you can't run it, leave it unchecked and say so explicitly in your PR description. An
-  honest unchecked box is more useful than a false checked one.
+- Edit your task's own line in ROADMAP.md **in place** — `- [ ] **Title**` → `- [x] **Title**`
+  — and leave the `Problem`/`Goal`/`Acceptance` bullets under it exactly where they are.
+  Don't move the task to a different section or reformat surrounding tasks.
+- If you can't fully verify it, leave it unchecked and say so explicitly in your PR
+  description. An honest unchecked box is more useful than a false checked one — the queue
+  simply won't advance until a human looks at why.
 
 ## 2. Stay inside the task's module
 Each ROADMAP.md task names the files/areas it touches. If finishing it genuinely requires
