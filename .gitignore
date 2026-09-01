@@ -22,3 +22,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Playwright debug/verification screenshots and run state — not source, don't commit
+verification/
+test-results/
