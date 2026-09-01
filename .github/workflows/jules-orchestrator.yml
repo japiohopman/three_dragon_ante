@@ -6,8 +6,8 @@ name: Jules Queue Orchestrator
 # `schedule:` block only after that first cycle has gone exactly as expected.
 
 on:
-  # schedule:
-  #   - cron: '*/15 * * * *'
+   schedule:
+     - cron: '*/15 * * * *'
   workflow_dispatch: {}
 
 permissions:
