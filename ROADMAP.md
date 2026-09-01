@@ -54,7 +54,7 @@ reads this file, it never edits it. Your review/merge of the PR is the real chec
   - **Acceptance:** written before/after note in `docs/PERFORMANCE.md` (create if missing)
     with what was measured and what changed, even if the conclusion is "no change needed."
 
-- [ ] **UX pass — onboarding and in-game clarity**
+- [x] **UX pass — onboarding and in-game clarity**
   - **Problem:** `todo.md` flags the hand-limit warning as "visual only, logic exists" —
     worth a fresh look at whether new-player affordances (rulebook discoverability, hand
     limit, whose turn it is, what a click will do) are clear without prior knowledge of the
