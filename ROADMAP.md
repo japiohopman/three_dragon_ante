@@ -31,7 +31,7 @@ reads this file, it never edits it. Your review/merge of the PR is the real chec
   - **Acceptance:** `git status` is clean after regenerating a Playwright run; repo clone
     size drops; CI still passes.
 
-- [ ] **Performance pass — split the largest monolithic files**
+- [x] **Performance pass — split the largest monolithic files**
   - **Problem:** `src/store/useGameStore.ts` (~1550 lines), `src/components/minigames/tda/GameUI.tsx`
     (~825 lines) and `.../TableTop.tsx` (~775 lines) are large single files mixing multiple
     concerns, which makes unnecessary re-renders hard to spot and hard to review.
