@@ -9,9 +9,9 @@ minigame.
 ## Now
 
 ### Active
-- [ ] **CI pipeline — build/lint/test on every push and PR**
 
 ### Ready
+- [x] **CI pipeline — build/lint/test on every push and PR**
 
   - **Problem:** `verification/` (8.2MB of PNGs) and `test-results/.last-run.json` are
     tracked in git. These are Playwright debug screenshots and run-state, not source.
