@@ -54,7 +54,7 @@ reads this file, it never edits it. Your review/merge of the PR is the real chec
   - **Acceptance:** written before/after note in `docs/PERFORMANCE.md` (create if missing)
     with what was measured and what changed, even if the conclusion is "no change needed."
 
-- [ ] **Follow-up — finish the store split: two slices still over the 400-line bar**
+- [x] **Follow-up — finish the store split: two slices still over the 400-line bar**
   - **Problem:** double-checked after the "split the largest monolithic files" task was
     merged and checked off: `src/store/slices/turnSlice.ts` is 637 lines and
     `src/store/slices/interactionSlice.ts` is 573 lines — both still well over the ~400-line
