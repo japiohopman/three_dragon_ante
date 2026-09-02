@@ -1,24 +1,19 @@
-import { GameState, PlayerSkill, PlayerId, GameEffect } from '../../types';
+import { GameState } from '../../types';
+import { GameSetupSlice } from './gameSetupSlice';
+import { AnteSlice } from './anteSlice';
+import { TurnSlice } from './turnSlice';
+import { RoundSlice } from './roundSlice';
+import { InteractionSlice } from './interactionSlice';
+import { EffectSlice } from './effectSlice';
+import { EconomySlice } from './economySlice';
+import { UISlice } from './uiSlice';
 
-export interface GameStore extends GameState {
-  startGame: (duration: number, skill: PlayerSkill, opponentCount?: number) => void;
-  startNextGambit: () => void;
-  selectAnte: (cardId: string) => void;
-  resolveAnte: () => void;
-  playCard: (cardId: string) => void;
-  aiTurn: () => void;
-  nextRound: () => void;
-  endGambit: () => void;
-  buyCard: (player: PlayerId) => void;
-  addNotification: (message: string, type?: 'info' | 'gold-gain' | 'gold-loss' | 'power' | 'alert') => void;
-  applyGameEffect: (effect: GameEffect) => void;
-  respondToInteraction: (optionValue: string, selectedCardId?: string) => void;
-  resolveAiInteraction: () => void;
-  finishTurn: (playerId: PlayerId) => void;
-  ensureDeckSupply: (minNeeded?: number) => void;
-  fixGameState: () => void;
-  resetGame: () => void;
-  setNPC: (npcId: string) => void;
-  speak: (line: string, duration?: number, dynamic?: boolean) => void;
-  setFocusedOpponentIndex: (index: number) => void;
-}
+export interface GameStore extends GameState,
+  GameSetupSlice,
+  AnteSlice,
+  TurnSlice,
+  RoundSlice,
+  InteractionSlice,
+  EffectSlice,
+  EconomySlice,
+  UISlice {}
