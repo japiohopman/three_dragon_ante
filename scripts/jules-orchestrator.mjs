@@ -27,7 +27,11 @@
  * Flow each run:
  * 1. Load state (.github/jules-queue-state.json) — this is the ONLY place "what's
  *    currently active" is tracked; ROADMAP.md never needs an "### Active" section.
- * 2. If a session is already active:
+ * 2. Reconcile state against the canonical ROADMAP queue. If the stored active task
+ *    is no longer the first unchecked task under "### Ready", treat that state as
+ *    stale and clear it. This prevents a bad/stale state file from permanently
+ *    blocking the queue or causing tasks to be dispatched out of order.
+ * 3. If a session is already active:
  *      - No PR yet -> stop, nothing to do.
  *      - PR open but not merged -> stop. Human gate: PR review/merge.
  *      - PR merged BUT the task's checkbox in ROADMAP.md is still "- [ ]"
@@ -35,13 +39,13 @@
  *        own box, which shouldn't happen per AGENT_RULES.md §1. Needs a look.
  *      - PR merged AND the checkbox is now "- [x]" -> confirmed done. Clear the
  *        active session, fall through to dispatch next.
- * 3. If there's no active session:
+ * 4. If there's no active session:
  *      - Take the first "- [ ] ..." line under "### Ready" (top-level checkbox only,
  *        sub-bullets like "  - **Problem:** ..." don't match and are left alone).
  *      - None -> log "queue empty" and stop.
  *      - Otherwise: start a new Jules session for it, record it in state. Do NOT
  *        touch ROADMAP.md — Jules will check its own box when done.
- * 4. Commit only the state file, if it changed.
+ * 5. Commit only the state file, if it changed.
  */
 
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
@@ -121,7 +125,27 @@ function isTaskConfirmedDone(roadmapText, taskText) {
 async function main() {
   const state = loadState();
   const roadmapText = readFileSync(ROADMAP_PATH, 'utf8');
+  const readyTasks = findTasksUnderHeading(roadmapText, 'Ready');
+  let next = readyTasks.find(t => !t.checked);
   let stateChanged = false;
+
+  // ROADMAP.md is the canonical queue. A stale state entry must never be allowed
+  // to skip an earlier Ready task or block the queue indefinitely. This specifically
+  // repairs the failure mode where state pointed at UX while Follow-up was still first.
+  if (state.activeSession) {
+    const activeTask = readyTasks.find(t => t.text === state.activeSession.task);
+    const activeIsCanonicalNext = activeTask && !activeTask.checked && (!next || activeTask.text === next.text);
+
+    if (!activeIsCanonicalNext) {
+      console.warn(
+        `Stale Jules queue state detected: active task "${state.activeSession.task}" ` +
+        `does not match the first unchecked task under ### Ready ("${next?.text ?? 'none'}"). ` +
+        'Clearing the stale session state so the canonical queue can advance.'
+      );
+      state.activeSession = null;
+      stateChanged = true;
+    }
+  }
 
   if (state.activeSession) {
     console.log(`Checking active session ${state.activeSession.name} ...`);
@@ -130,6 +154,7 @@ async function main() {
 
     if (!prOutput) {
       console.log('No PR yet. Nothing to do this run.');
+      if (stateChanged) { saveState(state); commitAndPush(); }
       return;
     }
     const prNumber = extractPrNumber(prOutput.url);
@@ -153,11 +178,10 @@ async function main() {
     console.log(`"${state.activeSession.task}" is merged AND confirmed done. Advancing the queue.`);
     state.activeSession = null;
     stateChanged = true;
+    next = readyTasks.find(t => !t.checked);
   }
 
   if (!state.activeSession) {
-    const tasks = findTasksUnderHeading(roadmapText, 'Ready');
-    const next = tasks.find(t => !t.checked);
     if (!next) {
       console.log('Nothing left unchecked under ### Ready (queue empty).');
       if (stateChanged) { saveState(state); commitAndPush(); }
