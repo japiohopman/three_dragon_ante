@@ -80,7 +80,7 @@ reads this file, it never edits it. Your review/merge of the PR is the real chec
   - **Acceptance:** short before/after note of what changed and why, screenshots optional
     (don't commit new PNGs into the tracked tree — see the repo-hygiene task above).
 
-- [ ] **Artificer-readiness — define the TDA engine's integration boundary**
+- [x] **Artificer-readiness — define the TDA engine's integration boundary**
   - **Problem:** no clear boundary exists yet between the TDA engine and this repo's own
     shell, and artificer doesn't yet have a minigame-hosting pattern to target.
   - **Goal:** without assuming artificer's exact integration API yet, identify and document
