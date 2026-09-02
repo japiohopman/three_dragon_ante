@@ -69,7 +69,7 @@ reads this file, it never edits it. Your review/merge of the PR is the real chec
   - **Acceptance:** either both files are under ~400 lines, or each carries an explicit
     documented reason why not. `npm run lint`, `npm run test`, and `npm run build` still pass.
 
-- [ ] **UX pass — onboarding and in-game clarity**
+- [x] **UX pass — onboarding and in-game clarity**
   - **Problem:** `todo.md` flags the hand-limit warning as "visual only, logic exists" —
     worth a fresh look at whether new-player affordances (rulebook discoverability, hand
     limit, whose turn it is, what a click will do) are clear without prior knowledge of the
