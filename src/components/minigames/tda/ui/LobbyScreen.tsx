@@ -164,6 +164,14 @@ export const LobbyScreen: React.FC<LobbyScreenProps> = ({
                 </p>
             </div>
 
+            {selectedSkill === 'none' && (
+                <div className="mb-4 text-center">
+                    <p className="text-amber-400 font-serif italic text-sm animate-pulse bg-amber-950/40 border border-amber-800/60 px-4 py-1.5 rounded-full inline-block backdrop-blur-sm">
+                        Select a skill above to start your match
+                    </p>
+                </div>
+            )}
+
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full max-w-2xl px-4 pb-8">
               <div className="col-span-full mb-6 flex flex-col items-center">
                   <h3 className="text-amber-500 font-bold tracking-widest uppercase mb-3 drop-shadow-sm">Choose Opponents Count</h3>
