@@ -1,89 +1,79 @@
-# Icon System Documentation
+# Solo SVG Icon System Documentation
 
-This document outlines the architecture and usage of the centralized SVG icon system in **The Dragon's Flagon**. The system is designed for performance, consistency, and ease of management without relying on heavy external libraries for the core game visuals.
+## Overview
+The Artificer project utilizes a state-of-the-art, high-performance **Solo SVG Icon System**. Instead of storing raw SVG paths in legacy TypeScript files, all icons are managed as standard, standalone `.svg` files located in the `public/assets/icons/svg/` directory.
 
-## Core Concepts
+This architecture offers major benefits:
+1. **Thematic Clarity**: Icons are organized cleanly in semantic folders (e.g., `ui`, `actions`, `statuses`, `items`).
+2. **Dynamic Autodiscovery**: New icons are registered automatically when dropped into the appropriate folder, without editing constant definitions.
+3. **Multi-path & Animation Support**: Icons support full SVG features, including multi-paths, gradients, colors, custom viewBox configurations, and CSS animations.
+4. **Rich Metadata**: Custom `data-*` attributes inside SVG files provide instant localization and tooling integration (labels, descriptions, usage).
 
-1.  **Centralized Data**: Icons are stored as SVG path strings in category-specific files (e.g., `ui.ts`, `minigames.ts`).
-2.  **Normalized Access**: All icons are aggregated in `index.ts` and normalized (snake_case) for retrieval.
-3.  **Single Component**: A universal `<Icon />` component handles path lookup, fallback logic, and SVG rendering.
-4.  **Helper Function**: `getIcon()` provides a developer-friendly interface for backward compatibility and quick instantiation.
+## Architecture
 
-## Directory Structure
+All icons reside in the public assets directory:
+- **Registry**: `public/assets/icons/index.ts`
+- **Solo SVGs**: `public/assets/icons/svg/`
+- **UI Component**: `src/game_icons.tsx`
 
-All icon assets are managed in `src/assets/icons/`:
-
+### Automatic Registries
+The central registry at `public/assets/icons/index.ts` uses Vite's fast build-time glob import:
+```ts
+const svgModules = import.meta.glob('/public/assets/icons/svg/**/*.svg', { query: '?raw', eager: true });
 ```
-src/assets/icons/
-├── index.ts           # Registry aggregating all icon categories
-├── Icon.tsx           # Main SVG rendering component with fallback logic
-├── ui.ts              # UI-specific icons (buttons, panels, status)
-├── minigames.ts       # Minigame-specific icons (cards, dice, game actions)
-├── currency.ts        # Currency and transaction icons
-├── skill.ts           # Character skill and attribute icons
-└── book_reader.ts     # Icons for the lore and rulebook systems
-```
+Vite loads all `.svg` files inside the directory, parses their XML content on build, extracts attributes (viewBox, custom datasets), and exposes them as structured `IconDefinition` instances.
 
-## How to Add New Icons
+## Icon Categories
+Subdirectories inside `public/assets/icons/svg/` correspond to standard categories used across game subsystems:
 
-### 1. Identify the Category
-Choose the most relevant file (e.g., `minigames.ts` for card game assets). If a new category is needed, create a new `.ts` file.
+- **ui/**: Core navigational elements, window controls, and interface states (e.g., `chevron_left`, `close`, `save`, `plus`).
+- **action/**: Core combat and exploration actions (e.g., `dodge`, `dash`, `hide`, `jump`).
+- **actors/**: Creature types and identifiers (e.g., `beast`, `dragon`, `humanoid`).
+- **damage/**: D&D 5e damage types (e.g., `fire`, `cold`, `lightning`).
+- **statuses/**: Status conditions and ailments (e.g., `burning`, `poisoned`, `stunned`).
+- **dice/**: Polyhedral dice representations.
+- **items/**: Weapons, armor, and adventuring gear.
+- **schools/**: Arcane schools of magic (e.g., `abjuration`, `evocation`).
+- **tarot/**: Tarot-based arcana and divination cards.
+- **equipment_doll/**: Indicators for equipment slot layout.
 
-### 2. Add the SVG Path
-Add the icon name and its SVG path data to the corresponding map. Values MUST be just the `d` attribute of the SVG path.
+## How to Use Icons
 
-```typescript
-// src/assets/icons/minigames.ts
-export const MINIGAMES_ICONS = {
-  // ... existing icons
-  'my_new_icon': "M256 32C132.3 32 32 132.3 32 256s..."
-};
-```
-
-### 3. Register in index.ts
-If you created a new file, import and spread it into `ALL_ICONS` in `src/assets/icons/index.ts`.
-
-## Usage Guidelines
-
-### Preferred Method: <Icon /> Component
-Use the `<Icon />` component directly for full TypeScript support and props control.
+### The GameIcon Component
+Render any icon using the centralized `<GameIcon>` component:
 
 ```tsx
-import { Icon } from '@/assets/icons';
+import { GameIcon } from '@/src/game_icons';
 
-const MyComponent = () => (
-    <Icon name="gold-coin" size={24} className="text-amber-500" />
-);
+// Simple rendering by name
+<GameIcon name="save" size={24} color="#8B0000" />
+
+// Title / Tooltip support
+<GameIcon name="chevron_left" size={16} title="Back to previous page" />
 ```
 
-### Compatibility Method: getIcon()
-Used primarily in legacy components or when a function-call pattern is cleaner (e.g., in maps).
+### Dynamic categories & direct imports
+For custom rendering engines (e.g. World Maps, Tactical Grids), categorized indices can be imported directly:
 
 ```tsx
-import { getIcon } from '@/assets/icons';
+import { WORLD_ATLAS_ICONS, UI_ICONS } from '@/public/assets/icons';
 
-// getIcon(category, name, props)
-{getIcon('ui', 'trophy', { size: 32, className: "text-blue-400" })}
+const path = WORLD_ATLAS_ICONS['settlement']?.path;
 ```
 
-## Minigame Icon Registry (New)
+## Adding New Icons
+To add a new icon, simply:
+1. Identify its folder under `public/assets/icons/svg/` (e.g. `public/assets/icons/svg/ui/`).
+2. Save your SVG file inside the folder (e.g., `my_new_icon.svg`).
+3. Embed optional semantic data attributes into your SVG tag:
+   ```xml
+   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" 
+        data-label="My New Icon" 
+        data-description="Custom system control icon.">
+     <path d="M..." />
+   </svg>
+   ```
+4. Use it directly in React with `<GameIcon name="my_new_icon" />`. It is automatically rewired, bundled, and made available!
 
-The `minigames.ts` set includes specialized icons for **Three Dragon Ante** and other tavern games:
 
-| Icon | Purpose |
-| :--- | :--- |
-| `crown` | Game leader, winners |
-| `trophy` | Gambit/Game victory |
-| `skull` | Losses, requirement failures |
-| `swords` | Attack/Gambit phase |
-| `gold-coin` | Stakes and betting |
-| `scroll` | Game rules, logs |
-| `thinking` | AI status indicator |
-| `hourglass` | Turn time, delays |
-
-## Fallback & Normalization
-
-The system includes built-in robustness:
--   **Auto-Normalization**: Replaces dashes `-` with underscores `_` automatically.
--   **Aliases**: Fallbacks like `gold-coin` -> `coin` handle naming variations.
--   **Similarity Search**: If an exact match fails, it attempts to find sub-string matches to prevent broken UI.
+please check https://github.com/japiohopman/artificer/tree/main/public/assets/icons/svg/minigame for icons we use if you need more icons let me know or set empty name: "" 
