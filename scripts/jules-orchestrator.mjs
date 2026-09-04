@@ -1,14 +1,10 @@
 #!/usr/bin/env node
 /**
- * Jules Queue Orchestrator (v4)
+ * Jules Queue Orchestrator (v5)
  *
- * The roadmap remains the canonical dispatch queue. A Ready task may optionally
- * reference a GitHub Issue as "Issue #N". When present, this script fetches that
- * issue and includes its title/body in the Jules prompt so the issue is the full
- * execution specification instead of merely being a side reference.
- *
- * The orchestrator never edits ROADMAP.md. Jules checks its own task only after
- * personally verifying the work. The human review/merge remains the checkpoint.
+ * ROADMAP.md is the canonical dispatch queue. A Ready task may optionally
+ * reference a GitHub Issue as "Issue #N"; the issue becomes the detailed
+ * execution specification passed to Jules.
  */
 
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
@@ -65,22 +61,42 @@ function extractIssueNumber(taskText) {
   return match ? Number(match[1]) : null;
 }
 
-/** Finds top-level "- [ ]" / "- [x]" checkbox lines under a given "###" heading inside "## Now". */
+/** Finds top-level checkbox lines under a named level-3 heading inside "## Now". */
 function findTasksUnderHeading(text, headingName) {
   const lines = text.split('\n');
   let inNow = false;
   let inHeading = false;
   const tasks = [];
+
   for (const line of lines) {
-    if (/^##\s+Now\b/i.test(line)) { inNow = true; continue; }
+    if (/^##\s+Now\b/i.test(line)) {
+      inNow = true;
+      inHeading = false;
+      continue;
+    }
+
     if (inNow && /^##\s+[^#]/.test(line)) break;
     if (!inNow) continue;
+
     const h3 = line.match(/^###\s+(.+?)\s*$/);
-    if (h3) { inHeading = h3[1].toLowerCase() === headingName.toLowerCase(); continue; }
+    if (h3) {
+      const actualHeading = h3[1].trim().toLowerCase();
+      const wantedHeading = headingName.trim().toLowerCase();
+      inHeading = actualHeading === wantedHeading || actualHeading.startsWith(`${wantedHeading} `);
+      continue;
+    }
+
     if (!inHeading) continue;
+
     const task = line.match(/^- \[( |x)\]\s*(.+)$/i);
-    if (task) tasks.push({ checked: task[1].toLowerCase() === 'x', text: task[2].trim() });
+    if (task) {
+      tasks.push({
+        checked: task[1].toLowerCase() === 'x',
+        text: task[2].trim(),
+      });
+    }
   }
+
   return tasks;
 }
 
@@ -110,6 +126,8 @@ async function main() {
   let next = readyTasks.find(t => !t.checked);
   let stateChanged = false;
 
+  console.log(`Found ${readyTasks.length} task(s) under ### Ready.`);
+
   if (state.activeSession) {
     const activeTask = readyTasks.find(t => t.text === state.activeSession.task);
     const activeIsCanonicalNext = activeTask && !activeTask.checked && (!next || activeTask.text === next.text);
@@ -135,8 +153,11 @@ async function main() {
       if (stateChanged) { saveState(state); commitAndPush(); }
       return;
     }
+
     const prNumber = extractPrNumber(prOutput.url);
-    if (!prNumber) { console.log(`Could not parse PR number from ${prOutput.url}.`); return; }
+    if (!prNumber) {
+      throw new Error(`Could not parse PR number from ${prOutput.url}`);
+    }
 
     const pr = await githubFetch(`pulls/${prNumber}`);
     if (!pr.merged) {
@@ -146,9 +167,7 @@ async function main() {
 
     if (!isTaskConfirmedDone(roadmapText, state.activeSession.task)) {
       console.log(
-        `PR #${prNumber} is merged, but "${state.activeSession.task}" is still "- [ ]" in ` +
-        `ROADMAP.md. Jules should have checked its own box per AGENT_RULES.md §1 — this needs ` +
-        `a manual look before the queue advances further.`
+        `PR #${prNumber} is merged, but "${state.activeSession.task}" is still unchecked in ROADMAP.md.`
       );
       return;
     }
