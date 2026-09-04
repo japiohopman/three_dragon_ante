@@ -1,3 +1,4 @@
+/// <reference types="vite/client" />
 import React from 'react';
 import { GameIcon, GameIconProps } from '../../game_icons';
 
