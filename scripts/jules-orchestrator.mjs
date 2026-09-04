@@ -1,51 +1,14 @@
 #!/usr/bin/env node
 /**
- * Jules Queue Orchestrator (v3)
+ * Jules Queue Orchestrator (v4)
  *
- * v2 tried to physically move task lines between "### Active" and "### Ready" in
- * ROADMAP.md. That broke as soon as a task had multi-line content (Problem/Goal/
- * Acceptance sub-bullets) under its checkbox — the script only moved the checkbox
- * line itself, orphaning the description underneath it.
+ * The roadmap remains the canonical dispatch queue. A Ready task may optionally
+ * reference a GitHub Issue as "Issue #N". When present, this script fetches that
+ * issue and includes its title/body in the Jules prompt so the issue is the full
+ * execution specification instead of merely being a side reference.
  *
- * v3 fixes this by never editing ROADMAP.md itself. Jules does that, as the last
- * step of its own task, once it has actually verified the work (AGENT_RULES.md §1) —
- * it flips its own task's "- [ ]" to "- [x]" IN PLACE, no moving required. This
- * script only ever *reads* ROADMAP.md, to decide what to dispatch and whether a task
- * is confirmed done.
- *
- * Ties Jules sessions to ROADMAP.md's "### Ready" list under "## Now":
- *
- *   ## Now
- *   ### Ready
- *   - [ ] <task available to dispatch>
- *   - [x] <task confirmed done by Jules, left in place>
- *   ### Blocked
- *   - [ ] <task waiting on a human decision — never dispatched>
- *   ### Human Review
- *   - [ ] <task that needs discussion before it's safe to hand to Jules — never dispatched>
- *
- * Flow each run:
- * 1. Load state (.github/jules-queue-state.json) — this is the ONLY place "what's
- *    currently active" is tracked; ROADMAP.md never needs an "### Active" section.
- * 2. Reconcile state against the canonical ROADMAP queue. If the stored active task
- *    is no longer the first unchecked task under "### Ready", treat that state as
- *    stale and clear it. This prevents a bad/stale state file from permanently
- *    blocking the queue or causing tasks to be dispatched out of order.
- * 3. If a session is already active:
- *      - No PR yet -> stop, nothing to do.
- *      - PR open but not merged -> stop. Human gate: PR review/merge.
- *      - PR merged BUT the task's checkbox in ROADMAP.md is still "- [ ]"
- *        -> stop and log a warning — Jules said it opened a PR but didn't check its
- *        own box, which shouldn't happen per AGENT_RULES.md §1. Needs a look.
- *      - PR merged AND the checkbox is now "- [x]" -> confirmed done. Clear the
- *        active session, fall through to dispatch next.
- * 4. If there's no active session:
- *      - Take the first "- [ ] ..." line under "### Ready" (top-level checkbox only,
- *        sub-bullets like "  - **Problem:** ..." don't match and are left alone).
- *      - None -> log "queue empty" and stop.
- *      - Otherwise: start a new Jules session for it, record it in state. Do NOT
- *        touch ROADMAP.md — Jules will check its own box when done.
- * 5. Commit only the state file, if it changed.
+ * The orchestrator never edits ROADMAP.md. Jules checks its own task only after
+ * personally verifying the work. The human review/merge remains the checkpoint.
  */
 
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
@@ -83,6 +46,7 @@ async function julesFetch(path, options = {}) {
   if (!res.ok) throw new Error(`Jules API ${path} failed: ${res.status} ${await res.text()}`);
   return res.json();
 }
+
 async function githubFetch(path) {
   const res = await fetch(`https://api.github.com/repos/${REPO}/${path}`, {
     headers: { Authorization: `Bearer ${GITHUB_TOKEN}`, Accept: 'application/vnd.github+json' },
@@ -90,8 +54,14 @@ async function githubFetch(path) {
   if (!res.ok) throw new Error(`GitHub API ${path} failed: ${res.status} ${await res.text()}`);
   return res.json();
 }
+
 function extractPrNumber(prUrl) {
   const match = prUrl.match(/\/pull\/(\d+)/);
+  return match ? Number(match[1]) : null;
+}
+
+function extractIssueNumber(taskText) {
+  const match = taskText.match(/\bIssue\s+#(\d+)\b/i);
   return match ? Number(match[1]) : null;
 }
 
@@ -103,23 +73,34 @@ function findTasksUnderHeading(text, headingName) {
   const tasks = [];
   for (const line of lines) {
     if (/^##\s+Now\b/i.test(line)) { inNow = true; continue; }
-    if (inNow && /^##\s+[^#]/.test(line)) break; // left "## Now" entirely
+    if (inNow && /^##\s+[^#]/.test(line)) break;
     if (!inNow) continue;
     const h3 = line.match(/^###\s+(.+?)\s*$/);
     if (h3) { inHeading = h3[1].toLowerCase() === headingName.toLowerCase(); continue; }
     if (!inHeading) continue;
-    // Only unindented checkbox lines count as tasks — indented "  - **Problem:**" etc. don't match.
     const task = line.match(/^- \[( |x)\]\s*(.+)$/i);
     if (task) tasks.push({ checked: task[1].toLowerCase() === 'x', text: task[2].trim() });
   }
   return tasks;
 }
 
-/** True if this exact task text appears checked off anywhere under "### Ready". */
 function isTaskConfirmedDone(roadmapText, taskText) {
   const tasks = findTasksUnderHeading(roadmapText, 'Ready');
   const match = tasks.find(t => t.text === taskText);
   return match ? match.checked : false;
+}
+
+async function getIssueContext(taskText) {
+  const issueNumber = extractIssueNumber(taskText);
+  if (!issueNumber) return null;
+
+  const issue = await githubFetch(`issues/${issueNumber}`);
+  return {
+    number: issue.number,
+    title: issue.title,
+    body: issue.body || '',
+    url: issue.html_url,
+  };
 }
 
 async function main() {
@@ -129,9 +110,6 @@ async function main() {
   let next = readyTasks.find(t => !t.checked);
   let stateChanged = false;
 
-  // ROADMAP.md is the canonical queue. A stale state entry must never be allowed
-  // to skip an earlier Ready task or block the queue indefinitely. This specifically
-  // repairs the failure mode where state pointed at UX while Follow-up was still first.
   if (state.activeSession) {
     const activeTask = readyTasks.find(t => t.text === state.activeSession.task);
     const activeIsCanonicalNext = activeTask && !activeTask.checked && (!next || activeTask.text === next.text);
@@ -190,31 +168,45 @@ async function main() {
 
     console.log(`Dispatching next task: ${next.text}`);
 
-    const prompt = [
+    const issueContext = await getIssueContext(next.text);
+    const promptParts = [
       'Read AGENT.MD, AGENT_RULES.md, and ROADMAP.md before starting.',
       'Your task from ROADMAP.md\'s "### Ready" list:',
       next.text,
-      "Follow AGENT_RULES.md strictly — especially: don't claim something works without " +
-      "running it, and stay inside the relevant module.",
+    ];
+
+    if (issueContext) {
+      promptParts.push(
+        `The roadmap task references GitHub Issue #${issueContext.number}. Treat that issue as the authoritative execution specification for this task.`,
+        `Issue #${issueContext.number}: ${issueContext.title}\n${issueContext.url}\n\n${issueContext.body}`,
+      );
+    }
+
+    promptParts.push(
+      "Follow AGENT_RULES.md strictly — especially: don't claim something works without running it, and stay inside the relevant module.",
       'When you are done AND you have personally verified it works (per AGENT_RULES.md §1), ' +
       'edit ROADMAP.md yourself and change this task\'s own checkbox line from ' +
       `"- [ ] ${next.text}" to "- [x] ${next.text}" — in place, don't move or delete the ` +
       'Problem/Goal/Acceptance bullets underneath it. Include that edit in the same PR. ' +
-      "If you could not fully verify it, leave the checkbox unchecked and say why in the PR " +
-      'description instead.',
-    ].join('\n\n');
+      "If you could not fully verify it, leave the checkbox unchecked and say why in the PR description instead.",
+    );
 
     const session = await julesFetch('sessions', {
       method: 'POST',
       body: JSON.stringify({
-        prompt,
+        prompt: promptParts.join('\n\n'),
         sourceContext: { source: JULES_SOURCE, githubRepoContext: { startingBranch: 'main' } },
         automationMode: 'AUTO_CREATE_PR',
         title: next.text.slice(0, 80),
       }),
     });
 
-    state.activeSession = { name: session.name, task: next.text, startedAt: new Date().toISOString() };
+    state.activeSession = {
+      name: session.name,
+      task: next.text,
+      issueNumber: issueContext?.number ?? null,
+      startedAt: new Date().toISOString(),
+    };
     stateChanged = true;
   }
 
