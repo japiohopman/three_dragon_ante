@@ -52,7 +52,7 @@ reads this file, it never edits it. Your review/merge of the PR is the real chec
 
 ### Ready (Pre-Embedding Polish & Migration Prep)
 
-- [ ] **Issue #28 — fix: prevent repeated special-flight resolution on extended flights**
+- [x] **Issue #28 — fix: prevent repeated special-flight resolution on extended flights**
   - **Problem:** `finishTurn()` can re-evaluate an already-completed flight formation. If an extended/sudden-death flight still contains the qualifying three cards, the same special flight can potentially resolve again and duplicate its payout/effect.
   - **Goal:** make special-flight resolution occur only for the newly completed formation while preserving all legitimate strength/color flight behavior.
   - **Acceptance:** first-time strength and color flights still resolve correctly; an already-resolved formation cannot resolve again later in the same extended flight; focused regression tests cover both cases.

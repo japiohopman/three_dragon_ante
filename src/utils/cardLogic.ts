@@ -221,14 +221,15 @@ export const checkFlightFormation = (
   newCard: BoardCard
 ): SpecialFlightResult | null => {
   if (flight.length < 3) return null;
+  if (newCard.type === 'mortal') return null;
 
   const dragons = flight.filter(c => c.type !== 'mortal');
 
   if (dragons.length < 3) return null;
 
-  // Check Strength Flight
+  // Check Strength Flight (triggers only when the newly played card completes a set of 3)
   const sameStrength = dragons.filter(c => c.strength === newCard.strength);
-  if (sameStrength.length >= 3) {
+  if (sameStrength.length > 0 && sameStrength.length % 3 === 0) {
       return {
           type: 'strength',
           strength: newCard.strength,
@@ -250,15 +251,20 @@ export const checkFlightFormation = (
               colorCounts[c.color] = (colorCounts[c.color] || 0) + 1;
           }
       });
-      const matchColor = Object.keys(colorCounts).find(col => colorCounts[col] >= 2);
+      const matchColor = Object.keys(colorCounts).find(col => colorCounts[col] % 3 === 2);
       if (matchColor) {
-          return { type: 'color', color: matchColor as DragonColor, cards: [newCard] };
+          const matchingOthers = others.filter(c => c.color === matchColor);
+          return {
+              type: 'color',
+              color: matchColor as DragonColor,
+              cards: [...matchingOthers.slice(-2), newCard]
+          };
       }
   } else if (isChromatic(newCard)) {
       const matches = dragons.filter(c =>
           c.color === targetColor || isTiamat(c)
       );
-      if (matches.length >= 3) {
+      if (matches.length > 0 && matches.length % 3 === 0) {
           return { type: 'color', color: targetColor, cards: matches.slice(-3) };
       }
   }
