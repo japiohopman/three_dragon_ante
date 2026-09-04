@@ -1,5 +1,5 @@
 import React from 'react';
-import { getIcon } from '../../../../assets/icons';
+import { GameIcon } from '../../../../assets/icons';
 import { GambitResult } from '../../../../types';
 import { playSound } from '../../../../services/soundService';
 import { formatPrice } from '../../../../utils/currency';
@@ -31,7 +31,7 @@ export const EndGameModal: React.FC<EndGameModalProps> = ({
     return (
       <div className="absolute inset-0 bg-black/90 flex flex-col items-center justify-center z-[200] pointer-events-auto animate-in fade-in duration-700">
            <div className={`p-6 rounded-full border-4 mb-6 ${gambitResult.winnerId === 'player' ? 'border-blue-500 bg-blue-900/30' : 'border-red-500 bg-red-900/30'}`}>
-               {gambitResult.winnerId === 'player' ? getIcon('ui', 'trophy', { size: 64, className: "text-blue-400" }) : getIcon('ui', 'skull', { size: 64, className: "text-red-500" })}
+               {gambitResult.winnerId === 'player' ? <GameIcon name="trophy" size={64} className="text-blue-400" /> : <GameIcon name="skull" size={64} className="text-red-500" />}
            </div>
 
            <h2 className="text-4xl font-gothic text-stone-100 mb-2">
@@ -63,7 +63,7 @@ export const EndGameModal: React.FC<EndGameModalProps> = ({
             }}
             className="px-8 py-4 bg-stone-800 hover:bg-stone-700 border border-stone-600 text-stone-100 rounded shadow-lg flex items-center gap-3 transition-colors text-lg"
            >
-               {getIcon('ui', 'refresh', { size: 24 })} Start Next Gambit
+               <GameIcon name="refresh" size={24} /> Start Next Gambit
            </button>
       </div>
     );
@@ -74,14 +74,14 @@ export const EndGameModal: React.FC<EndGameModalProps> = ({
       <div className="absolute inset-0 bg-black/95 flex flex-col items-center justify-center z-[200] pointer-events-auto animate-in zoom-in duration-500">
            {playerGold > opponentGold ? (
                <>
-                   {getIcon('ui', 'crown', { size: 80, className: "text-yellow-400 mb-6 drop-shadow-lg animate-pulse" })}
+                   <GameIcon name="crown" size={80} className="text-yellow-400 mb-6 drop-shadow-lg animate-pulse" />
                    <h2 className="text-6xl font-gothic text-transparent bg-clip-text bg-gradient-to-t from-yellow-600 to-yellow-200 mb-4">VICTORY</h2>
                    <p className="text-2xl text-stone-300 mb-2">Match Complete!</p>
                    <p className="text-lg text-stone-400 mb-8">You have bested {npcName} with {formatPrice(playerGold)}.</p>
                </>
            ) : (
                <>
-                   {getIcon('ui', 'skull', { size: 80, className: "text-stone-500 mb-6 drop-shadow-lg" })}
+                   <GameIcon name="skull" size={80} className="text-stone-500 mb-6 drop-shadow-lg" />
                    <h2 className="text-6xl font-gothic text-stone-600 mb-4">DEFEAT</h2>
                    <p className="text-2xl text-stone-400 mb-2">Match Complete.</p>
                    <p className="text-lg text-stone-500 mb-8">{npcName} wins with {formatPrice(opponentGold)}.</p>

@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'motion/react';
-import { getIcon } from '../../../../assets/icons';
+import { GameIcon } from '../../../../assets/icons';
 import Card from '../Card';
 import { CardData, GamePhase } from '../../../../types';
 import { formatPrice } from '../../../../utils/currency';
@@ -31,7 +31,7 @@ export const Battleground: React.FC<BattlegroundProps> = ({
                 <span className="text-[10px] text-amber-500 font-bold uppercase tracking-[0.3em]">Pot</span>
             </div>
             <div className="flex items-center gap-3">
-                {getIcon('ui', 'gold-coin', { size: 24, className: "text-amber-500 drop-shadow-[0_0_10px_rgba(245,158,11,0.4)]" })}
+                <GameIcon name="gold_coin" size={24} className="text-amber-500 drop-shadow-[0_0_10px_rgba(245,158,11,0.4)]" />
                 <span className="font-gothic text-3xl text-amber-100 drop-shadow-xl">{formatPrice(pot)}</span>
             </div>
         </div>

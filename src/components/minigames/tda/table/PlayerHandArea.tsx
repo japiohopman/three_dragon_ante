@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import Card from '../Card';
 import { CardData, GamePhase } from '../../../../types';
-import { getIcon } from '../../../../assets/icons';
+import { GameIcon } from '../../../../assets/icons';
 
 interface PlayerHandAreaProps {
   playerHand: CardData[];
@@ -100,7 +100,7 @@ export const PlayerHandArea: React.FC<PlayerHandAreaProps> = ({
           {/* HAND LIMIT WARNING BANNER */}
           {playerHand.length >= 10 && (
               <div className="absolute -top-12 left-1/2 -translate-x-1/2 bg-red-950/90 border border-red-500/80 text-red-200 px-3 py-1 rounded-full text-xs font-bold shadow-xl flex items-center gap-1.5 animate-bounce z-50 pointer-events-none backdrop-blur-md">
-                  {getIcon('ui', 'skull', { size: 12, className: "text-red-400" })}
+                  <GameIcon name="skull" size={12} className="text-red-400" />
                   <span>Hand Limit Reached (10/10) — Cannot draw or buy cards</span>
               </div>
           )}
@@ -116,17 +116,17 @@ export const PlayerHandArea: React.FC<PlayerHandAreaProps> = ({
               }`}>
                   {phase === 'ante-selection' ? (
                       <>
-                          {getIcon('ui', 'sparkles', { size: 12, className: "text-amber-400" })}
+                          <GameIcon name="sparkles" size={12} className="text-amber-400" />
                           <span>Ante Phase — Choose Card to Ante</span>
                       </>
                   ) : isLeader ? (
                       <>
-                          {getIcon('ui', 'crown', { size: 12, className: "text-stone-950" })}
+                          <GameIcon name="crown" size={12} className="text-stone-950" />
                           <span>Your Turn — Round Leader</span>
                       </>
                   ) : (
                       <>
-                          {getIcon('ui', 'sparkles', { size: 12, className: "text-emerald-400" })}
+                          <GameIcon name="sparkles" size={12} className="text-emerald-400" />
                           <span>Your Turn — Play Card</span>
                       </>
                   )}

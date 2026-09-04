@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { getIcon } from '../../../../assets/icons';
+import { GameIcon } from '../../../../assets/icons';
 import NPC from '../../../NPC';
 import Card from '../Card';
 import { SPRITE_MAP } from '../../../../utils/constants';
@@ -51,7 +51,7 @@ export const TavernLeftAside: React.FC<TavernLeftAsideProps> = ({
                 <span className="text-[10px] uppercase tracking-[0.4em] text-amber-500/60 font-bold mb-1">The Dragon's Flagon</span>
                 <span className="text-xl text-stone-200 font-serif leading-tight">Emerald Enclave</span>
                 <div className="flex items-center gap-2 mt-2 opacity-60">
-                    {getIcon('ui', 'place', { size: 10, className: "text-stone-500" })}
+                    <GameIcon name="place" size={10} className="text-stone-500" />
                     <span className="text-[10px] uppercase font-bold tracking-widest text-stone-500">Baldur's Gate</span>
                 </div>
             </div>
@@ -89,7 +89,7 @@ export const TavernLeftAside: React.FC<TavernLeftAsideProps> = ({
 
                     {activePlayer === 'opponent' && (
                       <div className="absolute top-3 right-3 bg-stone-900/90 rounded-full p-2 border border-amber-500/50 shadow-xl animate-pulse">
-                          {getIcon('ui', 'thinking', { size: 16, className: "text-amber-500" })}
+                          <GameIcon name="thinking" size={16} className="text-amber-500" />
                       </div>
                     )}
                 </div>
@@ -97,7 +97,7 @@ export const TavernLeftAside: React.FC<TavernLeftAsideProps> = ({
                 <div className="mt-4 text-center">
                     <div className="flex items-center justify-center gap-2 mb-1">
                         <h3 className="text-2xl text-amber-500 font-serif tracking-tight">{getNPCName()}</h3>
-                        {currentLeader === 'opponent' && getIcon('ui', 'crown', { size: 16, className: "text-amber-400" })}
+                        {currentLeader === 'opponent' && <GameIcon name="crown" size={16} className="text-amber-400" />}
                     </div>
                     <p className="text-xs text-stone-500 italic px-2 leading-relaxed">
                         "A seasoned traveler from the Underdark, known for a quick hand and a sharper tongue."
@@ -109,7 +109,7 @@ export const TavernLeftAside: React.FC<TavernLeftAsideProps> = ({
             <div className="bg-stone-950/60 rounded-xl p-4 border border-stone-800">
                 <div className="flex items-center justify-between mb-3 border-b border-stone-800 pb-2">
                      <span className="text-[10px] text-stone-500 uppercase font-bold tracking-widest">Enemy Purse</span>
-                     {getIcon('ui', 'gold-coin', { size: 14, className: "text-amber-600" })}
+                     <GameIcon name="gold_coin" size={14} className="text-amber-600" />
                 </div>
                 {(() => {
                     const oppWealth: Money = fromCopper(opponentGold, true);

@@ -1,6 +1,6 @@
 
 import React, { useEffect, useRef } from 'react';
-import { getIcon } from '../../../assets/icons';
+import { GameIcon } from '../../../assets/icons';
 
 interface RulebookModalProps {
   onClose: () => void;
@@ -102,7 +102,7 @@ const RulebookModal: React.FC<RulebookModalProps> = ({ onClose }) => {
                 className="absolute top-4 right-4 z-[100] text-amber-200 hover:text-white bg-black/40 hover:bg-black/60 rounded-full p-2 transition-all hover:scale-110 active:scale-95 pointer-events-auto border border-amber-500/20 shadow-lg"
                 title="Close Rulebook"
             >
-                {getIcon('ui', 'close', { size: 28 })}
+                <GameIcon name="close" size={28} />
             </button>
 
             {/* HEADER */}

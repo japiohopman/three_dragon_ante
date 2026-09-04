@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { NPC_LIST } from '../utils/npcConstants';
 import NPC from './NPC';
 import { AppMode, NPCEmotion, NPCData } from '../types';
-import { getIcon } from '../assets/icons';
+import { GameIcon } from '../assets/icons';
 import { playSound } from '../services/soundService';
 import { getNPCPersona } from '../constants/npcLines';
 import { useEffect } from 'react';
@@ -57,7 +57,7 @@ const NPCShowcase: React.FC<NPCShowcaseProps> = ({ onSelectGame }) => {
       <div className="flex items-center justify-between w-full">
         <div className="flex items-center gap-4">
           <div className="p-3 bg-amber-900/20 rounded-full border border-amber-500/30">
-            {getIcon('ui', 'user', { className: "text-amber-500", size: 24 })}
+            <GameIcon name="user" className="text-amber-500" size={24} />
           </div>
           <div>
             <h2 className="text-3xl font-gothic text-stone-100 tracking-wider">Meet the Patrons</h2>
@@ -70,20 +70,20 @@ const NPCShowcase: React.FC<NPCShowcaseProps> = ({ onSelectGame }) => {
             onClick={() => { playSound('UI_CLICK'); onSelectGame('forge', currentNPC); }}
             className="flex items-center gap-2 px-4 py-2 bg-amber-900/20 hover:bg-amber-900/40 border border-amber-500/30 rounded-lg text-amber-200 transition-all font-gothic tracking-widest text-sm mr-4"
           >
-            {getIcon('ui', 'hammer', { size: 16 })}
+            <GameIcon name="hammer" size={16} />
             FORGE NPC
           </button>
           <button
             onClick={prevNPC}
             className="p-2 bg-stone-900 hover:bg-stone-800 border border-stone-700 rounded-lg text-stone-300 transition-colors"
           >
-            {getIcon('ui', 'chevron-left', { size: 20 })}
+            <GameIcon name="chevron_left" size={20} />
           </button>
           <button
             onClick={nextNPC}
             className="p-2 bg-stone-900 hover:bg-stone-800 border border-stone-700 rounded-lg text-stone-300 transition-colors"
           >
-            {getIcon('ui', 'chevron-right', { size: 20 })}
+            <GameIcon name="chevron_right" size={20} />
           </button>
         </div>
       </div>
@@ -148,10 +148,10 @@ const NPCShowcase: React.FC<NPCShowcaseProps> = ({ onSelectGame }) => {
           </div>
 
           <div className="bg-stone-900/80 p-6 rounded-xl border border-stone-800 relative min-h-[120px] flex items-center shadow-inner">
-            {getIcon('ui', 'message-square', { className: "absolute -top-3 -left-3 text-stone-700", size: 24 })}
+            <GameIcon name="message_square" className="absolute -top-3 -left-3 text-stone-700" size={24} />
             {isLoading ? (
                 <div className="w-full flex justify-center py-4">
-                    {getIcon('ui', 'refresh', { className: "animate-spin text-amber-900/50" })}
+                    <GameIcon name="refresh" className="animate-spin text-amber-900/50" />
                 </div>
             ) : (
                 <p className="text-stone-300 font-serif italic leading-relaxed">
@@ -166,13 +166,13 @@ const NPCShowcase: React.FC<NPCShowcaseProps> = ({ onSelectGame }) => {
                 onClick={() => { playSound('UI_CLICK'); onSelectGame('tda', currentNPC); }}
                 className="w-full py-4 bg-gradient-to-r from-amber-900 to-amber-800 hover:from-amber-800 hover:to-amber-700 text-amber-100 font-gothic text-xl rounded-xl border border-amber-600/50 transition-all duration-300 shadow-lg hover:shadow-amber-900/20 flex items-center justify-center gap-3 group"
               >
-                {getIcon('ui', 'roll_dice', { size: 20 })}
+                <GameIcon name="roll_dice" size={20} />
                 Challenge to Three-Dragon Ante
-                {getIcon('ui', 'chevron-right', { size: 20, className: "group-hover:translate-x-1 transition-transform" })}
+                <GameIcon name="chevron_right" size={20} className="group-hover:translate-x-1 transition-transform" />
               </button>
             ) : (
               <div className="w-full py-4 bg-stone-900/50 text-stone-500 font-gothic text-xl rounded-xl border border-stone-800 flex items-center justify-center gap-3 opacity-50 cursor-not-allowed">
-                {getIcon('ui', 'alert', { size: 16 })}
+                <GameIcon name="alert" size={16} />
                 Not willing to play TDA
               </div>
             )}
@@ -182,14 +182,14 @@ const NPCShowcase: React.FC<NPCShowcaseProps> = ({ onSelectGame }) => {
                 onClick={() => { playSound('UI_CLICK'); onSelectGame('memory', currentNPC); }}
                 className="py-3 bg-stone-900 hover:bg-stone-800 text-stone-300 font-serif text-sm rounded-lg border border-stone-700 transition-all flex items-center justify-center gap-2"
               >
-                {getIcon('ui', 'brain', { size: 16 })}
+                <GameIcon name="brain" size={16} />
                 Memory Game
               </button>
               <button
                 onClick={() => { playSound('UI_CLICK'); onSelectGame('solitaire', currentNPC); }}
                 className="py-3 bg-stone-900 hover:bg-stone-800 text-stone-300 font-serif text-sm rounded-lg border border-stone-700 transition-all flex items-center justify-center gap-2"
               >
-                {getIcon('ui', 'book-open', { size: 16 })}
+                <GameIcon name="book_open" size={16} />
                 Solitaire
               </button>
             </div>

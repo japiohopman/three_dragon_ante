@@ -1,5 +1,5 @@
 import React from 'react';
-import { getIcon } from '../../../../assets/icons';
+import { GameIcon } from '../../../../assets/icons';
 import Card from '../Card';
 import { CardData } from '../../../../types';
 import { playSound } from '../../../../services/soundService';
@@ -50,7 +50,7 @@ export const TavernRightAside: React.FC<TavernRightAsideProps> = ({
         <div className="flex-1 overflow-hidden flex flex-col">
             <div className="px-6 py-4 flex items-center justify-between bg-stone-950/20 border-b border-stone-800">
                  <div className="flex items-center gap-2">
-                     {getIcon('ui', 'scroll', { size: 12, className: "text-amber-700" })}
+                     <GameIcon name="scroll" size={12} className="text-amber-700" />
                      <span className="text-[10px] uppercase font-bold tracking-widest text-stone-500">Tavern Records</span>
                  </div>
                  <div className="flex gap-2">
@@ -58,7 +58,7 @@ export const TavernRightAside: React.FC<TavernRightAsideProps> = ({
                          onClick={onInspect}
                          className="text-[9px] uppercase tracking-widest text-amber-500 hover:text-amber-400 font-bold px-2.5 py-1 border border-stone-800 hover:border-amber-500/50 bg-amber-950/20 rounded-md transition-colors flex items-center gap-1.5"
                      >
-                         {getIcon('ui', 'search', { size: 10 })} Inspect
+                         <GameIcon name="search" size={10} /> Inspect
                      </button>
                      <button onClick={() => setShowLog(!showLog)} className="text-[9px] uppercase tracking-widest text-stone-500 hover:text-stone-400 font-bold px-2 py-1 border border-stone-800 rounded-md transition-colors">
                          {showLog ? 'Hide' : 'Show'}
@@ -94,7 +94,7 @@ export const TavernRightAside: React.FC<TavernRightAsideProps> = ({
                             <Card card={discardPile[discardPile.length - 1]} size="sm" disabled brightness-50 shape="standard" className="shadow-xl" />
                         ) : (
                             <div className="w-20 h-28 border-2 border-dashed border-stone-800 rounded-lg flex items-center justify-center">
-                                {getIcon('ui', 'skull', { size: 16, className: "text-stone-900" })}
+                                <GameIcon name="skull" size={16} className="text-stone-900" />
                             </div>
                         )}
                     </div>

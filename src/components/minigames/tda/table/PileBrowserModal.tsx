@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { getIcon } from '../../../../assets/icons';
+import { GameIcon } from '../../../../assets/icons';
 import Card from '../Card';
 import { CardData } from '../../../../types';
 
@@ -37,7 +37,7 @@ export const PileBrowserModal: React.FC<PileBrowserModalProps> = ({
                       onClick={onClose}
                       className="bg-stone-900 border border-stone-700 text-stone-400 p-4 rounded-full hover:bg-stone-800 hover:text-white transition-all shadow-xl active:scale-90"
                   >
-                      {getIcon('ui', 'close', { size: 32 })}
+                      <GameIcon name="close" size={32} />
                   </button>
               </div>
 
@@ -68,7 +68,7 @@ export const PileBrowserModal: React.FC<PileBrowserModalProps> = ({
                       ))}
                       {(browsingPile === 'deck' ? deck : discardPile).length === 0 && (
                           <div className="col-span-full h-64 flex flex-col items-center justify-center border-2 border-dashed border-stone-800 rounded-3xl">
-                              {getIcon('ui', 'skull', { size: 48, className: "text-stone-900 mb-4" })}
+                              <GameIcon name="skull" size={48} className="text-stone-900 mb-4" />
                               <p className="text-stone-600 font-serif italic text-xl">The pile is empty...</p>
                           </div>
                       )}
