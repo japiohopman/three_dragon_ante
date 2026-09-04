@@ -141,8 +141,9 @@ export const PlayerHandArea: React.FC<PlayerHandAreaProps> = ({
                       animate={{ opacity: 1, ...getFanStyle(i, playerHand.length) }}
                       transition={{
                           type: 'spring',
-                          damping: 25,
-                          stiffness: 120,
+                          damping: 22,
+                          stiffness: 160,
+                          mass: 0.8,
                           zIndex: { delay: 0 }
                       }}
                       className="absolute origin-bottom will-change-transform"

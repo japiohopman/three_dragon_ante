@@ -81,7 +81,7 @@ const Card: React.FC<CardProps> = ({
   useEffect(() => {
     const timer = setTimeout(() => {
         setDelayedFaceUp(isFaceUp);
-    }, 300);
+    }, 200);
     return () => clearTimeout(timer);
   }, [isFaceUp]);
 
@@ -242,7 +242,7 @@ const Card: React.FC<CardProps> = ({
       onMouseLeave={handleMouseLeave}
     >
       <div
-        className={`relative w-full h-full duration-700 preserve-3d transition-all ${isFaceUp ? '' : 'rotate-y-180'}`}
+        className={`relative w-full h-full duration-300 ease-out preserve-3d transition-all ${isFaceUp ? '' : 'rotate-y-180'}`}
         style={{
             transform: isFaceUp
               ? `rotateX(${rotate.x}deg) rotateY(${rotate.y}deg)`

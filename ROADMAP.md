@@ -59,7 +59,7 @@ reads this file, it never edits it. Your review/merge of the PR is the real chec
   - **Issue:** https://github.com/japiohopman/three_dragon_ante/issues/28
   - **Branch:** `fix/special-flight-resolution-20260904`
 
-- [ ] **Animation refinement — card motion & coin drop physics pass**
+- [x] **Animation refinement — card motion & coin drop physics pass**
   - **Problem:** card play transitions (slam, flip, slide) and coin particle drops can feel abrupt during fast turn sequences.
   - **Goal:** audit and refine card animation timing curves in `Card.tsx` / `TableTop.tsx` and smooth coin drop physics trajectories in `useAnimationStore.ts`.
   - **Acceptance:** playing cards and winning gold feel smooth, tactile, and non-blocking during turn progression.
