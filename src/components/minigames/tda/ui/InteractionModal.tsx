@@ -4,6 +4,7 @@ import { getIcon } from '../../../../assets/icons';
 import { InteractionRequest, CardData } from '../../../../types';
 import { playSound } from '../../../../services/soundService';
 import { formatPrice } from '../../../../utils/currency';
+import { useGameStore } from '../../../../store/useGameStore';
 
 interface InteractionModalProps {
   pendingInteraction: InteractionRequest | null;
@@ -18,7 +19,30 @@ export const InteractionModal: React.FC<InteractionModalProps> = ({
   selectableCards,
   respondToInteraction
 }) => {
+  const players = useGameStore(s => s.players);
+  const activePlayerIndex = useGameStore(s => s.activePlayerIndex);
+
   if (!pendingInteraction) return null;
+
+  if (pendingInteraction.target !== 'player') {
+      const targetPlayer = players.find(p => p.id === pendingInteraction.target);
+      const targetName = targetPlayer ? targetPlayer.name : 'Opponent';
+
+      return (
+          <div className="absolute top-24 left-1/2 -translate-x-1/2 bg-stone-900/95 border-2 border-amber-600/80 text-amber-100 px-8 py-4 rounded-xl shadow-2xl flex items-center gap-4 z-[180] animate-in slide-in-from-top duration-300">
+              <div className="p-2 rounded-full bg-amber-900/50 text-amber-400">
+                  {getIcon('ui', 'swords', { size: 24 })}
+              </div>
+              <div>
+                  <div className="text-xs font-bold uppercase tracking-widest text-amber-400">{pendingInteraction.sourceCardName} Power</div>
+                  <div className="text-lg font-serif">{targetName} is making a choice...</div>
+              </div>
+          </div>
+      );
+  }
+
+  const activeP = players[activePlayerIndex];
+  const sourcePrefix = activeP && activeP.id !== 'player' ? `${activeP.name}'s ` : '';
 
   const renderFormattedMessage = (text: string) => {
       const regex = /(\d+\s*gold)|(gold)|(draw)|(discard)|(steal)|(pickup)|(dispell)|(magic)/gi;
@@ -65,13 +89,10 @@ export const InteractionModal: React.FC<InteractionModalProps> = ({
 
   return (
     <div className="absolute inset-0 top-20 flex flex-col items-center justify-center z-[200] pointer-events-auto animate-in fade-in duration-300">
-      {pendingInteraction.target === 'opponent' ? (
-          <div className="w-full h-full cursor-wait" />
-      ) : (
           <div className="bg-stone-900 border-2 border-amber-600 p-8 rounded-xl max-w-2xl w-full mx-4 shadow-2xl relative">
               <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 bg-stone-900 px-4 py-2 border-2 border-amber-600 rounded-full">
                  {getIcon('ui', 'alert', { className: "text-amber-500 inline-block mr-2" })}
-                 <span className="text-amber-100 font-bold uppercase">{pendingInteraction.sourceCardName}</span>
+                 <span className="text-amber-100 font-bold uppercase">{sourcePrefix}{pendingInteraction.sourceCardName}</span>
               </div>
 
               <h3 className="text-center text-xl text-stone-300 mb-8 mt-4 font-serif">
@@ -132,7 +153,6 @@ export const InteractionModal: React.FC<InteractionModalProps> = ({
                   })}
               </div>
           </div>
-      )}
     </div>
   );
 };
