@@ -34,7 +34,10 @@ export const createRoundSlice: StateCreator<GameStore, [], [], RoundSlice> = (se
           if (specialFlight) {
             useAnimationStore.getState().triggerFlash('rgba(255, 215, 0, 0.4)'); // Gold flash for special flight
             if (specialFlight.type === 'color') {
-                 const dragons = flight.filter(c => c.type !== 'mortal').sort((a,b) => b.strength - a.strength);
+                 const flightCards = specialFlight.cards && specialFlight.cards.length > 0
+                     ? specialFlight.cards
+                     : flight.filter(c => c.type !== 'mortal');
+                 const dragons = flightCards.filter(c => c.type !== 'mortal').sort((a,b) => b.strength - a.strength);
                  const reward = dragons.length > 1 ? dragons[1].strength : dragons[0].strength;
                  const rewardCp = reward * 100;
 
