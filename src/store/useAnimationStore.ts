@@ -9,6 +9,8 @@ interface CoinParticle {
   endX: number;
   endY: number;
   delay: number;
+  arcY?: number;
+  spinDeg?: number;
 }
 
 interface FloatingText {
@@ -87,10 +89,21 @@ export const useAnimationStore = create<AnimationState>((set) => ({
   spawnCoins: (count, start, end) => {
     const MAX_CONCURRENT_COINS = 50;
     const newCoins: CoinParticle[] = [];
+    let maxDelay = 0;
     for (let i = 0; i < count; i++) {
       // Add Jitter to destination so they land in a pile, not a single point
       const jitterX = (Math.random() - 0.5) * 60; // +/- 30px
       const jitterY = (Math.random() - 0.5) * 40; // +/- 20px
+      const delay = i * 45; // Stagger by 45ms
+      if (delay > maxDelay) maxDelay = delay;
+
+      const dx = (end.x + jitterX) - start.x;
+      const dy = (end.y + jitterY) - start.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      // Dynamic parabolic upward arc based on distance
+      const arcY = -Math.min(120, Math.max(30, dist * 0.25)) - (Math.random() * 30);
+      // Random spin degrees (1-3 full rotations, either direction)
+      const spinDeg = (Math.random() > 0.5 ? 1 : -1) * (360 + Math.floor(Math.random() * 720));
 
       newCoins.push({
         id: Math.random().toString(36).substr(2, 9),
@@ -98,7 +111,9 @@ export const useAnimationStore = create<AnimationState>((set) => ({
         startY: start.y,
         endX: end.x + jitterX,
         endY: end.y + jitterY,
-        delay: i * 50 // Stagger by 50ms
+        delay,
+        arcY,
+        spinDeg,
       });
     }
     set((state) => {
@@ -109,12 +124,13 @@ export const useAnimationStore = create<AnimationState>((set) => ({
       return { activeCoins: trimmed };
     });
 
-    // Auto clear after animation duration (approx 1.5s)
+    // Compute cleanup timeout so all coins finish their full trajectory
+    const cleanupTime = maxDelay + 1400;
     setTimeout(() => {
         set((state) => ({
             activeCoins: state.activeCoins.filter(c => !newCoins.find(n => n.id === c.id))
         }));
-    }, 1500);
+    }, cleanupTime);
   },
 
   triggerFloatingText: (x, y, text, color: 'gold' | 'red' | 'white' = 'gold') => {

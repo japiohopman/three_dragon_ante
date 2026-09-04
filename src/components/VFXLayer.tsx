@@ -11,7 +11,9 @@ const Coin: React.FC<{
   endX: number;
   endY: number;
   delay: number;
-}> = ({ startX, startY, endX, endY, delay }) => {
+  arcY?: number;
+  spinDeg?: number;
+}> = ({ startX, startY, endX, endY, delay, arcY = -60, spinDeg = 720 }) => {
   return (
     <div
       className="absolute top-0 left-0 w-6 h-6 rounded-full bg-yellow-400 border-2 border-yellow-600 shadow-md flex items-center justify-center z-50 pointer-events-none animate-coin-fly"
@@ -20,6 +22,8 @@ const Coin: React.FC<{
         '--start-y': `${startY}px`,
         '--end-x': `${endX}px`,
         '--end-y': `${endY}px`,
+        '--arc-y': `${arcY}px`,
+        '--spin-deg': `${spinDeg}deg`,
         animationDelay: `${delay}ms`,
       } as React.CSSProperties}
     >
@@ -118,6 +122,8 @@ const VFXLayer: React.FC = () => {
           endX={coin.endX}
           endY={coin.endY}
           delay={coin.delay}
+          arcY={coin.arcY}
+          spinDeg={coin.spinDeg}
         />
       ))}
 
