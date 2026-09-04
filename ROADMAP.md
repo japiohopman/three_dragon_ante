@@ -2,9 +2,8 @@
 
 This is the single canonical dispatch roadmap for the Jules orchestrator: it says what's
 actually in scope *now*. `todo.md` (Phases 1–6, all complete) was the original build-out;
-this file is the polish pass — performance, UX, repo hygiene, and getting the TDA engine
-ready to eventually live inside [artificer](https://github.com/japiohopman/artificer) as a
-minigame.
+this file is the polish and pre-integration pass — animation tuning, game flow, layout polish,
+D&D money icons visual alignment, Artificer layout understanding, migration planning, and performance optimization before embedding the TDA engine into [artificer](https://github.com/japiohopman/artificer).
 
 Jules checks its own boxes: once it has personally verified a task (per AGENT_RULES.md §1),
 it flips that task's own `- [ ]` to `- [x]` in the same PR — the orchestrator script only
@@ -12,96 +11,86 @@ reads this file, it never edits it. Your review/merge of the PR is the real chec
 
 ## Now
 
-### Ready
+### Completed Tasks
 
 - [x] **CI pipeline — build/lint/test on every push and PR**
-  - **Problem:** there was no `.github/workflows` CI at all — a broken build could land on
-    `main` undetected.
-  - **Goal:** add `.github/workflows/ci.yml` that runs `npm ci`, `npm run lint` (`tsc --noEmit`),
-    `npm run test` (`vitest run src/`), and `npm run build` on push/PR to `main`.
-  - **Acceptance:** workflow is green on a clean checkout; a deliberately broken type or a
-    failing test actually fails the workflow (verify once, then revert the deliberate break).
+  - **Problem:** there was no `.github/workflows` CI at all — a broken build could land on `main` undetected.
+  - **Goal:** add `.github/workflows/ci.yml` that runs `npm ci`, `npm run lint` (`tsc --noEmit`), `npm run test` (`vitest run src/`), and `npm run build` on push/PR to `main`.
+  - **Acceptance:** workflow is green on a clean checkout; a deliberately broken type or a failing test fails CI.
 
 - [x] **Repo hygiene — stop committing build/verification artifacts**
-  - **Problem:** `verification/` (8.2MB of PNGs) and `test-results/.last-run.json` were
-    tracked in git. These are Playwright debug screenshots and run-state, not source.
-  - **Goal:** add `verification/` and `test-results/` to `.gitignore`, `git rm --cached` the
-    currently-tracked copies (keep them on disk locally, just untrack them), and confirm
-    nothing in the app or CI depends on those paths being present in the repo.
-  - **Acceptance:** `git status` is clean after regenerating a Playwright run; repo clone
-    size drops; CI still passes.
+  - **Problem:** `verification/` (8.2MB of PNGs) and `test-results/.last-run.json` were tracked in git.
+  - **Goal:** add `verification/` and `test-results/` to `.gitignore`, `git rm --cached` tracked copies.
+  - **Acceptance:** `git status` clean after Playwright run; repo clone size drops; CI passes.
 
 - [x] **Performance pass — split the largest monolithic files**
-  - **Problem:** `src/store/useGameStore.ts` (~1550 lines), `src/components/minigames/tda/GameUI.tsx`
-    (~825 lines) and `.../TableTop.tsx` (~775 lines) are large single files mixing multiple
-    concerns, which makes unnecessary re-renders hard to spot and hard to review.
-  - **Goal:** split each into smaller, cohesion-based modules (e.g. store slices for
-    ante/board/economy/notification state; UI subcomponents by responsibility) without
-    changing behavior. Check for obviously-avoidable re-renders while in there (e.g.
-    components that re-render on unrelated store keys).
-  - **Acceptance:** app behavior is unchanged (play a full gambit manually and confirm),
-    `npm run test` and `npm run build` still pass, no single game-logic file exceeds ~400
-    lines without a documented reason.
+  - **Problem:** monolithic files (`useGameStore.ts`, `GameUI.tsx`, `TableTop.tsx`) mixed multiple concerns.
+  - **Goal:** split into smaller cohesion-based modules and slices without changing behavior.
+  - **Acceptance:** app behavior unchanged, `npm run test` and `npm run build` pass, no single file exceeds ~400 lines without documented reason.
 
 - [x] **Performance pass — table VFX and sprite loading**
-  - **Problem:** `TableTop.tsx` implements a DOM-based particle system for gold coins, and
-    the card art relies on a single sprite atlas (`enhanced_tiamat.webp`) — worth confirming
-    both are not causing jank on lower-end devices.
-  - **Goal:** profile a full gambit (6-player game, several coin-spawn events) with the
-    browser performance tab; if the particle system or sprite loading shows up as a hot
-    path, apply a targeted fix (e.g. cap concurrent particles, ensure the atlas is
-    preloaded/cached rather than re-fetched).
-  - **Acceptance:** written before/after note in `docs/PERFORMANCE.md` (create if missing)
-    with what was measured and what changed, even if the conclusion is "no change needed."
+  - **Problem:** coin particle system and sprite atlas loading required performance verification.
+  - **Goal:** profile full 6-player gambits and document findings in `docs/PERFORMANCE.md`.
+  - **Acceptance:** written before/after performance note in `docs/PERFORMANCE.md`.
 
-- [x] **Follow-up — finish the store split: two slices still over the 400-line bar**
-  - **Problem:** double-checked after the "split the largest monolithic files" task was
-    merged and checked off: `src/store/slices/turnSlice.ts` is 637 lines and
-    `src/store/slices/interactionSlice.ts` is 573 lines — both still well over the ~400-line
-    acceptance bar that task itself set, with no documented reason in the code or PR for
-    the exception. The split (useGameStore.ts → 7 slice files) is otherwise solid —
-    `npm run lint`, `npm run test`, and `npm run build` all pass clean against the current
-    `main`, this is specifically about finishing the acceptance bar these two files missed.
-  - **Goal:** split `turnSlice.ts` (gambit/turn flow) and `interactionSlice.ts` (interaction
-    resolution) further by responsibility, the same way the other slices already were, OR
-    if a further split would genuinely hurt readability (e.g. tightly-coupled turn-resolution
-    logic), add a short comment at the top of the file explaining why it stays as one file.
-  - **Acceptance:** either both files are under ~400 lines, or each carries an explicit
-    documented reason why not. `npm run lint`, `npm run test`, and `npm run build` still pass.
+- [x] **Follow-up — finish the store split**
+  - **Problem:** `turnSlice.ts` and `interactionSlice.ts` were still over 400 lines.
+  - **Goal:** split slices further or document exceptions.
+  - **Acceptance:** both files carry documented maintainability notes; tests pass cleanly.
 
 - [x] **UX pass — onboarding and in-game clarity**
-  - **Problem:** `todo.md` flags the hand-limit warning as "visual only, logic exists" —
-    worth a fresh look at whether new-player affordances (rulebook discoverability, hand
-    limit, whose turn it is, what a click will do) are clear without prior knowledge of the
-    rules.
-  - **Goal:** walk through a full game as a first-time player would, note friction points,
-    fix the clearest 3–5 wins (e.g. rulebook entry point visibility, turn/leader indicator,
-    hand-limit warning styling).
-  - **Acceptance:** short before/after note of what changed and why, screenshots optional
-    (don't commit new PNGs into the tracked tree — see the repo-hygiene task above).
+  - **Problem:** rulebook discoverability and hand-limit visual feedback needed polish.
+  - **Goal:** walk through full game as a new player and improve key UX affordances.
+  - **Acceptance:** before/after UX note in `docs/UX_PASS.md`.
 
 - [x] **Artificer-readiness — define the TDA engine's integration boundary**
-  - **Problem:** no clear boundary exists yet between the TDA engine and this repo's own
-    shell, and artificer doesn't yet have a minigame-hosting pattern to target.
-  - **Goal:** without assuming artificer's exact integration API yet, identify and document
-    what a clean "drop this minigame into another app" boundary would look like for the TDA
-    engine (`src/components/minigames/tda/`, `utils/cardLogic.ts`, the relevant
-    `useGameStore` slices): what's genuinely engine/logic vs. what's this repo's own
-    shell (routing, audio manager, NPC system). Write `docs/ARTIFICER_INTEGRATION.md`
-    describing that boundary — this is a scoping task, not a refactor.
-  - **Acceptance:** the doc exists, is concrete about which files/exports form the boundary,
-    and flags any hard dependencies (Gemini API calls, this repo's own audio/NPC systems)
-    that a host app would need to supply or stub.
+  - **Problem:** no clear boundary existed between the TDA engine and this repo's host shell.
+  - **Goal:** document the TDA core engine vs host shell boundary in `docs/ARTIFICER_INTEGRATION.md`.
+  - **Acceptance:** concrete documentation outlining engine manifests, host shell boundaries, dependencies, and proposed embedding API contract (`TDAMinigameProps`).
 
-### Blocked
+---
 
-### Human Review
+### Ready (Pre-Embedding Polish & Migration Prep)
 
-- [ ] Actually embedding the TDA minigame inside `artificer` — needs a decision on
-  artificer's own minigame-hosting pattern first (does one exist yet?). Do the
-  Artificer-readiness scoping task above first, then decide together.
+- [ ] **Animation refinement — card motion & coin drop physics pass**
+  - **Problem:** card play transitions (slam, flip, slide) and coin particle drops can feel abrupt during fast turn sequences.
+  - **Goal:** audit and refine card animation timing curves in `Card.tsx` / `TableTop.tsx` and smooth coin drop physics trajectories in `useAnimationStore.ts`.
+  - **Acceptance:** playing cards and winning gold feel smooth, tactile, and non-blocking during turn progression.
 
-## Later — parked until Now is clear
+- [ ] **Game flow polish — turn pacing, auto-pass & decision prompts**
+  - **Problem:** turn transitions between multi-AI opponents can feel either too fast to read or sluggish during complex card power triggers.
+  - **Goal:** adjust AI turn delay pacing, provide clear banner cues during decision/interruption phases (e.g. Green Dragon card options), and ensure smooth gambit end state transitions.
+  - **Acceptance:** player can comfortably follow turn order across 6 players without getting stuck or missing card power resolutions.
 
-- [ ] Mobile/touch input pass for the Solitaire and Memory minigames.
-- [ ] NPC dialogue variety pass — more Gemini-driven reactions per Voice Archetype.
+- [ ] **Layout polish & bug fixes — 6-player responsive table & z-index layers**
+  - **Problem:** on smaller viewports or non-standard aspect ratios, 6-player seat chips and opponent drawers can obscure the battleground or player hand.
+  - **Goal:** audit and adjust flex/grid positioning in `TableTop.tsx`, `MultiplayerSeats.tsx`, and `OpponentInspectorDrawer.tsx` to fix z-index layering and clipping bugs.
+  - **Acceptance:** 6-player layout renders cleanly across desktop and tablet screen sizes without overlapping UI elements.
+
+- [ ] **Money icons & currency art alignment — D&D 5e copper/silver/gold visual pass**
+  - **Problem:** gold displays currently use generic text or simple coin badges rather than matching `japiohopman/artificer`'s rich D&D 5e currency icon system (copper, silver, gold, electrum, platinum).
+  - **Goal:** integrate standard D&D currency icon SVGs and formatting helpers from `src/utils/currency.ts` into header HUDs, player seats, inspect drawers, and pot displays.
+  - **Acceptance:** currency amounts display with high-fidelity D&D coin icons and formatted copper/silver/gold weight tooltips matching Artificer standards.
+
+- [ ] **Artificer layout analysis & deep understanding**
+  - **Problem:** embedding TDA inside `japiohopman/artificer` requires matching Artificer's container grid, navigation dock, color tokens, and modal overlays.
+  - **Goal:** analyze `japiohopman/artificer` layout specs, theme tokens, and component conventions; document findings in `docs/ARTIFICER_LAYOUT_ANALYSIS.md`.
+  - **Acceptance:** document details Artificer's layout grid, CSS variable tokens, sidebar dock dimensions, and target mount point for minigames.
+
+- [ ] **Migration planning — step-by-step TDA minigame embedding spec**
+  - **Problem:** migrating TDA into the main `artificer` repository requires a clear, zero-regression step-by-step plan.
+  - **Goal:** write `docs/MIGRATION_PLAN.md` detailing file copying/import steps, state store scoping, host event wiring (`onExit`, character gold sync), and asset bundle paths.
+  - **Acceptance:** document provides a comprehensive migration checklist ready for execution when `artificer` minigame hosting is enabled.
+
+- [ ] **Performance & asset optimization — particle pooling & sprite atlas caching**
+  - **Problem:** spawning multiple coin particle bursts in quick succession could create unnecessary DOM element allocations.
+  - **Goal:** implement DOM element pooling or canvas particle fallback in `useAnimationStore.ts` and verify `enhanced_tiamat.webp` atlas preloading.
+  - **Acceptance:** smooth 60fps performance maintained during multi-flight coin awards and rapid gambit rounds.
+
+---
+
+## Later — Parked until Pre-Embedding Polish is Complete
+
+- [ ] **TDA Minigame Migration** — Execute embedding of TDA into `artificer` following `docs/MIGRATION_PLAN.md`.
+- [ ] **Mobile/touch input pass** for Solitaire and Memory minigames.
+- [ ] **NPC dialogue variety pass** — extended Gemini-driven reactions per Voice Archetype.
