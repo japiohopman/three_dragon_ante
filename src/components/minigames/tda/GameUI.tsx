@@ -46,13 +46,22 @@ const GameUI: React.FC<GameUIProps> = ({ onExit }) => {
 
   const { focusedCardId, hoveredCardId, setFocusedCard } = useAnimationStore();
 
+  const players = useGameStore(s => s.players);
+  const activePlayerIndex = useGameStore(s => s.activePlayerIndex);
+  const currentLeaderIndex = useGameStore(s => s.currentLeaderIndex);
+  const activeP = players[activePlayerIndex];
+  const leaderP = players[currentLeaderIndex];
+
   const isGambitEnd = phase === 'gambit-end';
   const isGameOver = phase === 'game-over';
   const isLobby = phase === 'lobby';
   const isInteraction = !!pendingInteraction;
 
   // AI State Check for subtle UI indicator
-  const isAiThinking = activePlayer === 'opponent' || (isInteraction && pendingInteraction?.target === 'opponent');
+  const isAiThinking = Boolean(
+    (activeP?.isNpc && (phase === 'opponent-turn' || phase === 'round-start')) ||
+    (isInteraction && pendingInteraction?.target !== 'player')
+  );
 
   // --- KEYBOARD SHORTCUTS (e.g. ? or h for Rulebook) ---
   useEffect(() => {
@@ -75,14 +84,14 @@ const GameUI: React.FC<GameUIProps> = ({ onExit }) => {
 
   // --- WATCHDOG: AUTO-FIX STUCK AI ---
   useEffect(() => {
-      if (phase === 'opponent-turn' || (phase === 'round-start' && currentLeader === 'opponent')) {
+      if (activeP?.isNpc && (phase === 'opponent-turn' || phase === 'round-start') && !pendingInteraction) {
           const timer = setTimeout(() => {
-              console.warn("Watchdog: AI taking too long. Forcing turn.");
+              console.warn(`Watchdog: AI (${activeP.name}) taking too long. Forcing turn.`);
               useGameStore.getState().aiTurn();
-          }, 5000);
+          }, 6000);
           return () => clearTimeout(timer);
       }
-  }, [phase, currentLeader, activePlayer]);
+  }, [phase, activeP, pendingInteraction]);
 
   // --- TURN TIMER ---
   useEffect(() => {
@@ -183,13 +192,20 @@ const GameUI: React.FC<GameUIProps> = ({ onExit }) => {
   };
 
   const getPhaseInstruction = () => {
-      if (pendingInteraction) return "Resolve the choice to continue.";
+      if (pendingInteraction) {
+          if (pendingInteraction.target === 'player') {
+              return `${pendingInteraction.sourceCardName}: Make your decision!`;
+          }
+          const targetPlayer = players.find(p => p.id === pendingInteraction.target);
+          const targetName = targetPlayer ? targetPlayer.name : 'Opponent';
+          return `${targetName} is resolving ${pendingInteraction.sourceCardName}...`;
+      }
       if (phase === 'ante-selection') return "Select a card from your hand to Ante.";
       if (phase === 'ante-reveal') return "Revealing Antes...";
       if (phase === 'player-turn') return "Your Turn: Play a card to your Flight.";
-      if (phase === 'round-start' && currentLeader === 'player') return "You lead the round: Play a card.";
-      if (phase === 'round-start' && currentLeader === 'opponent') return `${getNPCName()} leads the round...`;
-      if (phase === 'opponent-turn') return `${getNPCName()} is thinking...`;
+      if (phase === 'round-start' && leaderP?.id === 'player') return "You lead the round: Play a card.";
+      if (phase === 'round-start' && leaderP?.isNpc) return `${leaderP.name} leads the round...`;
+      if (phase === 'opponent-turn' && activeP?.isNpc) return `${activeP.name} is thinking...`;
       if (phase === 'round-resolution') return "Resolving round...";
       if (phase === 'gambit-end') return "Gambit Complete.";
       return "";

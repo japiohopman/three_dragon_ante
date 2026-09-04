@@ -122,6 +122,24 @@ describe('resolveCardPower', () => {
     expect(effect.goldChange).toBeUndefined();
     expect(effect.log).toContain('No mortals in play');
   });
+
+  it('Green Dragon should request choice interaction targeting opponent', () => {
+    const card: CardData = {
+      id: '4',
+      name: 'Green Dragon',
+      strength: 6,
+      color: 'green',
+      type: 'evil',
+      spriteIndex: 2,
+      description: 'Opponent gives weaker evil dragon or pays 5 gold.'
+    };
+
+    const effect = resolveCardPower(card, mockState, 'player');
+    expect(effect.interaction).toBeDefined();
+    expect(effect.interaction?.type).toBe('choice');
+    expect(effect.interaction?.target).toBe('opponent');
+    expect(effect.interaction?.options).toHaveLength(2);
+  });
 });
 
 describe('checkFlightFormation', () => {
