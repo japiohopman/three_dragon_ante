@@ -1,1 +1,42 @@
-for claud
+name: Copilot Setup Steps
+
+# Prepare a deterministic development environment for GitHub Copilot cloud agent.
+# The workflow also runs on changes so the setup can be validated before use.
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - .github/workflows/copilot-setup-steps.yml
+  pull_request:
+    paths:
+      - .github/workflows/copilot-setup-steps.yml
+
+jobs:
+  # GitHub Copilot requires this exact job name to use the workflow as its
+  # development-environment setup.
+  copilot-setup-steps:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install project dependencies
+        run: npm ci
+
+      - name: Verify development toolchain
+        run: |
+          node --version
+          npm --version
+          npx tsc --version
+          npx vite --version
+          npx vitest --version
