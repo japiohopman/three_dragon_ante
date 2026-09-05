@@ -25,10 +25,10 @@ export const HeaderHUD: React.FC<HeaderHUDProps> = ({
   const { playerGold, playerHand, fixGameState } = useGameStore();
 
   return (
-    <div className="w-full h-16 bg-stone-950/95 border-b border-amber-900/30 shadow-2xl backdrop-blur-xl flex items-center justify-between px-6 pointer-events-auto relative z-[100]">
+    <div className="w-full h-14 sm:h-16 bg-stone-950/95 border-b border-amber-900/30 shadow-2xl backdrop-blur-xl flex items-center justify-between px-3 sm:px-6 pointer-events-auto relative z-[100]">
 
       {/* LEFT: SESSION INFO & UTILITIES */}
-      <div className="flex items-center gap-4 flex-1">
+      <div className="flex items-center gap-2 sm:gap-4 flex-1 min-w-0">
           <div className="flex flex-col">
               <span className="text-[10px] uppercase tracking-[0.3em] text-stone-500 font-bold mb-0.5">Session Purse</span>
               <div className="flex items-center gap-3">

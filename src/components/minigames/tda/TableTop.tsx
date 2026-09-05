@@ -102,7 +102,7 @@ const TableTop: React.FC = () => {
       />
 
       {/* 2. CENTER: PERSPECTIVE TABLE AREA */}
-      <main className="flex-1 relative h-full flex flex-col items-center justify-center p-8 perspective-1000">
+      <main className="flex-1 min-w-0 relative h-full flex flex-col items-center justify-center p-2 sm:p-4 lg:p-6 xl:p-8 perspective-1000">
 
         {/* Dynamic Atmospheric Lights */}
         <div className="absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-amber-900/5 to-transparent pointer-events-none" />
@@ -110,7 +110,7 @@ const TableTop: React.FC = () => {
 
         {/* Tilted Game Frame */}
         <div
-            className="relative w-full max-w-[120vh] aspect-[3/2] bg-[#1a1816] rounded-[4rem] shadow-[0_50px_100px_rgba(0,0,0,0.9),0_0_0_2px_rgba(255,255,255,0.02)] border-[6px] border-stone-800 overflow-hidden flex flex-col items-center transform rotateX(15deg) transition-transform duration-700"
+            className="relative w-full max-w-[120vh] max-h-[82vh] sm:max-h-[85vh] xl:max-h-[90vh] aspect-[3/2] bg-[#1a1816] rounded-[2.5rem] sm:rounded-[3.5rem] xl:rounded-[4rem] shadow-[0_50px_100px_rgba(0,0,0,0.9),0_0_0_2px_rgba(255,255,255,0.02)] border-[4px] sm:border-[6px] border-stone-800 overflow-hidden flex flex-col items-center transform rotateX(15deg) transition-transform duration-700"
             style={{ transformStyle: 'preserve-3d' }}
         >
             {/* Table Surface Texture */}

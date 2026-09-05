@@ -77,7 +77,7 @@ reads this file, it never edits it. Your review/merge of the PR is the real chec
   - **Goal:** adjust AI turn delay pacing, provide clear banner cues during decision/interruption phases (e.g. Green Dragon card options), and ensure smooth gambit end state transitions.
   - **Acceptance:** player can comfortably follow turn order across 6 players without getting stuck or missing card power resolutions.
 
-- [ ] **Layout polish & bug fixes — 6-player responsive table & z-index layers**
+- [x] **Layout polish & bug fixes — 6-player responsive table & z-index layers**
   - **Problem:** on smaller viewports or non-standard aspect ratios, 6-player seat chips and opponent drawers can obscure the battleground or player hand.
   - **Goal:** audit and adjust flex/grid positioning in `TableTop.tsx`, `MultiplayerSeats.tsx`, and `OpponentInspectorDrawer.tsx` to fix z-index layering and clipping bugs.
   - **Acceptance:** 6-player layout renders cleanly across desktop and tablet screen sizes without overlapping UI elements.
