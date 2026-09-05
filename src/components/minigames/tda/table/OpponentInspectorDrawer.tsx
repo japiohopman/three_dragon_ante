@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { getIcon } from '../../../../assets/icons';
+import { GameIcon } from '../../../../assets/icons';
 import Card from '../Card';
 import NPC from '../../../NPC';
 import { PlayerState, CardData, GamePhase } from '../../../../types';
@@ -51,7 +51,7 @@ export const OpponentInspectorDrawer: React.FC<OpponentInspectorDrawerProps> = (
                   className="p-2 hover:bg-stone-800 disabled:opacity-30 disabled:cursor-not-allowed rounded-lg border border-stone-800 hover:border-stone-700 transition-colors text-amber-500"
                   title="Previous Opponent"
                 >
-                    {getIcon('ui', 'chevron_left', { size: 18 })}
+                    <GameIcon name="chevron_left" size={18} />
                 </button>
 
                 <div className="text-center flex flex-col">
@@ -65,7 +65,7 @@ export const OpponentInspectorDrawer: React.FC<OpponentInspectorDrawerProps> = (
                   className="p-2 hover:bg-stone-800 disabled:opacity-30 disabled:cursor-not-allowed rounded-lg border border-stone-800 hover:border-stone-700 transition-colors text-amber-500"
                   title="Next Opponent"
                 >
-                    {getIcon('ui', 'chevron_right', { size: 18 })}
+                    <GameIcon name="chevron_right" size={18} />
                 </button>
             </div>
 
@@ -108,7 +108,7 @@ export const OpponentInspectorDrawer: React.FC<OpponentInspectorDrawerProps> = (
                             />
                             {activePlayer === focusedOpponent.id && (
                                 <div className="absolute top-3 right-3 bg-amber-600/90 rounded-full p-2 border border-amber-400 shadow-xl animate-pulse">
-                                    {getIcon('ui', 'thinking', { size: 16, className: "text-stone-950" })}
+                                    <GameIcon name="thinking" size={16} className="text-stone-950" />
                                 </div>
                             )}
                         </div>
@@ -117,7 +117,7 @@ export const OpponentInspectorDrawer: React.FC<OpponentInspectorDrawerProps> = (
                         <div className="bg-stone-900/60 rounded-xl p-4 border border-stone-800">
                             <div className="flex items-center justify-between mb-2 border-b border-stone-800 pb-1">
                                  <span className="text-[9px] text-stone-500 uppercase font-bold tracking-widest">Enemy Purse</span>
-                                 {getIcon('ui', 'gold-coin', { size: 12, className: "text-amber-500" })}
+                                 <GameIcon name="gold_coin" size={12} className="text-amber-500" />
                             </div>
                             {(() => {
                                 const oppWealth: Money = fromCopper(focusedOpponent.gold, true);

@@ -64,7 +64,7 @@ reads this file, it never edits it. Your review/merge of the PR is the real chec
   - **Goal:** audit and refine card animation timing curves in `Card.tsx` / `TableTop.tsx` and smooth coin drop physics trajectories in `useAnimationStore.ts`.
   - **Acceptance:** playing cards and winning gold feel smooth, tactile, and non-blocking during turn progression.
 
-- [ ] **Artificer SVG icon system — canonical main-game icon integration (Issue #34)**
+- [x] **Artificer SVG icon system — canonical main-game icon integration (Issue #34)**
   - **Problem:** the main game is not currently using the canonical Artificer Solo SVG icon system. `docs/IconSystemMainGame.md` defines the intended registry, standalone SVG asset structure, and centralized `GameIcon` component, but the SVG system is not actually used throughout production game UI.
   - **Goal:** integrate the Artificer-compatible Solo SVG icon system as the canonical icon source for TDA, using the existing Artificer `public/assets/icons/svg/` conventions and the icons already available under `minigame/` where applicable.
   - **Acceptance:** production game UI actually renders canonical SVG icons through the documented `GameIcon`/registry architecture; existing ad-hoc icon/emoji/inline-SVG usages are migrated where an equivalent canonical icon exists; asset paths and naming remain migration-safe for embedding into Artificer; tests, lint, and build pass; documentation matches the final implementation.

@@ -1,6 +1,6 @@
 import React from 'react';
 import Card from '../Card';
-import { getIcon } from '../../../../assets/icons';
+import { GameIcon } from '../../../../assets/icons';
 import { CardData } from '../../../../types';
 
 interface FocusOverlayProps {
@@ -44,7 +44,7 @@ export const FocusOverlay: React.FC<FocusOverlayProps> = ({
               className="absolute -top-4 -right-4 bg-stone-800 text-stone-400 p-2 rounded-full hover:bg-red-900 hover:text-white transition-colors border border-stone-600"
               title="Close Inspection"
             >
-                {getIcon('ui', 'close', { size: 24 })}
+                <GameIcon name="close" size={24} />
             </button>
 
             {/* ACTION & POWER STATUS HINT */}
@@ -56,12 +56,12 @@ export const FocusOverlay: React.FC<FocusOverlayProps> = ({
                 }`}>
                     {isPowerActive ? (
                         <>
-                            {getIcon('ui', 'sparkles', { size: 14, className: "text-amber-400" })}
+                            <GameIcon name="sparkles" size={14} className="text-amber-400" />
                             <span>⚡ Special Power Active {!lastCardPlayed ? '(Round Leader)' : `(Str ${focusedCard.strength} ≤ ${lastCardPlayed.strength})`}</span>
                         </>
                     ) : (
                         <>
-                            {getIcon('ui', 'shield', { size: 14, className: "text-stone-500" })}
+                            <GameIcon name="shield" size={14} className="text-stone-500" />
                             <span>⚔️ Strength Only — Power Inactive (Str {focusedCard.strength} &gt; {lastCardPlayed?.strength})</span>
                         </>
                     )}
@@ -70,7 +70,7 @@ export const FocusOverlay: React.FC<FocusOverlayProps> = ({
 
             {canAnteFocused && (
                 <div className="mt-4 px-4 py-1.5 bg-blue-950/90 border border-blue-500 text-blue-200 rounded-full text-xs font-bold shadow-md flex items-center gap-2">
-                    {getIcon('ui', 'target', { size: 14, className: "text-blue-400" })}
+                    <GameIcon name="target" size={14} className="text-blue-400" />
                     <span>Ante Card — Determines initial round leader and stake</span>
                 </div>
             )}
@@ -81,7 +81,7 @@ export const FocusOverlay: React.FC<FocusOverlayProps> = ({
                       onClick={onPlayFocused}
                       className="bg-amber-600 hover:bg-amber-500 text-stone-900 font-bold py-3 px-8 rounded-full shadow-lg flex items-center gap-2 text-xl animate-bounce"
                     >
-                        {getIcon('ui', 'play', { size: 24 })} Play Card
+                        <GameIcon name="play" size={24} /> Play Card
                     </button>
                 )}
                 {canAnteFocused && (
@@ -89,7 +89,7 @@ export const FocusOverlay: React.FC<FocusOverlayProps> = ({
                       onClick={onSelectAnteFocused}
                       className="bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-8 rounded-full shadow-lg flex items-center gap-2 text-xl animate-bounce"
                     >
-                        {getIcon('ui', 'target', { size: 24 })} Select Ante
+                        <GameIcon name="target" size={24} /> Select Ante
                     </button>
                 )}
             </div>

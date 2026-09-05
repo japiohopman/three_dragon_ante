@@ -1,5 +1,5 @@
 import React from 'react';
-import { getIcon } from '../../../../assets/icons';
+import { GameIcon } from '../../../../assets/icons';
 import Card from '../Card';
 import { PlayerState, CardData } from '../../../../types';
 
@@ -48,13 +48,13 @@ export const MultiplayerSeats: React.FC<MultiplayerSeatsProps> = ({
                        </span>
                        {currentLeader === opp.id && (
                            <span title="Round Leader" className="flex items-center gap-0.5 text-[8px] font-bold text-amber-400 bg-amber-950/80 px-1 py-0.2 rounded border border-amber-500/40">
-                               {getIcon('ui', 'crown', { size: 9, className: "text-amber-400" })} LEADER
+                               <GameIcon name="crown" size={9} className="text-amber-400" /> LEADER
                            </span>
                        )}
                    </div>
 
                    <div className="flex items-center gap-1 bg-stone-950/60 px-1.5 py-0.5 rounded border border-stone-850">
-                       {getIcon('ui', 'hand', { size: 9, className: "text-stone-500" })}
+                       <GameIcon name="hand" size={9} className="text-stone-500" />
                        <span className="text-[9px] font-mono text-stone-400 font-bold">{opp.hand.length}</span>
                    </div>
 

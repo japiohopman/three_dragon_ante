@@ -1,6 +1,6 @@
 import React from 'react';
 import { useGameStore } from '../../../../store/useGameStore';
-import { getIcon } from '../../../../assets/icons';
+import { GameIcon } from '../../../../assets/icons';
 import { CardData } from '../../../../types';
 import { playSound } from '../../../../services/soundService';
 import { fromCopper, Money } from '../../../../utils/currency';
@@ -38,42 +38,42 @@ export const HeaderHUD: React.FC<HeaderHUDProps> = ({
                            <div className="flex items-center gap-2.5">
                                {w.pp > 0 && (
                                    <div className="flex items-center gap-1 text-slate-100" title="Platinum Pieces">
-                                       {getIcon('ui', 'gold-coin', { size: 14, className: "text-slate-300" })}
+                                       <GameIcon name="gold_coin" size={14} className="text-slate-300" />
                                        <span className="font-gothic text-lg">{w.pp}</span>
                                        <span className="text-[10px] text-slate-400 font-bold">pp</span>
                                    </div>
                                )}
                                {w.gp > 0 && (
                                    <div className="flex items-center gap-1 text-amber-500" title="Gold Pieces">
-                                       {getIcon('ui', 'gold-coin', { size: 14, className: "text-amber-500" })}
+                                       <GameIcon name="gold_coin" size={14} className="text-amber-500" />
                                        <span className="font-gothic text-lg">{w.gp}</span>
                                        <span className="text-[10px] text-amber-600 font-bold">gp</span>
                                    </div>
                                )}
                                {w.ep > 0 && (
                                    <div className="flex items-center gap-1 text-cyan-500" title="Electrum Pieces">
-                                       {getIcon('ui', 'gold-coin', { size: 14, className: "text-cyan-600" })}
+                                       <GameIcon name="gold_coin" size={14} className="text-cyan-600" />
                                        <span className="font-gothic text-lg">{w.ep}</span>
                                        <span className="text-[10px] text-cyan-600 font-bold">ep</span>
                                    </div>
                                )}
                                {w.sp > 0 && (
                                    <div className="flex items-center gap-1 text-stone-400" title="Silver Pieces">
-                                       {getIcon('ui', 'gold-coin', { size: 14, className: "text-stone-400" })}
+                                       <GameIcon name="gold_coin" size={14} className="text-stone-400" />
                                        <span className="font-gothic text-lg">{w.sp}</span>
                                        <span className="text-[10px] text-stone-500 font-bold">sp</span>
                                    </div>
                                )}
                                {w.cp > 0 && (
                                    <div className="flex items-center gap-1 text-amber-700" title="Copper Pieces">
-                                       {getIcon('ui', 'gold-coin', { size: 14, className: "text-amber-700" })}
+                                       <GameIcon name="gold_coin" size={14} className="text-amber-700" />
                                        <span className="font-gothic text-lg">{w.cp}</span>
                                        <span className="text-[10px] text-amber-800 font-bold">cp</span>
                                    </div>
                                )}
                                {playerGold === 0 && (
                                    <div className="flex items-center gap-1 text-stone-600">
-                                       {getIcon('ui', 'gold-coin', { size: 14, className: "text-stone-600" })}
+                                       <GameIcon name="gold_coin" size={14} className="text-stone-600" />
                                        <span className="font-gothic text-lg">0</span>
                                        <span className="text-[10px] text-stone-600 font-bold">cp</span>
                                    </div>
@@ -88,7 +88,7 @@ export const HeaderHUD: React.FC<HeaderHUDProps> = ({
                           className={`p-1.5 bg-stone-900 rounded border border-stone-800 text-stone-500 hover:text-amber-500 hover:border-amber-900/50 transition-all ${longTurn ? 'animate-pulse ring-1 ring-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.2)]' : ''}`}
                           title="Fix Game State"
                        >
-                           {getIcon('ui', 'wrench', { size: 14 })}
+                               <GameIcon name="wrench" size={14} />
                        </button>
                        <button
                           onClick={() => {
@@ -129,7 +129,7 @@ export const HeaderHUD: React.FC<HeaderHUDProps> = ({
                       <span className={`text-sm font-serif italic ${isAiThinking ? 'text-amber-500 animate-pulse' : 'text-stone-300'}`}>
                           {getPhaseInstruction()}
                       </span>
-                      {isAiThinking && getIcon('ui', 'thinking', { size: 14, className: "text-amber-500" })}
+                      {isAiThinking && <GameIcon name="thinking" size={14} className="text-amber-500" />}
                   </div>
               </div>
           )}
@@ -148,7 +148,7 @@ export const HeaderHUD: React.FC<HeaderHUDProps> = ({
                              ? 'bg-amber-950/60 border-amber-600/60 text-amber-300'
                              : 'bg-stone-900 border-stone-800 text-stone-400'
                        }`} title={playerHand.length >= 10 ? "Hand Limit Reached (10/10)" : `Hand Cards: ${playerHand.length}/10`}>
-                           {getIcon('ui', 'hand', { size: 10, className: playerHand.length >= 10 ? 'text-red-400' : playerHand.length >= 8 ? 'text-amber-400' : 'text-stone-500' })}
+                           <GameIcon name="hand" size={10} className={playerHand.length >= 10 ? 'text-red-400' : playerHand.length >= 8 ? 'text-amber-400' : 'text-stone-500'} />
                            <span className="text-[10px] font-mono font-bold">
                              {playerHand.length}/10
                            </span>
@@ -163,14 +163,14 @@ export const HeaderHUD: React.FC<HeaderHUDProps> = ({
                       className="px-2.5 py-1 bg-amber-950/40 hover:bg-amber-900/60 text-amber-300 hover:text-amber-200 border border-amber-800/60 hover:border-amber-500/80 rounded-md transition-all shadow-sm flex items-center gap-1.5 text-xs font-semibold group"
                       title="Open Rulebook (Shortcut: ? or H)"
                    >
-                       {getIcon('ui', 'scroll', { size: 16, className: "text-amber-400 group-hover:scale-110 transition-transform" })}
+                       <GameIcon name="scroll" size={16} className="text-amber-400 group-hover:scale-110 transition-transform" />
                        <span>Rules</span>
                        <span className="text-[10px] opacity-60 font-mono bg-stone-900/80 px-1 py-0.2 rounded border border-stone-800 ml-0.5">?</span>
                    </button>
               </div>
           </div>
           <div className="w-10 h-10 rounded-full bg-blue-900/40 border border-blue-500/50 flex items-center justify-center shadow-lg">
-              {getIcon('ui', 'user', { size: 20, className: "text-blue-300" })}
+              <GameIcon name="user" size={20} className="text-blue-300" />
           </div>
       </div>
     </div>
