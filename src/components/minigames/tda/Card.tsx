@@ -26,21 +26,21 @@ interface CardProps {
 
 const sizeConfig = {
   sm: {
-    strengthText: 'text-3xl',
-    strengthMargin: 'top-1 left-1',
-    strengthMarginInv: 'bottom-5 right-1',
-    footerBottom: 'bottom-8',
-    footerPadding: 'pb-1',
-    paddingRight: 'pr-4',
+    strengthText: 'text-xl sm:text-2xl',
+    strengthMargin: 'top-0.5 left-1',
+    strengthMarginInv: 'bottom-0.5 right-1',
+    footerBottom: 'bottom-1',
+    footerPadding: 'pb-0.5',
+    paddingRight: 'pr-6',
     iconSize: 'w-3 h-3',
   },
   lg: {
-    strengthText: 'text-6xl',
-    strengthMargin: 'top-4 left-4',
-    strengthMarginInv: 'bottom-4 right-4',
-    footerBottom: 'bottom-24',
-    footerPadding: 'pb-6',
-    paddingRight: 'pr-24',
+    strengthText: 'text-4xl sm:text-5xl',
+    strengthMargin: 'top-2 left-2.5',
+    strengthMarginInv: 'bottom-2 right-2.5',
+    footerBottom: 'bottom-4',
+    footerPadding: 'pb-1.5',
+    paddingRight: 'pr-12',
     iconSize: 'w-5 h-5',
   }
 };
@@ -289,23 +289,23 @@ const Card: React.FC<CardProps> = ({
 
           {variant === 'tda' && card && (
             <>
-              <div className={`absolute ${config.strengthMargin} p-1 z-10`}>
+              <div className={`absolute ${config.strengthMargin} p-0.5 z-10`}>
                  <span
                     className={`font-gothic ${config.strengthText} text-[#f5f2eb] leading-none`}
-                    style={{ textShadow: '3px 4px 5px #000000' }}
+                    style={{ textShadow: '2px 2px 3px #000000' }}
                  >
                     {cardStr}
                  </span>
               </div>
-              <div className={`absolute ${config.strengthMarginInv} p-1 z-10 transform rotate-180`}>
+              <div className={`absolute ${config.strengthMarginInv} p-0.5 z-10 transform rotate-180`}>
                  <span
                     className={`font-gothic ${config.strengthText} text-[#f5f2eb] leading-none opacity-80`}
-                    style={{ textShadow: '3px 4px 5px #000000' }}
+                    style={{ textShadow: '2px 2px 3px #000000' }}
                  >
                     {cardStr}
                  </span>
               </div>
-              <div className={`absolute ${config.footerBottom} w-full pl-3 ${config.paddingRight} text-left flex flex-col items-start z-10`}>
+              <div className={`absolute ${config.footerBottom} w-full pl-2.5 ${config.paddingRight} text-left flex flex-col items-start z-10`}>
                  <div className={`flex items-center justify-start gap-1 w-full border-b border-black/30 ${config.footerPadding} mb-0.5`}>
                      <span className={`font-bold text-black uppercase tracking-widest truncate ${size === 'lg' ? 'text-xs' : 'text-[8px]'}`}>
                         {cardName}
