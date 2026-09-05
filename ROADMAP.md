@@ -87,7 +87,7 @@ reads this file, it never edits it. Your review/merge of the PR is the real chec
   - **Goal:** integrate standard D&D currency icon SVGs and formatting helpers from `src/utils/currency.ts` into header HUDs, player seats, inspect drawers, and pot displays.
   - **Acceptance:** currency amounts display with high-fidelity D&D coin icons and formatted copper/silver/gold weight tooltips matching Artificer standards.
 
-- [ ] **Artificer layout analysis & deep understanding**
+- [x] **Artificer layout analysis & deep understanding**
   - **Problem:** embedding TDA inside `japiohopman/artificer` requires matching Artificer's container grid, navigation dock, color tokens, and modal overlays.
   - **Goal:** analyze `japiohopman/artificer` layout specs, theme tokens, and component conventions; document findings in `docs/ARTIFICER_LAYOUT_ANALYSIS.md`.
   - **Acceptance:** document details Artificer's layout grid, CSS variable tokens, sidebar dock dimensions, and target mount point for minigames.
