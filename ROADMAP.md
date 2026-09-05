@@ -72,7 +72,7 @@ reads this file, it never edits it. Your review/merge of the PR is the real chec
   - **Reference:** https://github.com/japiohopman/artificer/tree/main/public/assets/icons/svg
   - **Documentation:** `docs/IconSystemMainGame.md`
 
-- [ ] **Game flow polish — turn pacing, auto-pass & decision prompts**
+- [x] **Game flow polish — turn pacing, auto-pass & decision prompts**
   - **Problem:** turn transitions between multi-AI opponents can feel either too fast to read or sluggish during complex card power triggers.
   - **Goal:** adjust AI turn delay pacing, provide clear banner cues during decision/interruption phases (e.g. Green Dragon card options), and ensure smooth gambit end state transitions.
   - **Acceptance:** player can comfortably follow turn order across 6 players without getting stuck or missing card power resolutions.
