@@ -39,6 +39,23 @@ describe('Solo SVG Icon System Registry', () => {
   it('returns undefined for non-existent icons', () => {
     expect(getIconDefinition('non_existent_fake_icon_xyz')).toBeUndefined();
   });
+
+  it('prevents duplicate filename collisions across categories (e.g. move)', () => {
+    const actionMove = getIconDefinition('action/move');
+    const editorMove = getIconDefinition('editor/move');
+
+    expect(actionMove).toBeDefined();
+    expect(editorMove).toBeDefined();
+    expect(actionMove?.category).toBe('action');
+    expect(editorMove?.category).toBe('editor');
+    expect(actionMove?.fullPath).not.toBe(editorMove?.fullPath);
+  });
+
+  it('allows category-qualified lookups with slashes or colons', () => {
+    const minigamePaper = getIconDefinition('minigame:paper');
+    expect(minigamePaper).toBeDefined();
+    expect(minigamePaper?.category).toBe('minigame');
+  });
 });
 
 describe('GameIcon Component', () => {
@@ -64,5 +81,29 @@ describe('GameIcon Component', () => {
   it('handles unknown icon name gracefully', () => {
     const element = GameIcon({ name: 'unknown_icon_xyz_123' });
     expect(element).toBeNull();
+  });
+
+  it('does NOT resolve fuzzy or partial icon names', () => {
+    const partialElement = GameIcon({ name: 'clo' });
+    expect(partialElement).toBeNull();
+
+    const draElement = GameIcon({ name: 'dra' });
+    expect(draElement).toBeNull();
+  });
+
+  it('resolves normalized dash and underscore names identically', () => {
+    const dashElement = GameIcon({ name: 'chevron-left' });
+    const underscoreElement = GameIcon({ name: 'chevron_left' });
+
+    expect(dashElement).not.toBeNull();
+    expect(underscoreElement).not.toBeNull();
+  });
+
+  it('resolves category-qualified names in GameIcon', () => {
+    const actionMove = GameIcon({ name: 'action/move' });
+    const editorMove = GameIcon({ name: 'editor/move' });
+
+    expect(actionMove).not.toBeNull();
+    expect(editorMove).not.toBeNull();
   });
 });

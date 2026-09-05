@@ -68,21 +68,43 @@ function parseSvgModule(filePath: string, rawInput: string | { default: string }
 const ALL_ICON_DEFINITIONS: Record<string, IconDefinition> = {};
 const CATEGORY_MAPS: Record<string, Record<string, IconDefinition>> = {};
 
+// Preferred category priorities when resolving ambiguous standalone filenames
+const CATEGORY_PRIORITY = ['ui', 'minigame', 'currency', 'dice', 'skill', 'action', 'attacks', 'equipment_doll', 'book_reader', 'editor'];
+
 Object.entries(svgModules).forEach(([filePath, moduleContent]) => {
   const iconDef = parseSvgModule(filePath, moduleContent);
-  ALL_ICON_DEFINITIONS[iconDef.name] = iconDef;
-
-  // Also support normalized name (dashes to underscores)
   const normalizedKey = iconDef.name.replace(/-/g, '_');
-  if (!ALL_ICON_DEFINITIONS[normalizedKey]) {
-    ALL_ICON_DEFINITIONS[normalizedKey] = iconDef;
-  }
 
+  // 1. Populate category maps
   if (!CATEGORY_MAPS[iconDef.category]) {
     CATEGORY_MAPS[iconDef.category] = {};
   }
   CATEGORY_MAPS[iconDef.category][iconDef.name] = iconDef;
   CATEGORY_MAPS[iconDef.category][normalizedKey] = iconDef;
+
+  // 2. Populate category-qualified keys in global registry
+  ALL_ICON_DEFINITIONS[`${iconDef.category}/${iconDef.name}`] = iconDef;
+  ALL_ICON_DEFINITIONS[`${iconDef.category}/${normalizedKey}`] = iconDef;
+  ALL_ICON_DEFINITIONS[`${iconDef.category}:${iconDef.name}`] = iconDef;
+  ALL_ICON_DEFINITIONS[`${iconDef.category}:${normalizedKey}`] = iconDef;
+
+  // 3. Populate standalone keys deterministically without silent overwrite collisions
+  const setStandalone = (key: string) => {
+    const existing = ALL_ICON_DEFINITIONS[key];
+    if (!existing) {
+      ALL_ICON_DEFINITIONS[key] = iconDef;
+    } else if (existing.category !== iconDef.category) {
+      // Prioritize primary game categories over secondary/editor categories
+      const existingRank = CATEGORY_PRIORITY.indexOf(existing.category);
+      const newRank = CATEGORY_PRIORITY.indexOf(iconDef.category);
+      if (newRank !== -1 && (existingRank === -1 || newRank < existingRank)) {
+        ALL_ICON_DEFINITIONS[key] = iconDef;
+      }
+    }
+  };
+
+  setStandalone(iconDef.name);
+  setStandalone(normalizedKey);
 });
 
 // Category specific indices
@@ -104,10 +126,34 @@ Object.entries(ALL_ICON_DEFINITIONS).forEach(([key, def]) => {
 
 export const ALL_ICON_DEFS = ALL_ICON_DEFINITIONS;
 
-export function getIconDefinition(name: string): IconDefinition | undefined {
+export function getIconDefinition(name: string, category?: string): IconDefinition | undefined {
   if (!name) return undefined;
-  const key = name.replace(/-/g, '_');
-  return ALL_ICON_DEFINITIONS[key] || ALL_ICON_DEFINITIONS[name];
+
+  let reqCat = category;
+  let reqName = name;
+
+  // Handle slash or colon formatted names like "action/move" or "action:move"
+  if (!reqCat && (name.includes('/') || name.includes(':'))) {
+    const splitChar = name.includes('/') ? '/' : ':';
+    const parts = name.split(splitChar);
+    reqCat = parts[0];
+    reqName = parts.slice(1).join(splitChar);
+  }
+
+  const normName = reqName.replace(/-/g, '_');
+
+  if (reqCat) {
+    const normCat = reqCat.replace(/-/g, '_');
+    const catMap = CATEGORY_MAPS[reqCat] || CATEGORY_MAPS[normCat];
+    if (catMap) {
+      if (catMap[reqName]) return catMap[reqName];
+      if (catMap[normName]) return catMap[normName];
+    }
+    const catQualifiedKey = `${reqCat}/${normName}`;
+    if (ALL_ICON_DEFINITIONS[catQualifiedKey]) return ALL_ICON_DEFINITIONS[catQualifiedKey];
+  }
+
+  return ALL_ICON_DEFINITIONS[normName] || ALL_ICON_DEFINITIONS[reqName];
 }
 
 export { GameIcon, GameIcon as Icon };
@@ -117,5 +163,6 @@ export type { GameIconProps };
  * Compatibility helper for components using the legacy getIcon pattern
  */
 export const getIcon = (category: string, name: string, props: any = {}) => {
-  return React.createElement(GameIcon, { name, ...props });
+  const iconName = category ? `${category}/${name}` : name;
+  return React.createElement(GameIcon, { name: iconName, ...props });
 };

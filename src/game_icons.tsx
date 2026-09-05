@@ -10,29 +10,16 @@ export interface GameIconProps extends React.SVGAttributes<SVGElement> {
 }
 
 const LEGACY_FALLBACK_MAP: Record<string, string> = {
-  gold_coin: 'coin',
-  gold: 'coin',
+  gold: 'currency/gold_coin',
   thinking: 'brain',
-  skull: 'death',
-  close: 'x',
   alert: 'alert_triangle',
-  wrench: 'settings',
   roll_dice: 'dice_roll',
   dices: 'dice_roll',
   sparkles: 'magic_effect',
   swords: 'athletics',
   target: 'place',
-  scroll: 'document',
-  refresh: 'refresh',
-  play: 'play',
-  play_card: 'play_card',
-  hand: 'grab',
-  crown: 'award',
   trophy: 'award',
-  hourglass: 'hourglass',
   book_open: 'read_mode',
-  hammer: 'hammer',
-  message_square: 'info',
   flame: 'fire',
   mic: 'speaker_on',
 };
@@ -70,13 +57,6 @@ export const GameIcon: React.FC<GameIconProps> = ({
     iconDef = getIconDefinition(normalizedFallback) || getIconDefinition(LEGACY_FALLBACK_MAP[normalizedFallback] || '');
   }
 
-  if (!iconDef) {
-    // Search substring match if available
-    const similarKey = Object.keys(ALL_ICON_DEFS).find((k) => k.includes(normalizedName));
-    if (similarKey) {
-      iconDef = ALL_ICON_DEFS[similarKey];
-    }
-  }
 
   if (!iconDef) {
     if (process.env.NODE_ENV !== 'production' && rawName !== '') {
