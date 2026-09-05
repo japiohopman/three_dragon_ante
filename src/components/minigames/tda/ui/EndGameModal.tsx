@@ -2,7 +2,7 @@ import React from 'react';
 import { GameIcon } from '../../../../assets/icons';
 import { GambitResult } from '../../../../types';
 import { playSound } from '../../../../services/soundService';
-import { formatPrice } from '../../../../utils/currency';
+import { formatPrice, fromCopper, calculateCurrencyWeight, formatMoney } from '../../../../utils/currency';
 
 interface EndGameModalProps {
   isGambitEnd: boolean;
@@ -52,9 +52,13 @@ export const EndGameModal: React.FC<EndGameModalProps> = ({
                ))}
            </div>
 
-           <p className="text-amber-400 font-gothic text-2xl mb-8">
-               {gambitResult.winnerId === 'player' ? `+${formatPrice(gambitResult.potWon)}` : `-${formatPrice(gambitResult.potWon)}`}
-           </p>
+           <div
+             className="flex items-center gap-2 text-amber-400 font-gothic text-2xl mb-8 cursor-help"
+             title={`Pot Won: ${formatPrice(gambitResult.potWon)} (${formatMoney(fromCopper(gambitResult.potWon, true))}) — Weight: ${calculateCurrencyWeight(fromCopper(gambitResult.potWon, true)).toFixed(2)} lbs`}
+           >
+               <GameIcon name="currency/coins" size={28} className="text-amber-400" />
+               <span>{gambitResult.winnerId === 'player' ? `+${formatPrice(gambitResult.potWon)}` : `-${formatPrice(gambitResult.potWon)}`}</span>
+           </div>
 
            <button
             onClick={() => {

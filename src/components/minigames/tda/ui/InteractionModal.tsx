@@ -1,6 +1,6 @@
 import React from 'react';
 import Card from '../Card';
-import { getIcon } from '../../../../assets/icons';
+import { GameIcon, getIcon } from '../../../../assets/icons';
 import { InteractionRequest, CardData } from '../../../../types';
 import { playSound } from '../../../../services/soundService';
 import { formatPrice } from '../../../../utils/currency';
@@ -58,7 +58,7 @@ export const InteractionModal: React.FC<InteractionModalProps> = ({
               return (
                   <span key={index} className="inline-flex items-baseline gap-1 mx-1.5 whitespace-nowrap">
                       {num && <span className="font-bold text-amber-400 font-gothic text-2xl relative top-[1px]">{num}</span>}
-                      {getIcon('ui', 'gold-coin', { size: 22, className: "text-amber-500 inline self-center filter drop-shadow-sm" })}
+                      <GameIcon name="currency/gold_coin" size={22} className="text-amber-500 inline self-center filter drop-shadow-sm" />
                   </span>
               );
           }

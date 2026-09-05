@@ -1,9 +1,8 @@
 import React from 'react';
 import { motion } from 'motion/react';
-import { GameIcon } from '../../../../assets/icons';
 import Card from '../Card';
 import { CardData, GamePhase } from '../../../../types';
-import { formatPrice } from '../../../../utils/currency';
+import CurrencyDisplay from '../ui/CurrencyDisplay';
 
 interface BattlegroundProps {
   opponentAnte: CardData | null;
@@ -30,10 +29,7 @@ export const Battleground: React.FC<BattlegroundProps> = ({
             <div className="absolute -top-3 bg-stone-900 border border-amber-700/50 px-3 sm:px-4 py-0.5 sm:py-1 rounded-full shadow-lg">
                 <span className="text-[9px] sm:text-[10px] text-amber-500 font-bold uppercase tracking-[0.3em]">Pot</span>
             </div>
-            <div className="flex items-center gap-2 sm:gap-3">
-                <GameIcon name="gold_coin" size={20} className="text-amber-500 drop-shadow-[0_0_10px_rgba(245,158,11,0.4)]" />
-                <span className="font-gothic text-2xl sm:text-3xl text-amber-100 drop-shadow-xl">{formatPrice(pot)}</span>
-            </div>
+            <CurrencyDisplay copper={pot} variant="pot" />
         </div>
 
         <div className={`w-20 h-28 sm:w-24 sm:h-32 md:w-28 md:h-36 border-2 rounded-tl-[25px] sm:rounded-tl-[35px] rounded-br-[25px] sm:rounded-br-[35px] flex items-center justify-center transition-all bg-black/30 flex-shrink-0 ${playerAnte ? 'border-amber-500/80 shadow-[0_0_30px_rgba(0,0,0,0.8)]' : 'border-stone-800/40'} ${isAntePhase ? 'ring-2 ring-amber-500/30 ring-offset-4 ring-offset-stone-900' : ''}`}>
