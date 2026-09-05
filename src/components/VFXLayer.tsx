@@ -49,7 +49,11 @@ const FloatingText: React.FC<{ x: number; y: number; text: string; color: string
 
 const VFXLayer: React.FC = () => {
   const { activeCoins, floatingTexts, showTurnBanner, activePlayer, flashColor, specialEffect } = useAnimationStore();
+  const players = useGameStore(s => s.players);
   const [isMounted, setIsMounted] = useState(true);
+
+  const activeP = players.find(p => p.id === activePlayer);
+  const activeName = activeP ? activeP.name : 'Opponent';
 
   // Safety check to prevent updates after unmount
   useEffect(() => {
@@ -146,7 +150,7 @@ const VFXLayer: React.FC = () => {
               {/* Massive Background Text */}
               <div className="absolute inset-0 flex items-center justify-center opacity-10 select-none">
                 <h1 className="text-[25vw] font-black uppercase leading-none tracking-tighter whitespace-nowrap text-stone-100">
-                  {activePlayer === 'player' ? 'YOUR TURN' : (useGameStore.getState().npcId ? useGameStore.getState().npcId.split('_').map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(' ') : 'OPPONENT')}
+                  {activePlayer === 'player' ? 'YOUR TURN' : activeName.toUpperCase()}
                 </h1>
               </div>
 
@@ -161,10 +165,10 @@ const VFXLayer: React.FC = () => {
 
                 <div className="relative z-10 flex flex-col items-center">
                   <span className="text-amber-500/70 text-xs font-mono uppercase tracking-[0.5em] mb-2">
-                    {activePlayer === 'player' ? 'Initiative Gained' : 'Opponent Action'}
+                    {activePlayer === 'player' ? 'Initiative Gained' : `${activeName} Action`}
                   </span>
                   <h2 className="text-7xl sm:text-9xl font-black text-stone-100 uppercase leading-none tracking-tighter italic">
-                    {activePlayer === 'player' ? 'Your Turn' : `${useGameStore.getState().npcId ? useGameStore.getState().npcId.split('_').map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(' ') : 'Opponent'}'s Turn`}
+                    {activePlayer === 'player' ? 'Your Turn' : `${activeName}'s Turn`}
                   </h2>
                   <div className="w-full h-1 bg-gradient-to-r from-transparent via-amber-500 to-transparent mt-4" />
                 </div>
@@ -173,7 +177,7 @@ const VFXLayer: React.FC = () => {
               {/* Micro-labels */}
               <div className="absolute -bottom-12 left-0 right-0 flex justify-between px-4">
                 <span className="text-[10px] text-amber-500/50 uppercase font-mono tracking-widest">System: Turn_Transition_Active</span>
-                <span className="text-[10px] text-amber-500/50 uppercase font-mono tracking-widest">Phase: {activePlayer === 'player' ? 'Player_Input' : 'AI_Reasoning'}</span>
+                <span className="text-[10px] text-amber-500/50 uppercase font-mono tracking-widest">Phase: {activePlayer === 'player' ? 'Player_Input' : `${activeName.replace(/\s+/g, '_')}_Reasoning`}</span>
               </div>
             </div>
           </motion.div>

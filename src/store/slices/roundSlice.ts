@@ -115,7 +115,7 @@ export const createRoundSlice: StateCreator<GameStore, [], [], RoundSlice> = (se
       }, get()));
 
       useAnimationStore.setState({ activePlayer: nextActive.id });
-      useAnimationStore.getState().triggerTurnBanner(nextActive.id, 1500);
+      useAnimationStore.getState().triggerTurnBanner(nextActive.id, 1400);
 
       if (!nextActive.isNpc && nextActive.hand.length === 0) {
           setTimeout(() => {
@@ -131,7 +131,7 @@ export const createRoundSlice: StateCreator<GameStore, [], [], RoundSlice> = (se
       if (allPlayed) {
           setTimeout(() => get().nextRound(), 1500);
       } else if (nextActive.isNpc) {
-          setTimeout(() => get().aiTurn(), 1500);
+          setTimeout(() => get().aiTurn(), 1400);
       }
   },
 

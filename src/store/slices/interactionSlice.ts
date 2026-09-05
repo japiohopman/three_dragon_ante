@@ -265,6 +265,6 @@ export const createInteractionSlice: StateCreator<GameStore, [], [], Interaction
 
       setTimeout(() => {
           get().finishTurn(state.players[state.activePlayerIndex].id);
-      }, 1000);
+      }, 1200);
   }
 });

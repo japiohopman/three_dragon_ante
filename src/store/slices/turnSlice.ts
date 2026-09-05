@@ -111,7 +111,7 @@ export const createTurnSlice: StateCreator<GameStore, [], [], TurnSlice> = (set,
 
     if (currentHand.length === 0) {
         get().addNotification(`${aiPlayer.name} passes (Empty hand)`, 'info');
-        setTimeout(() => get().finishTurn(aiPlayer.id), 800);
+        setTimeout(() => get().finishTurn(aiPlayer.id), 1000);
         return;
     }
 
@@ -200,10 +200,10 @@ export const createTurnSlice: StateCreator<GameStore, [], [], TurnSlice> = (set,
 
     const currentState = get();
     if (!currentState.pendingInteraction) {
-        setTimeout(() => get().finishTurn(aiPlayer.id), isTriggered ? 1200 : 800);
+        setTimeout(() => get().finishTurn(aiPlayer.id), isTriggered ? 1400 : 1000);
     } else {
         if (currentState.pendingInteraction.target !== 'player') {
-            setTimeout(() => get().resolveAiInteraction(), 1500);
+            setTimeout(() => get().resolveAiInteraction(), 1400);
         }
     }
   }
