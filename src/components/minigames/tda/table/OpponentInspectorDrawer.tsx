@@ -5,7 +5,7 @@ import Card from '../Card';
 import NPC from '../../../NPC';
 import { PlayerState, CardData, GamePhase } from '../../../../types';
 import { NPC_LIST } from '../../../../utils/npcConstants';
-import { fromCopper, Money } from '../../../../utils/currency';
+import CurrencyDisplay from '../ui/CurrencyDisplay';
 import { playSound } from '../../../../services/soundService';
 
 interface OpponentInspectorDrawerProps {
@@ -132,39 +132,11 @@ export const OpponentInspectorDrawer: React.FC<OpponentInspectorDrawerProps> = (
                         </div>
 
                         {/* Coinage Purse */}
-                        <div className="bg-stone-900/60 rounded-xl p-4 border border-stone-800">
-                            <div className="flex items-center justify-between mb-2 border-b border-stone-800 pb-1">
-                                 <span className="text-[9px] text-stone-500 uppercase font-bold tracking-widest">Enemy Purse</span>
-                                 <GameIcon name="gold_coin" size={12} className="text-amber-500" />
-                            </div>
-                            {(() => {
-                                const oppWealth: Money = fromCopper(focusedOpponent.gold, true);
-                                return (
-                                    <div className="grid grid-cols-5 gap-1 text-center">
-                                        <div className={`flex flex-col ${oppWealth.pp > 0 ? '' : 'opacity-30'}`}>
-                                            <span className="text-[8px] uppercase text-stone-500 font-bold">PP</span>
-                                            <span className="font-gothic text-xs text-slate-200">{oppWealth.pp}</span>
-                                        </div>
-                                        <div className={`flex flex-col ${oppWealth.gp > 0 ? '' : 'opacity-30'}`}>
-                                            <span className="text-[8px] uppercase text-stone-500 font-bold">GP</span>
-                                            <span className="font-gothic text-xs text-amber-500">{oppWealth.gp}</span>
-                                        </div>
-                                        <div className={`flex flex-col ${oppWealth.ep > 0 ? '' : 'opacity-30'}`}>
-                                            <span className="text-[8px] uppercase text-stone-500 font-bold">EP</span>
-                                            <span className="font-gothic text-xs text-cyan-500">{oppWealth.ep}</span>
-                                        </div>
-                                        <div className={`flex flex-col ${oppWealth.sp > 0 ? '' : 'opacity-30'}`}>
-                                            <span className="text-[8px] uppercase text-stone-500 font-bold">SP</span>
-                                            <span className="font-gothic text-xs text-stone-400">{oppWealth.sp}</span>
-                                        </div>
-                                        <div className={`flex flex-col ${oppWealth.cp > 0 ? '' : 'opacity-30'}`}>
-                                            <span className="text-[8px] uppercase text-stone-500 font-bold">CP</span>
-                                            <span className="font-gothic text-xs text-amber-700">{oppWealth.cp}</span>
-                                        </div>
-                                    </div>
-                                );
-                            })()}
-                        </div>
+                        <CurrencyDisplay
+                          copper={focusedOpponent.gold}
+                          variant="purse"
+                          title={`${focusedOpponent.name}'s Purse`}
+                        />
 
                         {/* Ante & Flight Section */}
                         <div className="grid grid-cols-2 gap-4">

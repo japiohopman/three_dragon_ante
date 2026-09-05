@@ -1,5 +1,5 @@
 import React from 'react';
-import { getIcon } from '../../../../assets/icons';
+import { GameIcon, getIcon } from '../../../../assets/icons';
 
 interface NotificationBannerProps {
   notification: { message: string; type: 'info' | 'gold-gain' | 'gold-loss' | 'power' | 'alert' } | null;
@@ -22,7 +22,7 @@ export const NotificationBanner: React.FC<NotificationBannerProps> = ({ notifica
               return (
                   <span key={index} className="inline-flex items-baseline gap-1 mx-1.5 whitespace-nowrap">
                       {num && <span className="font-bold text-amber-400 font-gothic text-2xl relative top-[1px]">{num}</span>}
-                      {getIcon('ui', 'gold-coin', { size: 22, className: "text-amber-500 inline self-center filter drop-shadow-sm" })}
+                      <GameIcon name="currency/gold_coin" size={22} className="text-amber-500 inline self-center filter drop-shadow-sm" />
                   </span>
               );
           }
@@ -64,7 +64,7 @@ export const NotificationBanner: React.FC<NotificationBannerProps> = ({ notifica
           <div className={`p-2 rounded-full shrink-0 shadow-inner ${notification.type === 'power' ? 'bg-purple-900/40 text-purple-300' : 'bg-amber-900/40 text-amber-300'}`}>
               {notification.type === 'power'
                   ? getIcon('ui', 'swords', { size: 18 })
-                  : getIcon('ui', 'gold-coin', { size: 18 })}
+                  : <GameIcon name="currency/gold_coin" size={18} />}
           </div>
           <p className={`text-stone-100 font-serif text-base sm:text-lg leading-tight text-center ${notification.type === 'power' ? 'italic text-purple-100' : ''}`}>
               {renderFormattedMessage(notification.message)}
