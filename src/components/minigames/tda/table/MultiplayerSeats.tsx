@@ -2,6 +2,7 @@ import React from 'react';
 import { GameIcon } from '../../../../assets/icons';
 import Card from '../Card';
 import { PlayerState, CardData } from '../../../../types';
+import CurrencyDisplay from '../ui/CurrencyDisplay';
 
 interface MultiplayerSeatsProps {
   players: PlayerState[];
@@ -55,9 +56,12 @@ export const MultiplayerSeats: React.FC<MultiplayerSeatsProps> = ({
                        )}
                    </div>
 
-                   <div className="flex items-center gap-1 bg-stone-950/60 px-1.5 py-0.5 rounded border border-stone-850">
-                       <GameIcon name="hand" size={9} className="text-stone-500" />
-                       <span className="text-[9px] font-mono text-stone-400 font-bold">{opp.hand.length}</span>
+                   <div className="flex items-center gap-1.5">
+                       <div className="flex items-center gap-1 bg-stone-950/60 px-1.5 py-0.5 rounded border border-stone-850">
+                           <GameIcon name="hand" size={9} className="text-stone-500" />
+                           <span className="text-[9px] font-mono text-stone-400 font-bold">{opp.hand.length}</span>
+                       </div>
+                       <CurrencyDisplay copper={opp.gold} variant="badge" title={`${opp.name}'s Purse`} />
                    </div>
 
                    <div className="flex justify-center gap-0.5 min-h-[35px] sm:min-h-[40px] items-center max-w-full overflow-hidden">

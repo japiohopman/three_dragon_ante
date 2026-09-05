@@ -3,7 +3,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { CardData, Suit, Rank } from '../../../types';
 import { SPRITE_MAP, ATLAS_URL, ATLAS_URL_SMALL } from '../../../utils/constants';
 import { useAnimationStore } from '../../../store/useAnimationStore';
-import { getIcon } from '../../../assets/icons';
+import { GameIcon, getIcon } from '../../../assets/icons';
 
 interface CardProps {
   card?: CardData;
@@ -201,7 +201,7 @@ const Card: React.FC<CardProps> = ({
                 if (part.toLowerCase() === 'gold') {
                     return (
                         <span key={i} className="inline-flex align-middle mx-0.5">
-                             {getIcon('ui', 'gold-coin', { className: `${config.iconSize} inline` })}
+                             <GameIcon name="currency/gold_coin" size={size === 'lg' ? 14 : 10} className="inline align-middle text-amber-700" />
                         </span>
                     );
                 }

@@ -82,7 +82,7 @@ reads this file, it never edits it. Your review/merge of the PR is the real chec
   - **Goal:** audit and adjust flex/grid positioning in `TableTop.tsx`, `MultiplayerSeats.tsx`, and `OpponentInspectorDrawer.tsx` to fix z-index layering and clipping bugs.
   - **Acceptance:** 6-player layout renders cleanly across desktop and tablet screen sizes without overlapping UI elements.
 
-- [ ] **Money icons & currency art alignment — D&D 5e copper/silver/gold visual pass**
+- [x] **Money icons & currency art alignment — D&D 5e copper/silver/gold visual pass**
   - **Problem:** gold displays currently use generic text or simple coin badges rather than matching `japiohopman/artificer`'s rich D&D 5e currency icon system (copper, silver, gold, electrum, platinum).
   - **Goal:** integrate standard D&D currency icon SVGs and formatting helpers from `src/utils/currency.ts` into header HUDs, player seats, inspect drawers, and pot displays.
   - **Acceptance:** currency amounts display with high-fidelity D&D coin icons and formatted copper/silver/gold weight tooltips matching Artificer standards.

@@ -3,7 +3,7 @@ import { useGameStore } from '../../../../store/useGameStore';
 import { GameIcon } from '../../../../assets/icons';
 import { CardData } from '../../../../types';
 import { playSound } from '../../../../services/soundService';
-import { fromCopper, Money } from '../../../../utils/currency';
+import CurrencyDisplay from './CurrencyDisplay';
 
 interface HeaderHUDProps {
   onExit?: () => void;
@@ -32,55 +32,7 @@ export const HeaderHUD: React.FC<HeaderHUDProps> = ({
           <div className="flex flex-col">
               <span className="text-[10px] uppercase tracking-[0.3em] text-stone-500 font-bold mb-0.5">Session Purse</span>
               <div className="flex items-center gap-3">
-                   {(() => {
-                       const w: Money = fromCopper(playerGold, true);
-                       return (
-                           <div className="flex items-center gap-2.5">
-                               {w.pp > 0 && (
-                                   <div className="flex items-center gap-1 text-slate-100" title="Platinum Pieces">
-                                       <GameIcon name="gold_coin" size={14} className="text-slate-300" />
-                                       <span className="font-gothic text-lg">{w.pp}</span>
-                                       <span className="text-[10px] text-slate-400 font-bold">pp</span>
-                                   </div>
-                               )}
-                               {w.gp > 0 && (
-                                   <div className="flex items-center gap-1 text-amber-500" title="Gold Pieces">
-                                       <GameIcon name="gold_coin" size={14} className="text-amber-500" />
-                                       <span className="font-gothic text-lg">{w.gp}</span>
-                                       <span className="text-[10px] text-amber-600 font-bold">gp</span>
-                                   </div>
-                               )}
-                               {w.ep > 0 && (
-                                   <div className="flex items-center gap-1 text-cyan-500" title="Electrum Pieces">
-                                       <GameIcon name="gold_coin" size={14} className="text-cyan-600" />
-                                       <span className="font-gothic text-lg">{w.ep}</span>
-                                       <span className="text-[10px] text-cyan-600 font-bold">ep</span>
-                                   </div>
-                               )}
-                               {w.sp > 0 && (
-                                   <div className="flex items-center gap-1 text-stone-400" title="Silver Pieces">
-                                       <GameIcon name="gold_coin" size={14} className="text-stone-400" />
-                                       <span className="font-gothic text-lg">{w.sp}</span>
-                                       <span className="text-[10px] text-stone-500 font-bold">sp</span>
-                                   </div>
-                               )}
-                               {w.cp > 0 && (
-                                   <div className="flex items-center gap-1 text-amber-700" title="Copper Pieces">
-                                       <GameIcon name="gold_coin" size={14} className="text-amber-700" />
-                                       <span className="font-gothic text-lg">{w.cp}</span>
-                                       <span className="text-[10px] text-amber-800 font-bold">cp</span>
-                                   </div>
-                               )}
-                               {playerGold === 0 && (
-                                   <div className="flex items-center gap-1 text-stone-600">
-                                       <GameIcon name="gold_coin" size={14} className="text-stone-600" />
-                                       <span className="font-gothic text-lg">0</span>
-                                       <span className="text-[10px] text-stone-600 font-bold">cp</span>
-                                   </div>
-                               )}
-                           </div>
-                       );
-                   })()}
+                   <CurrencyDisplay copper={playerGold} variant="compact" title="Session Purse" />
                    <div className="h-4 w-px bg-stone-800" />
                    <div className="flex items-center gap-2">
                        <button
