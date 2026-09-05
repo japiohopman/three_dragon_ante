@@ -12,14 +12,14 @@ This architecture offers major benefits:
 ## Architecture
 
 All icons reside in the public assets directory:
-- **Registry**: `public/assets/icons/index.ts`
+- **Registry**: `src/assets/icons/index.ts`
 - **Solo SVGs**: `public/assets/icons/svg/`
 - **UI Component**: `src/game_icons.tsx`
 
 ### Automatic Registries
-The central registry at `public/assets/icons/index.ts` uses Vite's fast build-time glob import:
+The central registry at `src/assets/icons/index.ts` uses Vite's fast build-time glob import:
 ```ts
-const svgModules = import.meta.glob('/public/assets/icons/svg/**/*.svg', { query: '?raw', eager: true });
+const svgModules = import.meta.glob('../../../public/assets/icons/svg/**/*.svg', { query: '?raw', eager: true });
 ```
 Vite loads all `.svg` files inside the directory, parses their XML content on build, extracts attributes (viewBox, custom datasets), and exposes them as structured `IconDefinition` instances.
 
@@ -39,14 +39,31 @@ Subdirectories inside `public/assets/icons/svg/` correspond to standard categori
 
 ## How to Use Icons
 
+### Canonical Lookup Rules
+Icon name resolution follows strict, deterministic rules:
+
+1. **Unique Names**: Unique icon filenames across categories allow bare lookup by name (e.g. `<GameIcon name="close" />` or `<GameIcon name="chevron_left" />`).
+2. **Ambiguous Names**: If duplicate filenames exist across categories (e.g. `action/move.svg` and `editor/move.svg`), category-qualified syntax **must** be used:
+   ```tsx
+   <GameIcon name="action/move" size={24} />
+   <GameIcon name="editor/move" size={24} />
+   ```
+   *Note: Bare lookups for ambiguous names fail deterministically (returning `undefined` / `null`) to prevent silent category collisions.*
+3. **Dash / Underscore Normalization**: Names are normalized automatically (e.g., `chevron-left` and `chevron_left` resolve identically).
+4. **Intentional Aliases**: Minimal legacy compatibility aliases (such as `gold` → `currency/gold_coin`) resolve through `LEGACY_FALLBACK_MAP`.
+5. **Empty Name Fallback**: An empty string `name=""` renders `null` according to contract.
+
 ### The GameIcon Component
 Render any icon using the centralized `<GameIcon>` component:
 
 ```tsx
-import { GameIcon } from '@/src/game_icons';
+import { GameIcon } from '../../game_icons';
 
-// Simple rendering by name
+// Simple rendering by unique name
 <GameIcon name="save" size={24} color="#8B0000" />
+
+// Category-qualified rendering for duplicate/disambiguated names
+<GameIcon name="action/move" size={24} />
 
 // Title / Tooltip support
 <GameIcon name="chevron_left" size={16} title="Back to previous page" />
@@ -56,9 +73,9 @@ import { GameIcon } from '@/src/game_icons';
 For custom rendering engines (e.g. World Maps, Tactical Grids), categorized indices can be imported directly:
 
 ```tsx
-import { WORLD_ATLAS_ICONS, UI_ICONS } from '@/public/assets/icons';
+import { UI_ICONS, MINIGAME_ICONS } from '../../assets/icons';
 
-const path = WORLD_ATLAS_ICONS['settlement']?.path;
+const path = UI_ICONS['close']?.path;
 ```
 
 ## Adding New Icons

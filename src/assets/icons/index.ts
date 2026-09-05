@@ -67,9 +67,7 @@ function parseSvgModule(filePath: string, rawInput: string | { default: string }
 
 const ALL_ICON_DEFINITIONS: Record<string, IconDefinition> = {};
 const CATEGORY_MAPS: Record<string, Record<string, IconDefinition>> = {};
-
-// Preferred category priorities when resolving ambiguous standalone filenames
-const CATEGORY_PRIORITY = ['ui', 'minigame', 'currency', 'dice', 'skill', 'action', 'attacks', 'equipment_doll', 'book_reader', 'editor'];
+const AMBIGUOUS_NAMES = new Set<string>();
 
 Object.entries(svgModules).forEach(([filePath, moduleContent]) => {
   const iconDef = parseSvgModule(filePath, moduleContent);
@@ -88,23 +86,26 @@ Object.entries(svgModules).forEach(([filePath, moduleContent]) => {
   ALL_ICON_DEFINITIONS[`${iconDef.category}:${iconDef.name}`] = iconDef;
   ALL_ICON_DEFINITIONS[`${iconDef.category}:${normalizedKey}`] = iconDef;
 
-  // 3. Populate standalone keys deterministically without silent overwrite collisions
-  const setStandalone = (key: string) => {
+  // 3. Detect duplicate bare names across categories explicitly
+  const registerStandalone = (key: string) => {
+    if (AMBIGUOUS_NAMES.has(key)) {
+      delete ALL_ICON_DEFINITIONS[key];
+      return;
+    }
+
     const existing = ALL_ICON_DEFINITIONS[key];
-    if (!existing) {
+    if (existing && existing.category !== iconDef.category) {
+      AMBIGUOUS_NAMES.add(key);
+      AMBIGUOUS_NAMES.add(iconDef.name);
+      AMBIGUOUS_NAMES.add(normalizedKey);
+      delete ALL_ICON_DEFINITIONS[key];
+    } else if (!existing) {
       ALL_ICON_DEFINITIONS[key] = iconDef;
-    } else if (existing.category !== iconDef.category) {
-      // Prioritize primary game categories over secondary/editor categories
-      const existingRank = CATEGORY_PRIORITY.indexOf(existing.category);
-      const newRank = CATEGORY_PRIORITY.indexOf(iconDef.category);
-      if (newRank !== -1 && (existingRank === -1 || newRank < existingRank)) {
-        ALL_ICON_DEFINITIONS[key] = iconDef;
-      }
     }
   };
 
-  setStandalone(iconDef.name);
-  setStandalone(normalizedKey);
+  registerStandalone(iconDef.name);
+  registerStandalone(normalizedKey);
 });
 
 // Category specific indices
@@ -151,6 +152,14 @@ export function getIconDefinition(name: string, category?: string): IconDefiniti
     }
     const catQualifiedKey = `${reqCat}/${normName}`;
     if (ALL_ICON_DEFINITIONS[catQualifiedKey]) return ALL_ICON_DEFINITIONS[catQualifiedKey];
+  }
+
+  // Bare lookups fail deterministically if ambiguous
+  if (AMBIGUOUS_NAMES.has(reqName) || AMBIGUOUS_NAMES.has(normName)) {
+    if (process.env.NODE_ENV !== 'production') {
+      console.warn(`[GameIcon] Ambiguous bare icon name "${name}". Specify category e.g. "category/${name}".`);
+    }
+    return undefined;
   }
 
   return ALL_ICON_DEFINITIONS[normName] || ALL_ICON_DEFINITIONS[reqName];

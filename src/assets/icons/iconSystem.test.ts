@@ -49,6 +49,10 @@ describe('Solo SVG Icon System Registry', () => {
     expect(actionMove?.category).toBe('action');
     expect(editorMove?.category).toBe('editor');
     expect(actionMove?.fullPath).not.toBe(editorMove?.fullPath);
+
+    // Ambiguous bare name 'move' must NOT resolve to an arbitrary category
+    const ambiguousMove = getIconDefinition('move');
+    expect(ambiguousMove).toBeUndefined();
   });
 
   it('allows category-qualified lookups with slashes or colons', () => {
@@ -105,5 +109,17 @@ describe('GameIcon Component', () => {
 
     expect(actionMove).not.toBeNull();
     expect(editorMove).not.toBeNull();
+
+    // Ambiguous bare move returns null
+    const bareMove = GameIcon({ name: 'move' });
+    expect(bareMove).toBeNull();
+  });
+
+  it('resolves defined legacy aliases correctly', () => {
+    const thinking = GameIcon({ name: 'thinking' });
+    expect(thinking).not.toBeNull();
+
+    const gold = GameIcon({ name: 'gold' });
+    expect(gold).not.toBeNull();
   });
 });
