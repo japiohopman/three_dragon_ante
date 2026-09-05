@@ -36,15 +36,24 @@ export const OpponentInspectorDrawer: React.FC<OpponentInspectorDrawerProps> = (
   return (
     <AnimatePresence>
       {isDrawerOpen && focusedOpponent && (
-        <motion.div
-          initial={{ x: '100%' }}
-          animate={{ x: 0 }}
-          exit={{ x: '100%' }}
-          transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-          className="absolute top-0 right-0 w-96 sm:w-[420px] h-full border-l border-stone-800 bg-stone-950/98 backdrop-blur-2xl shadow-[-20px_0_50px_rgba(0,0,0,0.85)] z-[140] flex flex-col pointer-events-auto"
-        >
-            {/* Drawer Header with Navigation */}
-            <div className="p-6 border-b border-stone-800 flex items-center justify-between bg-stone-900/40">
+        <>
+          {/* Backdrop overlay for smaller screens */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={onClose}
+            className="lg:hidden fixed inset-0 bg-black/50 backdrop-blur-xs z-[125] pointer-events-auto"
+          />
+          <motion.div
+            initial={{ x: '100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '100%' }}
+            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+            className="fixed top-0 right-0 w-full max-w-[420px] sm:w-[420px] h-full border-l border-stone-800 bg-stone-950/98 backdrop-blur-2xl shadow-[-20px_0_50px_rgba(0,0,0,0.85)] z-[130] flex flex-col pointer-events-auto"
+          >
+            {/* Drawer Header with Navigation and Close Button */}
+            <div className="p-4 sm:p-6 border-b border-stone-800 flex items-center justify-between bg-stone-900/40">
                 <button
                   onClick={prevOpponent}
                   disabled={players.length <= 2}
@@ -54,19 +63,28 @@ export const OpponentInspectorDrawer: React.FC<OpponentInspectorDrawerProps> = (
                     <GameIcon name="chevron_left" size={18} />
                 </button>
 
-                <div className="text-center flex flex-col">
+                <div className="text-center flex flex-col mx-2 min-w-0">
                     <span className="text-[9px] uppercase tracking-[0.3em] text-stone-500 font-bold mb-0.5">Inspecting Opponent</span>
-                    <span className="text-lg text-amber-100 font-serif font-bold uppercase tracking-widest">{focusedOpponent.name}</span>
+                    <span className="text-base sm:text-lg text-amber-100 font-serif font-bold uppercase tracking-widest truncate">{focusedOpponent.name}</span>
                 </div>
 
-                <button
-                  onClick={nextOpponent}
-                  disabled={players.length <= 2}
-                  className="p-2 hover:bg-stone-800 disabled:opacity-30 disabled:cursor-not-allowed rounded-lg border border-stone-800 hover:border-stone-700 transition-colors text-amber-500"
-                  title="Next Opponent"
-                >
-                    <GameIcon name="chevron_right" size={18} />
-                </button>
+                <div className="flex items-center gap-1.5">
+                    <button
+                      onClick={nextOpponent}
+                      disabled={players.length <= 2}
+                      className="p-2 hover:bg-stone-800 disabled:opacity-30 disabled:cursor-not-allowed rounded-lg border border-stone-800 hover:border-stone-700 transition-colors text-amber-500"
+                      title="Next Opponent"
+                    >
+                        <GameIcon name="chevron_right" size={18} />
+                    </button>
+                    <button
+                      onClick={onClose}
+                      className="p-2 hover:bg-stone-800 rounded-lg border border-stone-800 hover:border-stone-700 transition-colors text-stone-400 hover:text-white"
+                      title="Close Inspector"
+                    >
+                        <GameIcon name="close" size={18} />
+                    </button>
+                </div>
             </div>
 
             {/* Drawer Body - Panning Area */}
@@ -210,6 +228,7 @@ export const OpponentInspectorDrawer: React.FC<OpponentInspectorDrawerProps> = (
                 </button>
             </div>
         </motion.div>
+        </>
       )}
     </AnimatePresence>
   );

@@ -34,20 +34,22 @@ export const PlayerHandArea: React.FC<PlayerHandAreaProps> = ({
     const dist = index - center;
 
     const isHovered = index === hoveredIndex;
-    let rotate = dist * 5;
-    let yOffset = (Math.abs(dist) * Math.abs(dist) * 2.5) - 20;
+    let rotate = dist * (total > 6 ? 3.5 : 5);
+    let yOffset = (Math.abs(dist) * Math.abs(dist) * 2.2) - 20;
     let scale = 1;
     let zIndex = index + 1;
 
-    // Horizontal spread - increased to ensure visibility
-    const xOffset = dist * 140;
+    // Dynamic horizontal step scaling based on total cards in hand (max 10 cards)
+    // Ensures full 10-card hand fits inside table container without clipping
+    const step = total > 6 ? Math.max(35, Math.min(90, 520 / total)) : 110;
+    const xOffset = dist * step;
 
     if (isHovered) {
         return {
             x: xOffset,
-            y: -140,
+            y: -120,
             rotate: 0,
-            scale: 1.6,
+            scale: total > 6 ? 1.4 : 1.55,
             zIndex: 100,
             filter: 'brightness(1.1) contrast(1.1) drop-shadow(0 20.1px 40px rgba(0,0,0,0.8))',
         };
@@ -55,8 +57,8 @@ export const PlayerHandArea: React.FC<PlayerHandAreaProps> = ({
         const distFromHover = index - hoveredIndex;
         const absDist = Math.abs(distFromHover);
         if (absDist <= 2) {
-            const shiftX = distFromHover * (absDist === 1 ? 100 : 50);
-            const rOffset = distFromHover * (absDist === 1 ? 15 : 8);
+            const shiftX = distFromHover * (absDist === 1 ? (total > 6 ? 50 : 80) : (total > 6 ? 25 : 40));
+            const rOffset = distFromHover * (absDist === 1 ? 12 : 8);
             return {
                 x: xOffset + shiftX,
                 y: yOffset,
@@ -82,9 +84,9 @@ export const PlayerHandArea: React.FC<PlayerHandAreaProps> = ({
     <>
       {/* PLAYER FLIGHT */}
       <div className="w-full h-1/3 flex flex-col items-center justify-end relative">
-          <div className="flex justify-center gap-4 h-32 mb-6">
+          <div className="flex justify-center gap-2 sm:gap-4 h-24 sm:h-32 mb-2 sm:mb-6">
               {playerFlight.map((card) => (
-                  <motion.div key={card.id} layoutId={card.id} className="transform scale-[0.9] origin-bottom hover:scale-100 transition-transform cursor-pointer">
+                  <motion.div key={card.id} layoutId={card.id} className="transform scale-[0.75] sm:scale-[0.9] origin-bottom hover:scale-100 transition-transform cursor-pointer">
                        <Card card={card} size="sm" glow={lastCardPlayed?.id === card.id ? 'gold' : 'none'} />
                   </motion.div>
               ))}
