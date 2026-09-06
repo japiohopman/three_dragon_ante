@@ -92,7 +92,7 @@ reads this file, it never edits it. Your review/merge of the PR is the real chec
   - **Goal:** analyze `japiohopman/artificer` layout specs, theme tokens, and component conventions; document findings in `docs/ARTIFICER_LAYOUT_ANALYSIS.md`.
   - **Acceptance:** document details Artificer's layout grid, CSS variable tokens, sidebar dock dimensions, and target mount point for minigames.
 
-- [ ] **Migration planning — step-by-step TDA minigame embedding spec**
+- [x] **Migration planning — step-by-step TDA minigame embedding spec**
   - **Problem:** migrating TDA into the main `artificer` repository requires a clear, zero-regression step-by-step plan.
   - **Goal:** write `docs/MIGRATION_PLAN.md` detailing file copying/import steps, state store scoping, host event wiring (`onExit`, character gold sync), and asset bundle paths.
   - **Acceptance:** document provides a comprehensive migration checklist ready for execution when `artificer` minigame hosting is enabled.
