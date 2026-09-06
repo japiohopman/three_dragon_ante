@@ -1,8 +1,11 @@
-
 import { create } from 'zustand';
 import { PlayerId } from '../types';
+import { preloadSpriteAtlases } from '../utils/constants';
 
-interface CoinParticle {
+// Trigger sprite atlas preloading on store module load
+preloadSpriteAtlases();
+
+export interface CoinParticle {
   id: string;
   startX: number;
   startY: number;
@@ -11,6 +14,14 @@ interface CoinParticle {
   delay: number;
   arcY?: number;
   spinDeg?: number;
+}
+
+interface PooledCoinParticle extends CoinParticle {
+  slotIndex: number;
+  generation: number;
+  active: boolean;
+  spawnTime: number;
+  cleanupTimeoutId?: ReturnType<typeof setTimeout>;
 }
 
 interface FloatingText {
@@ -55,6 +66,24 @@ interface AnimationState {
   triggerTurnBanner: (player: PlayerId, duration?: number) => void;
 }
 
+export const MAX_CONCURRENT_COINS = 50;
+
+// Pre-allocated object pool for coin particles
+const coinPool: PooledCoinParticle[] = Array.from({ length: MAX_CONCURRENT_COINS }, (_, i) => ({
+  slotIndex: i,
+  generation: 0,
+  active: false,
+  id: `coin-slot-${i}-gen-0`,
+  startX: 0,
+  startY: 0,
+  endX: 0,
+  endY: 0,
+  delay: 0,
+  arcY: -60,
+  spinDeg: 720,
+  spawnTime: 0,
+}));
+
 export const useAnimationStore = create<AnimationState>((set) => ({
   shakeIntensity: 0,
   flashColor: null,
@@ -87,15 +116,14 @@ export const useAnimationStore = create<AnimationState>((set) => ({
   },
 
   spawnCoins: (count, start, end) => {
-    const MAX_CONCURRENT_COINS = 50;
-    const newCoins: CoinParticle[] = [];
-    let maxDelay = 0;
-    for (let i = 0; i < count; i++) {
+    const coinsToSpawn = Math.min(count, MAX_CONCURRENT_COINS);
+    const now = Date.now();
+
+    for (let i = 0; i < coinsToSpawn; i++) {
       // Add Jitter to destination so they land in a pile, not a single point
       const jitterX = (Math.random() - 0.5) * 60; // +/- 30px
       const jitterY = (Math.random() - 0.5) * 40; // +/- 20px
       const delay = i * 45; // Stagger by 45ms
-      if (delay > maxDelay) maxDelay = delay;
 
       const dx = (end.x + jitterX) - start.x;
       const dy = (end.y + jitterY) - start.y;
@@ -105,32 +133,45 @@ export const useAnimationStore = create<AnimationState>((set) => ({
       // Random spin degrees (1-3 full rotations, either direction)
       const spinDeg = (Math.random() > 0.5 ? 1 : -1) * (360 + Math.floor(Math.random() * 720));
 
-      newCoins.push({
-        id: Math.random().toString(36).substr(2, 9),
-        startX: start.x,
-        startY: start.y,
-        endX: end.x + jitterX,
-        endY: end.y + jitterY,
-        delay,
-        arcY,
-        spinDeg,
-      });
-    }
-    set((state) => {
-      const combined = [...state.activeCoins, ...newCoins];
-      const trimmed = combined.length > MAX_CONCURRENT_COINS
-        ? combined.slice(combined.length - MAX_CONCURRENT_COINS)
-        : combined;
-      return { activeCoins: trimmed };
-    });
+      // Acquire an available pool slot, or recycle the oldest active slot
+      let slot = coinPool.find(c => !c.active);
+      if (!slot) {
+        // Find slot with oldest spawnTime
+        slot = coinPool.reduce((oldest, current) => current.spawnTime < oldest.spawnTime ? current : oldest, coinPool[0]);
+      }
 
-    // Compute cleanup timeout so all coins finish their full trajectory
-    const cleanupTime = maxDelay + 1400;
-    setTimeout(() => {
-        set((state) => ({
-            activeCoins: state.activeCoins.filter(c => !newCoins.find(n => n.id === c.id))
-        }));
-    }, cleanupTime);
+      if (slot.cleanupTimeoutId) {
+        clearTimeout(slot.cleanupTimeoutId);
+        slot.cleanupTimeoutId = undefined;
+      }
+
+      slot.generation++;
+      slot.id = `coin-slot-${slot.slotIndex}-gen-${slot.generation}`;
+      slot.startX = start.x;
+      slot.startY = start.y;
+      slot.endX = end.x + jitterX;
+      slot.endY = end.y + jitterY;
+      slot.delay = delay;
+      slot.arcY = arcY;
+      slot.spinDeg = spinDeg;
+      slot.active = true;
+      slot.spawnTime = now + delay;
+
+      const currentGeneration = slot.generation;
+      const currentSlotIndex = slot.slotIndex;
+      const cleanupTime = delay + 1400;
+
+      slot.cleanupTimeoutId = setTimeout(() => {
+        const targetSlot = coinPool[currentSlotIndex];
+        if (targetSlot && targetSlot.generation === currentGeneration) {
+          targetSlot.active = false;
+          targetSlot.cleanupTimeoutId = undefined;
+          set({ activeCoins: coinPool.filter(c => c.active) });
+        }
+      }, cleanupTime);
+    }
+
+    set({ activeCoins: coinPool.filter(c => c.active) });
   },
 
   triggerFloatingText: (x, y, text, color: 'gold' | 'red' | 'white' = 'gold') => {
@@ -149,7 +190,16 @@ export const useAnimationStore = create<AnimationState>((set) => ({
       }, 2000); // Duration matches CSS animation
   },
 
-  clearCoins: () => set({ activeCoins: [] }),
+  clearCoins: () => {
+    coinPool.forEach((slot) => {
+      if (slot.cleanupTimeoutId) {
+        clearTimeout(slot.cleanupTimeoutId);
+        slot.cleanupTimeoutId = undefined;
+      }
+      slot.active = false;
+    });
+    set({ activeCoins: [] });
+  },
 
   setFocusedCard: (id) => set({ focusedCardId: id }),
   setHoveredCard: (id) => set({ hoveredCardId: id }),
