@@ -26,22 +26,26 @@ interface CardProps {
 
 const sizeConfig = {
   sm: {
-    strengthText: 'text-3xl',
-    strengthMargin: 'top-1 left-1',
-    strengthMarginInv: 'bottom-5 right-1',
-    footerBottom: 'bottom-8',
-    footerPadding: 'pb-1',
-    paddingRight: 'pr-4',
-    iconSize: 'w-3 h-3',
+    strengthText: 'text-xs sm:text-sm font-bold',
+    strengthMargin: 'top-0.5 left-1 sm:top-0.5 sm:left-1.5',
+    strengthMarginInv: 'bottom-0.5 right-1 sm:bottom-0.5 sm:right-1.5',
+    footerTop: 'top-[66%]',
+    footerPadding: 'pb-0.5',
+    paddingRight: 'pr-1.5',
+    titleText: 'text-[6.5px] sm:text-[7.5px]',
+    descText: 'text-[5px] sm:text-[6px] leading-[1.1]',
+    iconSize: 'w-2 h-2',
   },
   lg: {
-    strengthText: 'text-6xl',
-    strengthMargin: 'top-4 left-4',
-    strengthMarginInv: 'bottom-4 right-4',
-    footerBottom: 'bottom-24',
-    footerPadding: 'pb-6',
-    paddingRight: 'pr-24',
-    iconSize: 'w-5 h-5',
+    strengthText: 'text-2xl sm:text-3xl font-bold',
+    strengthMargin: 'top-1.5 left-2.5 sm:top-2 sm:left-3',
+    strengthMarginInv: 'bottom-1.5 right-2.5 sm:bottom-2 sm:right-3',
+    footerTop: 'top-[66%]',
+    footerPadding: 'pb-1.5',
+    paddingRight: 'pr-4',
+    titleText: 'text-[11px] sm:text-xs',
+    descText: 'text-[8.5px] sm:text-[9.5px] leading-snug',
+    iconSize: 'w-3.5 h-3.5',
   }
 };
 
@@ -201,7 +205,7 @@ const Card: React.FC<CardProps> = ({
                 if (part.toLowerCase() === 'gold') {
                     return (
                         <span key={i} className="inline-flex align-middle mx-0.5">
-                             <GameIcon name="currency/gold_coin" size={size === 'lg' ? 14 : 10} className="inline align-middle text-amber-700" />
+                             <GameIcon name="currency/gold_coin" size={size === 'lg' ? 12 : 7} className="inline align-middle text-amber-700" />
                         </span>
                     );
                 }
@@ -289,34 +293,29 @@ const Card: React.FC<CardProps> = ({
 
           {variant === 'tda' && card && (
             <>
-              <div className={`absolute ${config.strengthMargin} p-1 z-10`}>
+              <div className={`absolute ${config.strengthMargin} p-0.5 z-10 pointer-events-none`}>
                  <span
                     className={`font-gothic ${config.strengthText} text-[#f5f2eb] leading-none`}
-                    style={{ textShadow: '3px 4px 5px #000000' }}
+                    style={{ textShadow: '2px 2px 3px #000000, -1px -1px 2px #000000' }}
                  >
                     {cardStr}
                  </span>
               </div>
-              <div className={`absolute ${config.strengthMarginInv} p-1 z-10 transform rotate-180`}>
+              <div className={`absolute ${config.strengthMarginInv} p-0.5 z-10 transform rotate-180 pointer-events-none`}>
                  <span
                     className={`font-gothic ${config.strengthText} text-[#f5f2eb] leading-none opacity-80`}
-                    style={{ textShadow: '3px 4px 5px #000000' }}
+                    style={{ textShadow: '2px 2px 3px #000000, -1px -1px 2px #000000' }}
                  >
                     {cardStr}
                  </span>
               </div>
-              <div className={`absolute ${config.footerBottom} w-full pl-3 ${config.paddingRight} text-left flex flex-col items-start z-10`}>
-                 <div className={`flex items-center justify-start gap-1 w-full border-b border-black/30 ${config.footerPadding} mb-0.5`}>
-                     <span className={`font-bold text-black uppercase tracking-widest truncate ${size === 'lg' ? 'text-xs' : 'text-[8px]'}`}>
+              <div className={`absolute ${config.footerTop} w-full px-2 sm:px-2.5 ${config.paddingRight} text-left flex flex-col items-start z-10 pointer-events-none`}>
+                 <div className={`flex items-center justify-start w-full border-b border-black/40 ${config.footerPadding} mb-0.5`}>
+                     <span className={`font-bold text-black uppercase tracking-wider ${config.titleText}`}>
                         {cardName}
                      </span>
-                     <div className="flex items-center gap-0.5 opacity-90">
-                        {card.type === 'good' && getIcon('ui', 'shield', { size: size==='lg'?10:8, className: 'text-black' })}
-                        {card.type === 'evil' && getIcon('ui', 'skull', { size: size==='lg'?10:8, className: 'text-black' })}
-                        {card.type === 'mortal' && getIcon('ui', 'user', { size: size==='lg'?10:8, className: 'text-black' })}
-                     </div>
                  </div>
-                 <p className={`leading-tight text-black font-serif font-semibold w-full ${size === 'lg' ? 'text-[9px]' : 'text-[6px] sm:text-[7px]'}`}>
+                 <p className={`text-black font-serif font-semibold w-full ${config.descText}`}>
                     {renderDescription(card.description)}
                  </p>
               </div>
