@@ -97,7 +97,7 @@ reads this file, it never edits it. Your review/merge of the PR is the real chec
   - **Goal:** write `docs/MIGRATION_PLAN.md` detailing file copying/import steps, state store scoping, host event wiring (`onExit`, character gold sync), and asset bundle paths.
   - **Acceptance:** document provides a comprehensive migration checklist ready for execution when `artificer` minigame hosting is enabled.
 
-- [ ] **Performance & asset optimization — particle pooling & sprite atlas caching**
+- [x] **Performance & asset optimization — particle pooling & sprite atlas caching**
   - **Problem:** spawning multiple coin particle bursts in quick succession could create unnecessary DOM element allocations.
   - **Goal:** implement DOM element pooling or canvas particle fallback in `useAnimationStore.ts` and verify `enhanced_tiamat.webp` atlas preloading.
   - **Acceptance:** smooth 60fps performance maintained during multi-flight coin awards and rapid gambit rounds.

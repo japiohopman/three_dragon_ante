@@ -4,6 +4,19 @@ import { CardData, DragonColor, CardType, StandardCardData, Suit, Rank } from '.
 // Atlas Mapping (5x5)
 export const ATLAS_URL = "https://github.com/japiohopman/artificer/blob/main/public/assets/images/three_dragons_ante_card_game/tda_cards.webp?raw=true";
 export const ATLAS_URL_SMALL = "https://github.com/japiohopman/artificer/blob/main/public/assets/images/three_dragons_ante_card_game/tda_cards_small.webp?raw=true";
+export const ENHANCED_TIAMAT_ATLAS_URL = "https://github.com/japiohopman/chimera/blob/main/enhanced_tiamat.webp?raw=true";
+
+/**
+ * Preloads card sprite atlases into browser image cache to prevent image pop-in during gameplay.
+ */
+export const preloadSpriteAtlases = () => {
+  if (typeof window === 'undefined') return;
+  const urls = [ATLAS_URL, ATLAS_URL_SMALL, ENHANCED_TIAMAT_ATLAS_URL];
+  urls.forEach(url => {
+    const img = new Image();
+    img.src = url;
+  });
+};
 
 export const SPRITE_MAP = {
   Red: 0, Blue: 1, Green: 2, Black: 3, White: 4,
