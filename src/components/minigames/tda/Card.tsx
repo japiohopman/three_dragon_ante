@@ -26,26 +26,26 @@ interface CardProps {
 
 const sizeConfig = {
   sm: {
-    strengthText: 'text-base sm:text-lg',
-    strengthMargin: 'top-1 left-1.5 sm:top-1.5 sm:left-2',
-    strengthMarginInv: 'bottom-1 right-1.5 sm:bottom-1.5 sm:right-2',
-    footerTop: 'top-[58%]',
+    strengthText: 'text-xs sm:text-sm font-bold',
+    strengthMargin: 'top-0.5 left-1 sm:top-0.5 sm:left-1.5',
+    strengthMarginInv: 'bottom-0.5 right-1 sm:bottom-0.5 sm:right-1.5',
+    footerTop: 'top-[66%]',
     footerPadding: 'pb-0.5',
     paddingRight: 'pr-1.5',
-    titleText: 'text-[7px] sm:text-[8px]',
-    descText: 'text-[5.5px] sm:text-[6.5px] leading-[1.15]',
-    iconSize: 'w-2.5 h-2.5',
+    titleText: 'text-[6.5px] sm:text-[7.5px]',
+    descText: 'text-[5px] sm:text-[6px] leading-[1.1]',
+    iconSize: 'w-2 h-2',
   },
   lg: {
-    strengthText: 'text-3xl sm:text-4xl',
-    strengthMargin: 'top-3 left-4',
-    strengthMarginInv: 'bottom-3 right-4',
-    footerTop: 'top-[58%]',
+    strengthText: 'text-2xl sm:text-3xl font-bold',
+    strengthMargin: 'top-1.5 left-2.5 sm:top-2 sm:left-3',
+    strengthMarginInv: 'bottom-1.5 right-2.5 sm:bottom-2 sm:right-3',
+    footerTop: 'top-[66%]',
     footerPadding: 'pb-1.5',
     paddingRight: 'pr-4',
-    titleText: 'text-xs sm:text-sm',
-    descText: 'text-[9px] sm:text-[10px] leading-snug',
-    iconSize: 'w-4 h-4',
+    titleText: 'text-[11px] sm:text-xs',
+    descText: 'text-[8.5px] sm:text-[9.5px] leading-snug',
+    iconSize: 'w-3.5 h-3.5',
   }
 };
 
