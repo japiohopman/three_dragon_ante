@@ -1,10 +1,14 @@
 #!/usr/bin/env node
 /**
- * Jules Queue Orchestrator (v5)
+ * Jules Queue Orchestrator (v6)
  *
  * ROADMAP.md is the canonical dispatch queue. A Ready task may optionally
  * reference a GitHub Issue as "Issue #N"; the issue becomes the detailed
  * execution specification passed to Jules.
+ *
+ * Once the entire "### Ready" queue is complete, the "## Later" queue is
+ * unlocked in roadmap order. This lets the roadmap move from pre-embedding
+ * preparation into the next phase without requiring a manual queue rewrite.
  */
 
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
@@ -100,8 +104,53 @@ function findTasksUnderHeading(text, headingName) {
   return tasks;
 }
 
+/** Finds top-level checkbox lines directly inside a named level-2 section. */
+function findTasksInSection(text, sectionName) {
+  const lines = text.split('\n');
+  let inSection = false;
+  const tasks = [];
+  const wantedSection = sectionName.trim().toLowerCase();
+
+  for (const line of lines) {
+    const h2 = line.match(/^##\s+(.+?)\s*$/);
+    if (h2) {
+      const actualSection = h2[1].trim().toLowerCase();
+      inSection = actualSection === wantedSection || actualSection.startsWith(`${wantedSection} `);
+      continue;
+    }
+
+    if (!inSection) continue;
+
+    const task = line.match(/^- \[( |x)\]\s*(.+)$/i);
+    if (task) {
+      tasks.push({
+        checked: task[1].toLowerCase() === 'x',
+        text: task[2].trim(),
+      });
+    }
+  }
+
+  return tasks;
+}
+
+/**
+ * Ready is the first queue. Later is unlocked only after every Ready task is
+ * complete. This preserves roadmap ordering while allowing automatic phase
+ * progression once the pre-embedding gate has been cleared.
+ */
+function getDispatchTasks(roadmapText) {
+  const readyTasks = findTasksUnderHeading(roadmapText, 'Ready');
+  const uncheckedReady = readyTasks.filter(task => !task.checked);
+
+  if (uncheckedReady.length > 0) {
+    return { section: 'Ready', tasks: readyTasks };
+  }
+
+  return { section: 'Later', tasks: findTasksInSection(roadmapText, 'Later') };
+}
+
 function isTaskConfirmedDone(roadmapText, taskText) {
-  const tasks = findTasksUnderHeading(roadmapText, 'Ready');
+  const { tasks } = getDispatchTasks(roadmapText);
   const match = tasks.find(t => t.text === taskText);
   return match ? match.checked : false;
 }
@@ -122,20 +171,21 @@ async function getIssueContext(taskText) {
 async function main() {
   const state = loadState();
   const roadmapText = readFileSync(ROADMAP_PATH, 'utf8');
-  const readyTasks = findTasksUnderHeading(roadmapText, 'Ready');
-  let next = readyTasks.find(t => !t.checked);
+  const queue = getDispatchTasks(roadmapText);
+  let next = queue.tasks.find(t => !t.checked);
   let stateChanged = false;
 
-  console.log(`Found ${readyTasks.length} task(s) under ### Ready.`);
+  console.log(`Dispatch queue section: ${queue.section}`);
+  console.log(`Found ${queue.tasks.length} task(s) in the active queue.`);
 
   if (state.activeSession) {
-    const activeTask = readyTasks.find(t => t.text === state.activeSession.task);
+    const activeTask = queue.tasks.find(t => t.text === state.activeSession.task);
     const activeIsCanonicalNext = activeTask && !activeTask.checked && (!next || activeTask.text === next.text);
 
     if (!activeIsCanonicalNext) {
       console.warn(
         `Stale Jules queue state detected: active task "${state.activeSession.task}" ` +
-        `does not match the first unchecked task under ### Ready ("${next?.text ?? 'none'}"). ` +
+        `does not match the first unchecked task in the active queue ("${next?.text ?? 'none'}"). ` +
         'Clearing the stale session state so the canonical queue can advance.'
       );
       state.activeSession = null;
@@ -171,22 +221,24 @@ async function main() {
     console.log(`"${state.activeSession.task}" is merged AND confirmed done. Advancing the queue.`);
     state.activeSession = null;
     stateChanged = true;
-    next = readyTasks.find(t => !t.checked);
+
+    const refreshedQueue = getDispatchTasks(roadmapText);
+    next = refreshedQueue.tasks.find(t => !t.checked);
   }
 
   if (!state.activeSession) {
     if (!next) {
-      console.log('Nothing left unchecked under ### Ready (queue empty).');
+      console.log(`Nothing left unchecked in the active ${queue.section} queue.`);
       if (stateChanged) { saveState(state); commitAndPush(); }
       return;
     }
 
-    console.log(`Dispatching next task: ${next.text}`);
+    console.log(`Dispatching next task from ${queue.section}: ${next.text}`);
 
     const issueContext = await getIssueContext(next.text);
     const promptParts = [
       'Read AGENT.MD, AGENT_RULES.md, and ROADMAP.md before starting.',
-      'Your task from ROADMAP.md\'s "### Ready" list:',
+      `Your task from ROADMAP.md's active "${queue.section}" queue:`,
       next.text,
     ];
 
