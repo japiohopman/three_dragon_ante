@@ -114,7 +114,8 @@ function findTasksInSection(text, sectionName) {
   for (const line of lines) {
     const h2 = line.match(/^##\s+(.+?)\s*$/);
     if (h2) {
-      inSection = h2[1].trim().toLowerCase() === wantedSection;
+      const actualSection = h2[1].trim().toLowerCase();
+      inSection = actualSection === wantedSection || actualSection.startsWith(`${wantedSection} `);
       continue;
     }
 
@@ -145,7 +146,7 @@ function getDispatchTasks(roadmapText) {
     return { section: 'Ready', tasks: readyTasks };
   }
 
-  return { section: 'Later', tasks: findTasksInSection(roadmapText, 'Later — Parked until Pre-Embedding Polish is Complete') };
+  return { section: 'Later', tasks: findTasksInSection(roadmapText, 'Later') };
 }
 
 function isTaskConfirmedDone(roadmapText, taskText) {
