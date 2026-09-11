@@ -11,11 +11,78 @@ export interface GameSetupSlice {
   setNPC: (npcId: string) => void;
   setFocusedOpponentIndex: (index: number) => void;
   startGame: (duration: number, skill: PlayerSkill, opponentCount?: number) => void;
+  initMatch: (options?: { humanGold?: number; opponentId?: string; opponentCount?: number; duration?: number; skill?: PlayerSkill }) => void;
 }
 
 export const createGameSetupSlice: StateCreator<GameStore, [], [], GameSetupSlice> = (set, get) => ({
   resetGame: () => {
     set(getInitialState());
+  },
+
+  initMatch: (options = {}) => {
+    const { humanGold, opponentId, opponentCount = 1, duration = 3, skill = 'none' } = options;
+    const deck = generateDeck();
+
+    const activeNPCs: typeof NPC_LIST = [];
+    if (opponentId) {
+      const primaryNpc = NPC_LIST.find((n) => n.id === opponentId);
+      if (primaryNpc) {
+        activeNPCs.push(primaryNpc);
+      }
+    }
+
+    const remainingNPCs = NPC_LIST.filter((n) => n.id !== opponentId).sort(() => Math.random() - 0.5);
+    const needed = Math.max(1, Math.min(5, opponentCount)) - activeNPCs.length;
+    if (needed > 0) {
+      activeNPCs.push(...remainingNPCs.slice(0, needed));
+    }
+
+    const players: PlayerState[] = [
+      {
+        id: 'player',
+        name: 'You',
+        isNpc: false,
+        gold: humanGold ?? 5000,
+        hand: deck.splice(0, 6),
+        flight: [],
+        ante: null,
+        emotion: 'neutral',
+        npcLine: '',
+        isTalking: false
+      }
+    ];
+
+    activeNPCs.forEach((npc, idx) => {
+      players.push({
+        id: `npc_${idx + 1}`,
+        name: npc.name,
+        isNpc: true,
+        npcId: npc.id,
+        gold: 5000,
+        hand: deck.splice(0, 6),
+        flight: [],
+        ante: null,
+        emotion: 'neutral',
+        npcLine: '',
+        isTalking: false
+      });
+    });
+
+    playSound('CARD_SHUFFLE');
+
+    set(syncCompatibility({
+      ...getInitialState(),
+      players,
+      activePlayerIndex: 0,
+      currentLeaderIndex: 0,
+      focusedOpponentIndex: 1,
+      maxGambits: duration,
+      gambitsPlayed: 0,
+      playerSkill: skill,
+      phase: 'ante-selection',
+      deck,
+      history: [`Match initialized! Duration: ${duration} Gambits. Select a card to Ante.`]
+    }, get()));
   },
 
   setNPC: (npcId: string) => {
