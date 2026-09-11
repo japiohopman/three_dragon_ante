@@ -164,15 +164,15 @@ Verify that the static assets are accessible in `artificer/public/`:
 
 When executing the migration into `artificer`, complete the following steps in order:
 
-- [ ] **Step 1: Copy Source Files**
-  - Transfer `components/minigames/tda/`, `store/`, `utils/cardLogic.ts`, `utils/currency.ts`, and `constants/npcLines.ts` to `artificer/src/`.
-- [ ] **Step 2: Transfer Static Assets**
+- [x] **Step 1: Create Host Integration Wrapper (`TDAMinigame.tsx`)**
+  - Implemented `TDAMinigame.tsx` host integration wrapper and export module `src/components/minigames/tda/index.ts`.
+- [x] **Step 2: Implement Store Initialization (`initMatch`) & Integration Tests**
+  - Added `initMatch` to `gameSetupSlice.ts` to accept `TDAMinigameProps` (`playerGold`, `opponentNpcId`, etc.) and verified with unit tests in `TDAMinigame.test.tsx`.
+- [ ] **Step 3: Copy Source Files to `artificer/src/`**
+  - Transfer `components/minigames/tda/`, `store/`, `utils/cardLogic.ts`, `utils/currency.ts`, and `constants/npcLines.ts` into `artificer/src/` upon host integration dispatch.
+- [ ] **Step 4: Transfer Static Assets to `artificer/public/`**
   - Copy `public/assets/atlas/enhanced_tiamat.webp` and `public/assets/icons/svg/currency/` into `artificer/public/`.
-- [ ] **Step 3: Verify Dependencies**
-  - Run `npm install` in `artificer` to ensure `zustand`, `motion`, and `howler` are installed.
-- [ ] **Step 4: Align Import Paths**
-  - Update internal relative imports (e.g. `@/types`, `@/utils/currency`) to point to the host project's module paths.
-- [ ] **Step 5: Mount `<TDAMinigame />`**
+- [ ] **Step 5: Mount `<TDAMinigame />` in Host Application**
   - Register `<TDAMinigame />` in Artificer's Tavern / Minigame routing view or tavern modal overlay.
-- [ ] **Step 6: Verify Integration**
+- [ ] **Step 6: Verify Integration in Host Application**
   - Run `npm run lint`, `npm test`, and `npm run dev` in `artificer` to test TDA gameplay, gold synchronization, and exit triggers.
