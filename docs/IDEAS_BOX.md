@@ -133,3 +133,13 @@ Prioritize problems that disrupt:
 - **Evidence:** Code inspection of `PlayerHandArea.tsx` lines 78-83 and `MultiplayerSeats.tsx` lines 98-105.
 - **Confidence:** High
 - **Status:** NEW
+
+### 2025-05-19 — Phase transition audio cues for turn initiative changes
+- **Agent:** Jules
+- **Area:** Audio / UX
+- **Observation:** Visual badges for phase changes (`HeaderHUD.tsx`) and turn initiative banners (`VFXLayer.tsx`) communicate active state changes clearly, but lack a subtle distinct sound effect on phase transitions (e.g. Ante -> Player Turn or Decision Required prompt), relying solely on visual feedback.
+- **Idea:** Trigger subtle ambient audio cues (e.g. `UI_PHASE_CHANGE` chime or `DECISION_PROMPT` chime) whenever phase or decision-required state changes.
+- **Player value:** Reinforces multi-sensory feedback and attention cues for fast-paced multi-opponent AI turns.
+- **Evidence:** Code inspection of `HeaderHUD.tsx` lines 28-56 and `soundService.ts`.
+- **Confidence:** High
+- **Status:** NEW

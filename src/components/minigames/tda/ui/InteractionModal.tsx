@@ -29,13 +29,18 @@ export const InteractionModal: React.FC<InteractionModalProps> = ({
       const targetName = targetPlayer ? targetPlayer.name : 'Opponent';
 
       return (
-          <div className="absolute top-24 left-1/2 -translate-x-1/2 bg-stone-900/95 border-2 border-amber-600/80 text-amber-100 px-8 py-4 rounded-xl shadow-2xl flex items-center gap-4 z-[180] animate-in slide-in-from-top duration-300">
-              <div className="p-2 rounded-full bg-amber-900/50 text-amber-400">
+          <div className="absolute top-24 left-1/2 -translate-x-1/2 bg-stone-950/95 border-2 border-purple-500/80 text-purple-100 px-8 py-4 rounded-xl shadow-[0_0_30px_rgba(168,85,247,0.3)] flex items-center gap-4 z-[180] animate-in slide-in-from-top duration-300">
+              <div className="p-3 rounded-full bg-purple-900/60 text-purple-300 animate-pulse">
                   {getIcon('ui', 'swords', { size: 24 })}
               </div>
               <div>
-                  <div className="text-xs font-bold uppercase tracking-widest text-amber-400">{pendingInteraction.sourceCardName} Power</div>
-                  <div className="text-lg font-serif">{targetName} is making a choice...</div>
+                  <div className="flex items-center gap-2">
+                      <span className="px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider bg-purple-900/80 border border-purple-400 text-purple-200">
+                          ⏳ AI RESOLVING CHOICE
+                      </span>
+                      <span className="text-xs font-bold uppercase tracking-widest text-amber-400">{pendingInteraction.sourceCardName} Power</span>
+                  </div>
+                  <div className="text-lg font-serif mt-0.5">{targetName} is evaluating decision options...</div>
               </div>
           </div>
       );
@@ -89,13 +94,13 @@ export const InteractionModal: React.FC<InteractionModalProps> = ({
 
   return (
     <div className="absolute inset-0 top-20 flex flex-col items-center justify-center z-[200] pointer-events-auto animate-in fade-in duration-300">
-          <div className="bg-stone-900 border-2 border-amber-600 p-8 rounded-xl max-w-2xl w-full mx-4 shadow-2xl relative">
-              <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 bg-stone-900 px-4 py-2 border-2 border-amber-600 rounded-full">
-                 {getIcon('ui', 'alert', { className: "text-amber-500 inline-block mr-2" })}
-                 <span className="text-amber-100 font-bold uppercase">{sourcePrefix}{pendingInteraction.sourceCardName}</span>
+          <div className="bg-stone-950 border-2 border-purple-500 p-8 rounded-xl max-w-2xl w-full mx-4 shadow-[0_0_40px_rgba(168,85,247,0.4)] relative">
+              <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 bg-purple-950 border-2 border-purple-400 px-5 py-2 rounded-full shadow-lg flex items-center gap-2 animate-pulse">
+                 {getIcon('ui', 'alert', { className: "text-purple-300 inline-block" })}
+                 <span className="text-purple-100 font-bold uppercase tracking-wider text-sm">⚡ DECISION REQUIRED: {sourcePrefix}{pendingInteraction.sourceCardName}</span>
               </div>
 
-              <h3 className="text-center text-xl text-stone-300 mb-8 mt-4 font-serif">
+              <h3 className="text-center text-xl text-purple-100 mb-8 mt-4 font-serif font-bold">
                   You must make a choice:
               </h3>
 

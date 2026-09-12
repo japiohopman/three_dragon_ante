@@ -3,6 +3,7 @@ import { GameIcon } from '../../../../assets/icons';
 import Card from '../Card';
 import { PlayerState, CardData } from '../../../../types';
 import CurrencyDisplay from '../ui/CurrencyDisplay';
+import { useGameStore } from '../../../../store/useGameStore';
 
 interface MultiplayerSeatsProps {
   players: PlayerState[];
@@ -22,6 +23,7 @@ export const MultiplayerSeats: React.FC<MultiplayerSeatsProps> = ({
   onSelectOpponent
 }) => {
   const isMultiplayer = players.length > 2;
+  const { pendingInteraction, phase } = useGameStore();
 
   return (
     <div className={`w-full flex justify-center ${isMultiplayer ? 'gap-1.5 sm:gap-2.5 md:gap-4' : 'gap-4'} px-2 sm:px-6 mb-2 sm:mb-4 min-h-[110px] sm:min-h-[140px] pointer-events-auto flex-wrap md:flex-nowrap`}>
@@ -29,6 +31,7 @@ export const MultiplayerSeats: React.FC<MultiplayerSeatsProps> = ({
             const actualIdx = index + 1;
             const isFocused = actualIdx === focusedOpponentIndex;
             const isTurn = activePlayer === opp.id;
+            const isTargeted = pendingInteraction?.target === opp.id;
 
             return (
                <div
@@ -36,12 +39,18 @@ export const MultiplayerSeats: React.FC<MultiplayerSeatsProps> = ({
                   onClick={() => onSelectOpponent(actualIdx)}
                   className={`cursor-pointer transition-all p-1.5 sm:p-2.5 rounded-xl flex flex-col items-center gap-1 ${isMultiplayer ? 'w-24 sm:w-28 md:w-32 xl:w-36' : 'w-32 sm:w-36'} flex-shrink border-2 relative
                       ${isFocused ? 'bg-amber-950/30 border-amber-500 shadow-[0_0_15px_rgba(245,158,11,0.15)]' : 'bg-stone-900/60 border-stone-800 hover:border-stone-700'}
-                      ${isTurn ? 'ring-2 ring-amber-500 ring-offset-2 ring-offset-stone-900 animate-pulse animate-duration-1000' : ''}
+                      ${isTargeted ? 'ring-2 ring-purple-500 ring-offset-2 ring-offset-stone-900 border-purple-400 animate-pulse shadow-[0_0_15px_rgba(168,85,247,0.4)]' : ''}
+                      ${isTurn && !isTargeted ? 'ring-2 ring-amber-500 ring-offset-2 ring-offset-stone-900 animate-pulse animate-duration-1000' : ''}
                   `}
                >
-                   {isTurn && (
-                       <div className="absolute -top-2.5 bg-amber-500 text-stone-950 font-bold px-2 py-0.5 rounded-full text-[8px] uppercase tracking-wider shadow-md animate-pulse">
-                           Turn
+                   {isTargeted && (
+                       <div className="absolute -top-2.5 bg-purple-600 text-white font-bold px-2 py-0.5 rounded-full text-[8px] uppercase tracking-wider shadow-md animate-bounce flex items-center gap-1">
+                           <span>🎯 Choice</span>
+                       </div>
+                   )}
+                   {isTurn && !isTargeted && (
+                       <div className="absolute -top-2.5 bg-amber-500 text-stone-950 font-bold px-2 py-0.5 rounded-full text-[8px] uppercase tracking-wider shadow-md animate-pulse flex items-center gap-1">
+                           {phase === 'opponent-turn' ? <span>🧠 Thinking...</span> : <span>Turn</span>}
                        </div>
                    )}
 
