@@ -25,7 +25,7 @@ This queue is deliberately ordered. Do not skip ahead because a later item looks
   - **Goal:** play the main game from entry through multiple gambits and game end, inspect the implementation, and document concrete experience problems in `docs/IDEAS_BOX.md` rather than immediately coding fixes.
   - **Acceptance:** audit covers onboarding, table hierarchy, hand readability, turn ownership, card selection/play, AI turns, decision prompts, animation timing, pot/gold feedback, opponent readability, end-of-round/game feedback, audio/VFX, and responsive behavior; findings contain evidence and player impact; at least one repeatable playtest flow is documented.
 
-- [ ] **Card interaction feel — selection, affordance, play commitment & resolution**
+- [x] **Card interaction feel — selection, affordance, play commitment & resolution**
   - **Problem:** card interaction is one of the highest-frequency player actions and must communicate what can be selected, what will happen, and when the action is committed.
   - **Goal:** refine selection affordance, playable/unplayable state, hover/focus feedback, commitment feedback, and post-play resolution without adding unnecessary UI chrome.
   - **Acceptance:** a player can identify playable cards and understand selection/commitment state without guessing; feedback remains readable during fast AI turns; keyboard focus is not broken where interaction is supported.

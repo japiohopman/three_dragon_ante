@@ -134,15 +134,15 @@ export const InteractionModal: React.FC<InteractionModalProps> = ({
                               {isCardAction && hasCards && (
                                   <div className="flex justify-center gap-2 py-2 overflow-x-auto">
                                       {selectableCards.map(card => (
-                                          <div key={card.id} className="transform scale-75 hover:scale-90 transition-transform origin-top">
+                                          <div key={card.id} className="transform scale-75 hover:scale-90 focus-within:scale-90 transition-transform origin-top">
                                               <Card
                                                  card={card}
                                                  onClick={() => {
                                                      playSound('UI_CLICK');
                                                      respondToInteraction(opt.value, card.id);
                                                  }}
-                                                 className="hover:ring-4 hover:ring-green-500"
-                                                 disableFocus={true}
+                                                 className="hover:ring-4 hover:ring-amber-400 focus-visible:ring-4 focus-visible:ring-amber-400"
+                                                 disableFocus={false}
                                               />
                                           </div>
                                       ))}

@@ -217,11 +217,22 @@ const Card: React.FC<CardProps> = ({
 
   const isLegendary = card?.isLegendary || (card?.strength || 0) >= 13;
 
+  const cardLabel = card
+    ? `${card.name}, strength ${card.strength}${disabled ? ' (disabled)' : ''}`
+    : rank && suit
+    ? `${rank} of ${suit}`
+    : 'Card';
+
   return (
     <div
       ref={cardRef}
+      role={onClick ? "button" : undefined}
+      tabIndex={!disabled && !disableFocus && onClick ? 0 : -1}
+      aria-disabled={disabled ? true : undefined}
+      aria-label={cardLabel}
       className={`
         relative group perspective-1000 cursor-pointer transition-all duration-300
+        focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:ring-offset-2 focus-visible:ring-offset-stone-900 rounded-lg
         ${size === 'lg'
             ? 'w-64 h-[26.88rem] sm:w-80 sm:h-[33.6rem]'
             : 'w-24 h-32 sm:w-28 sm:h-[11.76rem]'}
@@ -234,6 +245,12 @@ const Card: React.FC<CardProps> = ({
           ...containerRadiusStyle
       }}
       onClick={() => !disabled && onClick?.()}
+      onKeyDown={(e) => {
+          if (!disabled && onClick && (e.key === 'Enter' || e.key === ' ')) {
+              e.preventDefault();
+              onClick();
+          }
+      }}
       onContextMenu={(e) => {
           e.preventDefault();
           if (isFaceUp && variant === 'tda' && !disableFocus && card) {
