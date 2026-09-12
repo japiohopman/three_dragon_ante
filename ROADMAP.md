@@ -35,7 +35,7 @@ This queue is deliberately ordered. Do not skip ahead because a later item looks
   - **Goal:** establish one consistent visual and motion language for turn ownership, phase changes, AI thinking, player decisions, and resolved triggers.
   - **Acceptance:** in a 6-player sequence the active actor and current phase are immediately identifiable; decision-required states cannot be mistaken for passive animation; pacing communicates progress without unnecessary waiting.
 
-- [ ] **Table hierarchy — make the important state visually dominant**
+- [x] **Table hierarchy — make the important state visually dominant**
   - **Problem:** table UI, seats, drawers, hand, pot, and effects can compete for attention even when only one element needs player focus.
   - **Goal:** audit visual hierarchy and reduce competing emphasis so the board state, active player, current action, and meaningful rewards dominate secondary information.
   - **Acceptance:** primary action/state is visually distinguishable from secondary information at a glance on desktop and tablet; no critical element is obscured by a drawer, seat, overlay, or effect.

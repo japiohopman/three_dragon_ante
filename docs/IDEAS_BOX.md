@@ -143,3 +143,13 @@ Prioritize problems that disrupt:
 - **Evidence:** Code inspection of `HeaderHUD.tsx` lines 28-56 and `soundService.ts`.
 - **Confidence:** High
 - **Status:** NEW
+
+### 2025-05-19 — Table central pot ambient lighting glow feedback during pot size increases
+- **Agent:** Jules
+- **Area:** VFX / UI
+- **Observation:** In `Battleground.tsx`, the central Pot container is now visually dominant, but when gold is added to the pot during ante or card power bets, the pot numerical amount updates instantly without a temporary radiant glow or pulse animation on the pot border itself.
+- **Idea:** Trigger a brief gold particle emitter or glowing border flash on the central `Battleground.tsx` Pot element whenever `pot` value increases in `useGameStore`.
+- **Player value:** Draws immediate visual attention to reward growth, reinforcing the stakes and consequence of ante/betting actions.
+- **Evidence:** Code inspection of `Battleground.tsx` lines 28-33 and `useGameStore.ts` pot updates.
+- **Confidence:** High
+- **Status:** NEW

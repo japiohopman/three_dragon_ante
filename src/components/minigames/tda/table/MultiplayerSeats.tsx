@@ -37,10 +37,12 @@ export const MultiplayerSeats: React.FC<MultiplayerSeatsProps> = ({
                <div
                   key={opp.id}
                   onClick={() => onSelectOpponent(actualIdx)}
-                  className={`cursor-pointer transition-all p-1.5 sm:p-2.5 rounded-xl flex flex-col items-center gap-1 ${isMultiplayer ? 'w-24 sm:w-28 md:w-32 xl:w-36' : 'w-32 sm:w-36'} flex-shrink border-2 relative
-                      ${isFocused ? 'bg-amber-950/30 border-amber-500 shadow-[0_0_15px_rgba(245,158,11,0.15)]' : 'bg-stone-900/60 border-stone-800 hover:border-stone-700'}
-                      ${isTargeted ? 'ring-2 ring-purple-500 ring-offset-2 ring-offset-stone-900 border-purple-400 animate-pulse shadow-[0_0_15px_rgba(168,85,247,0.4)]' : ''}
-                      ${isTurn && !isTargeted ? 'ring-2 ring-amber-500 ring-offset-2 ring-offset-stone-900 animate-pulse animate-duration-1000' : ''}
+                  className={`cursor-pointer transition-all duration-300 p-1.5 sm:p-2.5 rounded-xl flex flex-col items-center gap-1 ${isMultiplayer ? 'w-24 sm:w-28 md:w-32 xl:w-36' : 'w-32 sm:w-36'} flex-shrink border-2 relative
+                      ${isTurn || isTargeted ? 'scale-105 opacity-100 z-20' : isFocused ? 'scale-100 opacity-100 z-10' : 'scale-95 opacity-75 hover:opacity-100 hover:scale-100 z-0'}
+                      ${isTargeted ? 'bg-purple-950/50 border-purple-400 ring-2 ring-purple-500 ring-offset-2 ring-offset-stone-900 shadow-[0_0_20px_rgba(168,85,247,0.4)]' : ''}
+                      ${isTurn && !isTargeted ? 'bg-amber-950/40 border-amber-400 ring-2 ring-amber-500 ring-offset-2 ring-offset-stone-900 shadow-[0_0_20px_rgba(245,158,11,0.3)]' : ''}
+                      ${!isTurn && !isTargeted && isFocused ? 'bg-amber-950/25 border-amber-500/80 shadow-[0_0_12px_rgba(245,158,11,0.15)]' : ''}
+                      ${!isTurn && !isTargeted && !isFocused ? 'bg-stone-900/50 border-stone-800/80 hover:border-stone-700' : ''}
                   `}
                >
                    {isTargeted && (
