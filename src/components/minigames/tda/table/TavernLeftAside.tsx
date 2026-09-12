@@ -8,31 +8,31 @@ import { NPC_LIST } from '../../../../utils/npcConstants';
 import CurrencyDisplay from '../ui/CurrencyDisplay';
 import { NPCEmotion } from '../../../../types';
 
+import { PlayerState } from '../../../../types';
+
 interface TavernLeftAsideProps {
-  npcId: string;
-  opponentEmotion: NPCEmotion;
-  isTalking: boolean;
-  npcLine: string;
+  focusedOpponent: PlayerState | null;
   activePlayer: string | null;
-  getNPCName: () => string;
   currentLeader: string | null;
-  opponentGold: number;
   deckLength: number;
   onOpenDeck: () => void;
 }
 
 export const TavernLeftAside: React.FC<TavernLeftAsideProps> = ({
-  npcId,
-  opponentEmotion,
-  isTalking,
-  npcLine,
+  focusedOpponent,
   activePlayer,
-  getNPCName,
   currentLeader,
-  opponentGold,
   deckLength,
   onOpenDeck
 }) => {
+  const npcId = focusedOpponent?.npcId || 'female_alchemist_tabaxi';
+  const opponentEmotion = focusedOpponent?.emotion || 'neutral';
+  const isTalking = focusedOpponent?.isTalking || false;
+  const npcLine = focusedOpponent?.npcLine || '';
+  const opponentGold = focusedOpponent?.gold ?? 5000;
+  const opponentName = focusedOpponent?.name || 'Opponent';
+  const isLeader = focusedOpponent ? currentLeader === focusedOpponent.id : currentLeader === 'opponent';
+  const isActiveTurn = focusedOpponent ? activePlayer === focusedOpponent.id : activePlayer === 'opponent';
   const deckBackCard = {
     id: 'deck-back',
     name: 'Deck',
@@ -87,7 +87,7 @@ export const TavernLeftAside: React.FC<TavernLeftAsideProps> = ({
                       )}
                     </AnimatePresence>
 
-                    {activePlayer === 'opponent' && (
+                    {isActiveTurn && (
                       <div className="absolute top-2 right-2 xl:top-3 xl:right-3 bg-stone-900/90 rounded-full p-1.5 xl:p-2 border border-amber-500/50 shadow-xl animate-pulse">
                           <GameIcon name="thinking" size={14} className="text-amber-500" />
                       </div>
@@ -96,8 +96,8 @@ export const TavernLeftAside: React.FC<TavernLeftAsideProps> = ({
 
                 <div className="mt-2 xl:mt-4 text-center">
                     <div className="flex items-center justify-center gap-2 mb-0.5 xl:mb-1">
-                        <h3 className="text-lg lg:text-xl xl:text-2xl text-amber-500 font-serif tracking-tight truncate">{getNPCName()}</h3>
-                        {currentLeader === 'opponent' && <GameIcon name="crown" size={14} className="text-amber-400" />}
+                        <h3 className="text-lg lg:text-xl xl:text-2xl text-amber-500 font-serif tracking-tight truncate">{opponentName}</h3>
+                        {isLeader && <GameIcon name="crown" size={14} className="text-amber-400" />}
                     </div>
                     <p className="text-[10px] xl:text-xs text-stone-500 italic px-1 xl:px-2 leading-relaxed line-clamp-2">
                         "A seasoned traveler from the Underdark, known for a quick hand and a sharper tongue."
@@ -109,7 +109,7 @@ export const TavernLeftAside: React.FC<TavernLeftAsideProps> = ({
             <CurrencyDisplay
               copper={opponentGold}
               variant="purse"
-              title={`${getNPCName()}'s Purse`}
+              title={`${opponentName}'s Purse`}
             />
         </div>
 

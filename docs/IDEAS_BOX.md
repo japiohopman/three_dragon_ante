@@ -163,3 +163,13 @@ Prioritize problems that disrupt:
 - **Evidence:** Playtest observation during `tests/audit_playtest_flow.spec.ts` and code inspection of `VFXLayer.tsx` lines 140-144.
 - **Confidence:** High
 - **Status:** NEW
+
+### 2025-05-19 — AI speech history log tab in Opponent Inspector Drawer
+- **Agent:** Jules
+- **Area:** UX / Content
+- **Observation:** During multi-opponent games (e.g. 4–5 AI players), speech line badges (`opp.isTalking` in `MultiplayerSeats.tsx`) on seat chips appear for 3000ms, but can auto-dismiss or be overwritten during fast AI turn transitions before the player finishes reading the dialogue.
+- **Idea:** Add a "Dialogue History" or "Banter Log" tab inside `OpponentInspectorDrawer` showing the last 5 speech lines spoken by that specific opponent.
+- **Player value:** Prevents players from missing flavor dialogue and personality banter during fast-paced multi-opponent AI turns.
+- **Evidence:** Code inspection of `MultiplayerSeats.tsx` lines 90-94 and `OpponentInspectorDrawer.tsx`.
+- **Confidence:** High
+- **Status:** NEW

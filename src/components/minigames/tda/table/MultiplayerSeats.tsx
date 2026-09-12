@@ -76,6 +76,18 @@ export const MultiplayerSeats: React.FC<MultiplayerSeatsProps> = ({
                                <GameIcon name="crown" size={9} className="text-amber-400" /> LDR
                            </span>
                        )}
+                       {opp.emotion && opp.emotion !== 'neutral' && (
+                           <span title={`Emotion: ${opp.emotion}`} className="text-[9px] px-1 py-0.2 rounded bg-stone-900/90 border border-stone-700 animate-bounce flex-shrink-0">
+                               {opp.emotion === 'surprised' && '😮'}
+                               {opp.emotion === 'happy' && '😄'}
+                               {opp.emotion === 'angry' && '🔥'}
+                               {opp.emotion === 'skeptical' && '🤨'}
+                               {opp.emotion === 'greedy' && '💰'}
+                               {opp.emotion === 'proud' && '👑'}
+                               {opp.emotion === 'curious' && '🧐'}
+                               {opp.emotion === 'sad' && '😿'}
+                           </span>
+                       )}
                    </div>
 
                    <div className="flex items-center gap-1.5">
