@@ -217,7 +217,7 @@ async function main() {
   const state = loadState();
   const roadmapText = readFileSync(ROADMAP_PATH, 'utf8');
   const ideasText = existsSync(IDEAS_PATH) ? readFileSync(IDEAS_PATH, 'utf8') : '';
-  const queue = getDispatchQueue(roadmapText, ideasText);
+  let queue = getDispatchQueue(roadmapText, ideasText);
   let next = queue.tasks.find(task => !task.checked) ?? (queue.recurring ? queue.tasks[0] : null);
   let stateChanged = false;
 
@@ -286,8 +286,8 @@ async function main() {
 
     const refreshedRoadmapText = readFileSync(ROADMAP_PATH, 'utf8');
     const refreshedIdeasText = existsSync(IDEAS_PATH) ? readFileSync(IDEAS_PATH, 'utf8') : '';
-    const refreshedQueue = getDispatchQueue(refreshedRoadmapText, refreshedIdeasText);
-    next = refreshedQueue.tasks.find(task => !task.checked) ?? (refreshedQueue.recurring ? refreshedQueue.tasks[0] : null);
+    queue = getDispatchQueue(refreshedRoadmapText, refreshedIdeasText);
+    next = queue.tasks.find(task => !task.checked) ?? (queue.recurring ? queue.tasks[0] : null);
 
     if (!next) {
       saveState(state);
