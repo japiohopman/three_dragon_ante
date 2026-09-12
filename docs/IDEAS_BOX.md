@@ -123,3 +123,13 @@ Prioritize problems that disrupt:
 - **Evidence:** Code inspection of `LobbyScreen.tsx` lines 61-128.
 - **Confidence:** High
 - **Status:** NEW
+
+### 2025-05-19 — Expanded card power preview tooltip on flight cards
+- **Agent:** Jules
+- **Area:** UX / Gameplay
+- **Observation:** When hovering over cards already played in a player or opponent flight (`playerFlight` in `PlayerHandArea.tsx` and `flight` in `MultiplayerSeats.tsx`), the small card scale (`scale-[0.75]`) hides the card description text, requiring right-click inspection or memory to recall what power was executed earlier in the gambit.
+- **Idea:** Display a rich floating tooltip or expanded preview overlay on hover for flight cards to show full card power description and round played.
+- **Player value:** Allows players to quickly review previously played powers and evaluate flight formations without interrupting turn flow.
+- **Evidence:** Code inspection of `PlayerHandArea.tsx` lines 78-83 and `MultiplayerSeats.tsx` lines 98-105.
+- **Confidence:** High
+- **Status:** NEW

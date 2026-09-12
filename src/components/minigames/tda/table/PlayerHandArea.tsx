@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import Card from '../Card';
 import { CardData, GamePhase } from '../../../../types';
 import { GameIcon } from '../../../../assets/icons';
+import { playSound } from '../../../../services/soundService';
 
 interface PlayerHandAreaProps {
   playerHand: CardData[];
@@ -26,7 +27,37 @@ export const PlayerHandArea: React.FC<PlayerHandAreaProps> = ({
   isLeader = false
 }) => {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+  const [committingCardId, setCommittingCardId] = useState<string | null>(null);
+  const handContainerRef = useRef<HTMLDivElement>(null);
   const isAntePhase = phase === 'ante-selection';
+
+  const handleCardClick = (cardId: string) => {
+    playSound('UI_CLICK');
+    setCommittingCardId(cardId);
+    setTimeout(() => {
+        setCommittingCardId(null);
+    }, 250);
+
+    if (isAntePhase) {
+        selectAnte(cardId);
+    } else if (isPlayerTurn) {
+        playCard(cardId);
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent, index: number) => {
+    if (e.key === 'ArrowRight' && index < playerHand.length - 1) {
+        e.preventDefault();
+        const nextCard = handContainerRef.current?.querySelectorAll<HTMLElement>('[data-testid^="player-card-"]')[index + 1];
+        const cardBtn = nextCard?.querySelector<HTMLElement>('[role="button"]');
+        cardBtn?.focus();
+    } else if (e.key === 'ArrowLeft' && index > 0) {
+        e.preventDefault();
+        const prevCard = handContainerRef.current?.querySelectorAll<HTMLElement>('[data-testid^="player-card-"]')[index - 1];
+        const cardBtn = prevCard?.querySelector<HTMLElement>('[role="button"]');
+        cardBtn?.focus();
+    }
+  };
 
   const getFanStyle = (index: number, total: number) => {
     if (total === 0) return {};
@@ -95,6 +126,7 @@ export const PlayerHandArea: React.FC<PlayerHandAreaProps> = ({
 
       {/* PLAYER HAND */}
       <div
+        ref={handContainerRef}
         data-testid="player-hand"
         className="absolute bottom-4 left-1/2 -translate-x-1/2 w-full flex justify-center items-end h-64 pointer-events-auto"
         onMouseLeave={() => setHoveredIndex(null)}
@@ -135,41 +167,58 @@ export const PlayerHandArea: React.FC<PlayerHandAreaProps> = ({
               </div>
           )}
           <AnimatePresence>
-              {playerHand.map((card, i) => (
-                  <motion.div
-                      key={card.id}
-                      layoutId={card.id}
-                      initial={{ opacity: 0, y: 100 }}
-                      animate={{ opacity: 1, ...getFanStyle(i, playerHand.length) }}
-                      transition={{
-                          type: 'spring',
-                          damping: 22,
-                          stiffness: 160,
-                          mass: 0.8,
-                          zIndex: { delay: 0 }
-                      }}
-                      className="absolute origin-bottom will-change-transform"
-                      onMouseEnter={() => setHoveredIndex(i)}
-                      data-testid={`player-card-${i}`}
-                  >
-                      {isPlayerTurn && (
-                          <div className={`absolute -top-3 left-1/2 -translate-x-1/2 px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider shadow-md pointer-events-none border whitespace-nowrap z-20 ${
-                              (!lastCardPlayed || card.strength <= lastCardPlayed.strength)
-                                  ? 'bg-amber-950/90 border-amber-400 text-amber-300 shadow-[0_0_8px_rgba(245,158,11,0.4)]'
-                                  : 'bg-stone-900/90 border-stone-700 text-stone-400'
-                          }`}>
-                              {(!lastCardPlayed || card.strength <= lastCardPlayed.strength) ? '⚡ Power' : '⚔️ Str'}
-                          </div>
-                      )}
-                      <Card
-                          card={card}
-                          onClick={() => { if (isAntePhase) selectAnte(card.id); else if (isPlayerTurn) playCard(card.id); }}
-                          disabled={(!isPlayerTurn && !isAntePhase)}
-                          glow={(isPlayerTurn && (!lastCardPlayed || card.strength <= lastCardPlayed.strength)) ? 'gold' : 'none'}
-                          size="sm"
-                      />
-                  </motion.div>
-              ))}
+              {playerHand.map((card, i) => {
+                  const isPowerTriggered = isPlayerTurn && (!lastCardPlayed || card.strength <= lastCardPlayed.strength);
+                  const isInteractive = isPlayerTurn || isAntePhase;
+                  const isCommitting = committingCardId === card.id;
+
+                  return (
+                      <motion.div
+                          key={card.id}
+                          layoutId={card.id}
+                          initial={{ opacity: 0, y: 100 }}
+                          animate={{ opacity: 1, ...getFanStyle(i, playerHand.length) }}
+                          transition={{
+                              type: 'spring',
+                              damping: 22,
+                              stiffness: 160,
+                              mass: 0.8,
+                              zIndex: { delay: 0 }
+                          }}
+                          className={`absolute origin-bottom will-change-transform transition-opacity duration-200 ${
+                              !isInteractive ? 'opacity-80 grayscale-[20%]' : 'opacity-100'
+                          } ${isCommitting ? 'scale-110 brightness-125 z-50' : ''}`}
+                          onMouseEnter={() => setHoveredIndex(i)}
+                          onFocus={() => setHoveredIndex(i)}
+                          onBlur={() => setHoveredIndex(null)}
+                          onKeyDown={(e) => handleKeyDown(e, i)}
+                          data-testid={`player-card-${i}`}
+                      >
+                          {/* BADGES */}
+                          {isAntePhase && (
+                              <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider shadow-md pointer-events-none border whitespace-nowrap z-20 bg-amber-950/90 border-amber-400 text-amber-300 shadow-[0_0_8px_rgba(245,158,11,0.4)]">
+                                  ✨ Ante
+                              </div>
+                          )}
+                          {isPlayerTurn && (
+                              <div className={`absolute -top-3 left-1/2 -translate-x-1/2 px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider shadow-md pointer-events-none border whitespace-nowrap z-20 ${
+                                  isPowerTriggered
+                                      ? 'bg-amber-950/90 border-amber-400 text-amber-300 shadow-[0_0_8px_rgba(245,158,11,0.4)]'
+                                      : 'bg-stone-900/90 border-stone-700 text-stone-400'
+                              }`}>
+                                  {isPowerTriggered ? '⚡ Power' : '⚔️ Str'}
+                              </div>
+                          )}
+                          <Card
+                              card={card}
+                              onClick={() => handleCardClick(card.id)}
+                              disabled={!isInteractive}
+                              glow={isAntePhase ? 'gold' : isPowerTriggered ? 'gold' : 'none'}
+                              size="sm"
+                          />
+                      </motion.div>
+                  );
+              })}
           </AnimatePresence>
       </div>
     </>
