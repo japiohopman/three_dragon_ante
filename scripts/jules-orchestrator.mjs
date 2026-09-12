@@ -1,14 +1,20 @@
 #!/usr/bin/env node
 /**
- * Jules Queue Orchestrator (v6)
+ * Jules Queue Orchestrator (v7)
  *
- * ROADMAP.md is the canonical dispatch queue. A Ready task may optionally
- * reference a GitHub Issue as "Issue #N"; the issue becomes the detailed
- * execution specification passed to Jules.
+ * ROADMAP.md is the canonical dispatch queue.
  *
- * Once the entire "### Ready" queue is complete, the "## Later" queue is
- * unlocked in roadmap order. This lets the roadmap move from pre-embedding
- * preparation into the next phase without requiring a manual queue rewrite.
+ * Dispatch order:
+ *   1. Now / Ready — concrete implementation work.
+ *   2. Continuous Improvement Triage — only when Ready is empty and
+ *      IDEAS_BOX.md contains NEW ideas. This is a recurring planning session;
+ *      its roadmap checkbox intentionally remains unchecked.
+ *   3. Integration — only after the human-owned Integration Gate is READY.
+ *   4. Later — non-TDA backlog after integration work is exhausted.
+ *
+ * This keeps the normal loop continuous without allowing the orchestrator to
+ * blindly unlock parked work or embed the game before the experience quality
+ * gate has been reviewed by a human.
  */
 
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
@@ -21,6 +27,7 @@ const JULES_SOURCE = process.env.JULES_SOURCE;
 
 const STATE_PATH = '.github/jules-queue-state.json';
 const ROADMAP_PATH = 'ROADMAP.md';
+const IDEAS_PATH = 'docs/IDEAS_BOX.md';
 
 for (const [name, val] of Object.entries({ JULES_API_KEY, GITHUB_TOKEN, REPO, JULES_SOURCE })) {
   if (!val) throw new Error(`${name} is not set`);
@@ -30,6 +37,7 @@ function loadState() {
   if (!existsSync(STATE_PATH)) return { activeSession: null };
   return JSON.parse(readFileSync(STATE_PATH, 'utf8'));
 }
+
 function saveState(state) {
   writeFileSync(STATE_PATH, JSON.stringify(state, null, 2) + '\n');
 }
@@ -133,25 +141,62 @@ function findTasksInSection(text, sectionName) {
   return tasks;
 }
 
-/**
- * Ready is the first queue. Later is unlocked only after every Ready task is
- * complete. This preserves roadmap ordering while allowing automatic phase
- * progression once the pre-embedding gate has been cleared.
- */
-function getDispatchTasks(roadmapText) {
-  const readyTasks = findTasksUnderHeading(roadmapText, 'Ready');
-  const uncheckedReady = readyTasks.filter(task => !task.checked);
-
-  if (uncheckedReady.length > 0) {
-    return { section: 'Ready', tasks: readyTasks };
-  }
-
-  return { section: 'Later', tasks: findTasksInSection(roadmapText, 'Later') };
+function getIntegrationStatus(roadmapText) {
+  const match = roadmapText.match(/^[-*]?\s*\*\*Integration status:\*\*\s*`?(BLOCKED|READY)`?\s*$/im);
+  return match ? match[1].toUpperCase() : 'BLOCKED';
 }
 
-function isTaskConfirmedDone(roadmapText, taskText) {
-  const { tasks } = getDispatchTasks(roadmapText);
-  const match = tasks.find(t => t.text === taskText);
+function countNewIdeas(ideasText) {
+  return (ideasText.match(/^\s*-\s*\*\*Status:\*\*\s*NEW\s*$/gim) || []).length;
+}
+
+function findRecurringTriageTask(roadmapText) {
+  const tasks = findTasksInSection(roadmapText, 'Continuous Improvement Triage');
+  return tasks.find(task => /\bExperience Triage Cycle\b/i.test(task.text)) ?? null;
+}
+
+/**
+ * Selects the next dispatch queue. Ready always wins when work exists. After
+ * Ready is drained, NEW ideas trigger a recurring triage session. Integration
+ * requires the explicit human-owned gate; Later is the final fallback.
+ */
+function getDispatchQueue(roadmapText, ideasText) {
+  const readyTasks = findTasksUnderHeading(roadmapText, 'Ready');
+  if (readyTasks.some(task => !task.checked)) {
+    return { section: 'Ready', tasks: readyTasks, recurring: false };
+  }
+
+  const newIdeaCount = countNewIdeas(ideasText);
+  const triageTask = findRecurringTriageTask(roadmapText);
+  if (newIdeaCount > 0 && triageTask) {
+    return { section: 'Triage', tasks: [triageTask], recurring: true, newIdeaCount };
+  }
+
+  const integrationStatus = getIntegrationStatus(roadmapText);
+  if (integrationStatus === 'READY') {
+    const integrationTasks = findTasksInSection(roadmapText, 'Integration');
+    if (integrationTasks.some(task => !task.checked)) {
+      return { section: 'Integration', tasks: integrationTasks, recurring: false };
+    }
+  }
+
+  const laterTasks = findTasksInSection(roadmapText, 'Later');
+  if (laterTasks.some(task => !task.checked)) {
+    return { section: 'Later', tasks: laterTasks, recurring: false };
+  }
+
+  return { section: 'Idle', tasks: [], recurring: false, newIdeaCount };
+}
+
+function isTaskConfirmedDone(roadmapText, taskText, recurring = false) {
+  if (recurring) return true;
+
+  const allSections = [
+    findTasksUnderHeading(roadmapText, 'Ready'),
+    findTasksInSection(roadmapText, 'Integration'),
+    findTasksInSection(roadmapText, 'Later'),
+  ];
+  const match = allSections.flat().find(task => task.text === taskText);
   return match ? match.checked : false;
 }
 
@@ -171,16 +216,24 @@ async function getIssueContext(taskText) {
 async function main() {
   const state = loadState();
   const roadmapText = readFileSync(ROADMAP_PATH, 'utf8');
-  const queue = getDispatchTasks(roadmapText);
-  let next = queue.tasks.find(t => !t.checked);
+  const ideasText = existsSync(IDEAS_PATH) ? readFileSync(IDEAS_PATH, 'utf8') : '';
+  const queue = getDispatchQueue(roadmapText, ideasText);
+  let next = queue.tasks.find(task => !task.checked) ?? (queue.recurring ? queue.tasks[0] : null);
   let stateChanged = false;
 
   console.log(`Dispatch queue section: ${queue.section}`);
   console.log(`Found ${queue.tasks.length} task(s) in the active queue.`);
+  if (typeof queue.newIdeaCount === 'number') {
+    console.log(`Ideas Box NEW ideas: ${queue.newIdeaCount}`);
+  }
+  console.log(`Integration gate: ${getIntegrationStatus(roadmapText)}`);
 
   if (state.activeSession) {
-    const activeTask = queue.tasks.find(t => t.text === state.activeSession.task);
-    const activeIsCanonicalNext = activeTask && !activeTask.checked && (!next || activeTask.text === next.text);
+    const activeIsRecurring = Boolean(state.activeSession.recurring);
+    const activeTask = queue.tasks.find(task => task.text === state.activeSession.task);
+    const activeIsCanonicalNext = activeIsRecurring
+      ? queue.recurring && activeTask
+      : activeTask && !activeTask.checked && (!next || activeTask.text === next.text);
 
     if (!activeIsCanonicalNext) {
       console.warn(
@@ -213,22 +266,33 @@ async function main() {
       return;
     }
 
-    if (!isTaskConfirmedDone(roadmapText, state.activeSession.task)) {
+    const recurring = Boolean(state.activeSession.recurring);
+    if (!isTaskConfirmedDone(roadmapText, state.activeSession.task, recurring)) {
       console.log(`PR #${prNumber} is merged, but "${state.activeSession.task}" is still unchecked in ROADMAP.md.`);
       return;
     }
 
-    console.log(`"${state.activeSession.task}" is merged AND confirmed done. Advancing the queue.`);
+    console.log(`"${state.activeSession.task}" is merged and confirmed. Advancing the queue.`);
     state.activeSession = null;
     stateChanged = true;
 
-    const refreshedQueue = getDispatchTasks(roadmapText);
-    next = refreshedQueue.tasks.find(t => !t.checked);
+    // Do not dispatch immediately from the pre-merge roadmap snapshot. A
+    // triage PR may have added new Ready tasks, so let the next heartbeat read
+    // the merged commit as the new canonical queue.
+    if (recurring) {
+      saveState(state);
+      commitAndPush();
+      return;
+    }
+
+    const refreshedIdeasText = existsSync(IDEAS_PATH) ? readFileSync(IDEAS_PATH, 'utf8') : '';
+    const refreshedQueue = getDispatchQueue(roadmapText, refreshedIdeasText);
+    next = refreshedQueue.tasks.find(task => !task.checked) ?? (refreshedQueue.recurring ? refreshedQueue.tasks[0] : null);
   }
 
   if (!state.activeSession) {
     if (!next) {
-      console.log(`Nothing left unchecked in the active ${queue.section} queue.`);
+      console.log('Nothing ready for dispatch. Waiting for new ideas, a roadmap task, or the human integration gate.');
       if (stateChanged) { saveState(state); commitAndPush(); }
       return;
     }
@@ -237,10 +301,21 @@ async function main() {
 
     const issueContext = await getIssueContext(next.text);
     const promptParts = [
-      'Read AGENT.MD, AGENT_RULES.md, and ROADMAP.md before starting.',
+      'Read AGENT.MD, AGENT_RULES.md, ROADMAP.md, docs/IDEAS_BOX.md, and docs/GAMEPLAY_PLAYTEST.md before starting.',
       `Your task from ROADMAP.md's active "${queue.section}" queue:`,
       next.text,
     ];
+
+    if (queue.recurring) {
+      promptParts.push(
+        'This is a RECURRING TRIAGE session. Do not implement product changes in this PR.',
+        'Review NEW ideas in docs/IDEAS_BOX.md and the current game experience. Promote only evidence-backed, high-value ideas into 3–5 concrete unchecked tasks under ROADMAP.md → Now → Ready.',
+        'For promoted ideas, update the original idea status from NEW to PROMOTED and preserve its observation/evidence.',
+        'You may mark duplicates/rejections appropriately. Challenge assumptions instead of rubber-stamping ideas.',
+        'Leave the "Experience Triage Cycle" checkbox unchecked. It is a recurring trigger, not a completion marker.',
+        'Do not change Integration status; that gate is owned by the human project owner.',
+      );
+    }
 
     if (issueContext) {
       promptParts.push(
@@ -251,11 +326,11 @@ async function main() {
 
     promptParts.push(
       "Follow AGENT_RULES.md strictly — especially: don't claim something works without running it, and stay inside the relevant module.",
-      'When you are done AND you have personally verified it works (per AGENT_RULES.md §1), ' +
-      'edit ROADMAP.md yourself and change this task\'s own checkbox line from ' +
-      `"- [ ] ${next.text}" to "- [x] ${next.text}" — in place, don't move or delete the ` +
-      'Problem/Goal/Acceptance bullets underneath it. Include that edit in the same PR. ' +
-      "If you could not fully verify it, leave the checkbox unchecked and say why in the PR description instead.",
+      'During implementation, when you discover a worthwhile non-blocking player-experience idea outside the task scope, you may add an evidence-based NEW entry to docs/IDEAS_BOX.md without implementing that idea.',
+      ...(queue.recurring ? [] : [
+        'When you are done AND you have personally verified it works (per AGENT_RULES.md §1), edit ROADMAP.md yourself and change this task\'s own checkbox line from ' +
+        `"- [ ] ${next.text}" to "- [x] ${next.text}" — in place, don't move or delete the Problem/Goal/Acceptance bullets underneath it. Include that edit in the same PR. If you could not fully verify it, leave the checkbox unchecked and say why in the PR description instead.`,
+      ]),
     );
 
     const session = await julesFetch('sessions', {
@@ -273,6 +348,7 @@ async function main() {
       task: next.text,
       issueNumber: issueContext?.number ?? null,
       startedAt: new Date().toISOString(),
+      recurring: queue.recurring,
     };
     stateChanged = true;
   }
