@@ -6,7 +6,7 @@ The project is intentionally separated into three concepts:
 
 1. **Ready** — concrete work that Jules may implement now, in order.
 2. **Integration / Later** — work that is intentionally parked until the Ready quality gate allows it.
-3. **Continuous Improvement Triage** — a recurring planning trigger. When the Ready queue is empty, Jules reviews `docs/IDEAS_BOX.md` and the current player experience, then proposes a small number of concrete Ready tasks. The trigger itself is intentionally never checked off.
+3. **Continuous Improvement Triage** — a recurring planning trigger. When the Ready queue is empty and there are new ideas, Jules reviews `docs/IDEAS_BOX.md` and the current player experience, then proposes a small number of concrete Ready tasks. The trigger itself is never checked off.
 
 Jules checks ordinary task boxes only after personally verifying the work, per `AGENT_RULES.md §1`. The orchestrator never edits ordinary task checkboxes. Review and merge remain the real checkpoints.
 
@@ -70,7 +70,14 @@ This queue is deliberately ordered. Do not skip ahead because a later item looks
   - **Goal:** run the standardized playtest flow after the quality tasks and compare against the audit findings.
   - **Acceptance:** no critical UX blocker remains in the documented flow; remaining issues are captured in `IDEAS_BOX.md` with status; the game is judged ready for the integration phase based on observable criteria rather than optimism.
 
-## Integration — Parked until Quality Gate passes
+## Integration Gate
+
+- **Integration status:** `BLOCKED`
+- **Owner:** human project owner
+- **Meaning:** the orchestrator must not dispatch Integration work while this status is `BLOCKED`.
+- **To unlock:** after reviewing the Quality Gate results and merged history, change only the value from `BLOCKED` to `READY` in a deliberate human review commit.
+
+## Integration — only when Integration status is READY
 
 - [ ] **TDA Minigame Migration** — Execute embedding of TDA into `artificer` following `docs/MIGRATION_PLAN.md`.
 - [ ] **Host integration verification** — validate `TDAMinigameProps`, gold synchronization, exit flow, state boundaries, and asset paths inside Artificer.
@@ -84,9 +91,9 @@ This queue is deliberately ordered. Do not skip ahead because a later item looks
 ## Continuous Improvement Triage
 
 - [ ] **🔁 Experience Triage Cycle — recurring planning trigger (DO NOT CHECK OFF)**
-  - **Purpose:** when the Ready queue is empty, review `docs/IDEAS_BOX.md` plus the current game state and replenish the Ready queue with the next small set of high-value, testable tasks.
-  - **Rules:** do not implement the promoted work in the triage PR; do not promote vague ideas; challenge assumptions; consolidate duplicates; preserve evidence; add no more than 3–5 Ready tasks per cycle; keep Integration parked until the Quality Gate explicitly passes.
-  - **Completion semantics:** this checkbox is a recurring trigger, not a one-time task. Jules must leave it unchecked after a successful triage cycle and explain the promoted tasks in the PR description.
+  - **Purpose:** when the Ready queue is empty and `docs/IDEAS_BOX.md` contains `NEW` ideas, review the evidence and replenish the Ready queue with the next small set of high-value, testable tasks.
+  - **Rules:** do not implement the promoted work in the triage PR; do not promote vague ideas; challenge assumptions; consolidate duplicates; preserve evidence; add no more than 3–5 Ready tasks per cycle; keep Integration blocked until the explicit human gate is set to `READY`.
+  - **Completion semantics:** recurring trigger, not a one-time completion marker. Leave it unchecked after a successful triage cycle.
   - **Primary source:** `docs/IDEAS_BOX.md`.
   - **Design lens:** **Anticipation → Action → Resolution → Feedback → Next decision**.
 
