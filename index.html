@@ -86,37 +86,40 @@
         animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
       }
 
-      /* Card Slam - Punchy table strike with spring recoil */
+      /* Card Slam - Anticipation (rise) -> Action (impact) -> Resolution (spring settle) */
       @keyframes slam {
-        0% { transform: scale(1.5) translateZ(120px) rotateX(15deg); opacity: 0; }
-        55% { transform: scale(0.95) translateZ(0) rotateX(-4deg); opacity: 1; }
-        75% { transform: scale(1.03) translateZ(0) rotateX(2deg); }
-        100% { transform: scale(1) translateZ(0) rotateX(0); }
+        0% { transform: scale(1.1) translateY(20px) translateZ(50px) rotateX(10deg); opacity: 0; }
+        25% { transform: scale(1.4) translateY(-30px) translateZ(140px) rotateX(20deg); opacity: 0.9; } /* Anticipation lift */
+        60% { transform: scale(0.92) translateY(4px) translateZ(0) rotateX(-5deg); opacity: 1; } /* Action impact */
+        80% { transform: scale(1.03) translateY(-2px) translateZ(0) rotateX(2deg); } /* Recoil */
+        100% { transform: scale(1) translateY(0) translateZ(0) rotateX(0); } /* Settle */
       }
       .animate-slam {
-        animation: slam 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        animation: slam 0.48s cubic-bezier(0.16, 1, 0.3, 1) forwards;
       }
 
-      /* Card Play - Player (From Bottom Hand to Table) */
+      /* Card Play - Player (Anticipation dip -> Arc action -> Table settle) */
       @keyframes play-player {
         0% { transform: translateY(180px) scale(0.85) rotateX(15deg); opacity: 0; }
-        65% { transform: translateY(-8px) scale(1.04) rotateX(-4deg); opacity: 1; }
-        85% { transform: translateY(2px) scale(0.99) rotateX(1deg); }
-        100% { transform: translateY(0) scale(1) rotateX(0); }
+        20% { transform: translateY(200px) scale(0.82) rotateX(22deg); opacity: 0.6; } /* Anticipation pull-back */
+        65% { transform: translateY(-12px) scale(1.06) rotateX(-6deg); opacity: 1; } /* Action strike */
+        85% { transform: translateY(3px) scale(0.98) rotateX(2deg); } /* Recoil */
+        100% { transform: translateY(0) scale(1) rotateX(0); } /* Settle */
       }
       .animate-play-player {
-        animation: play-player 0.45s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+        animation: play-player 0.48s cubic-bezier(0.22, 1, 0.36, 1) forwards;
       }
 
-      /* Card Play - Opponent (From Top Hand to Table) */
+      /* Card Play - Opponent (Anticipation lift -> Strike action -> Settle) */
       @keyframes play-opponent {
         0% { transform: translateY(-180px) scale(0.85) rotateX(-15deg); opacity: 0; }
-        65% { transform: translateY(8px) scale(1.04) rotateX(4deg); opacity: 1; }
-        85% { transform: translateY(-2px) scale(0.99) rotateX(-1deg); }
-        100% { transform: translateY(0) scale(1) rotateX(0); }
+        20% { transform: translateY(-200px) scale(0.82) rotateX(-22deg); opacity: 0.6; } /* Anticipation pull-back */
+        65% { transform: translateY(12px) scale(1.06) rotateX(6deg); opacity: 1; } /* Action strike */
+        85% { transform: translateY(-3px) scale(0.98) rotateX(-2deg); } /* Recoil */
+        100% { transform: translateY(0) scale(1) rotateX(0); } /* Settle */
       }
       .animate-play-opponent {
-        animation: play-opponent 0.45s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+        animation: play-opponent 0.48s cubic-bezier(0.22, 1, 0.36, 1) forwards;
       }
 
       /* Draw Card - Player (From Deck to Bottom Hand) */

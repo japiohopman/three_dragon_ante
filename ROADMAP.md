@@ -40,7 +40,7 @@ This queue is deliberately ordered. Do not skip ahead because a later item looks
   - **Goal:** audit visual hierarchy and reduce competing emphasis so the board state, active player, current action, and meaningful rewards dominate secondary information.
   - **Acceptance:** primary action/state is visually distinguishable from secondary information at a glance on desktop and tablet; no critical element is obscured by a drawer, seat, overlay, or effect.
 
-- [ ] **Animation language — anticipation → action → resolution**
+- [x] **Animation language — anticipation → action → resolution**
   - **Problem:** individual animations may be polished while the overall motion language still lacks consistent timing and causal readability.
   - **Goal:** define and apply a coherent motion vocabulary for card movement, flights, coins, banners, opponent actions, and end states.
   - **Acceptance:** important actions have readable anticipation, a clear action moment, and a visible resolution; animations remain non-blocking; repeated turns do not feel sluggish.

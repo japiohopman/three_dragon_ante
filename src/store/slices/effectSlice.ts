@@ -20,7 +20,7 @@ export const createEffectSlice: StateCreator<GameStore, [], [], EffectSlice> = (
       if (effect.interaction) {
           set({ pendingInteraction: effect.interaction });
           if (effect.interaction.target !== 'player') {
-              setTimeout(() => get().resolveAiInteraction(), 1500);
+              setTimeout(() => get().resolveAiInteraction(), 1200);
           }
           return;
       }

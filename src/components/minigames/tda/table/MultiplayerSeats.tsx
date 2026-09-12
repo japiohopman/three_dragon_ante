@@ -46,13 +46,24 @@ export const MultiplayerSeats: React.FC<MultiplayerSeatsProps> = ({
                   `}
                >
                    {isTargeted && (
-                       <div className="absolute -top-2.5 bg-purple-600 text-white font-bold px-2 py-0.5 rounded-full text-[8px] uppercase tracking-wider shadow-md animate-bounce flex items-center gap-1">
-                           <span>🎯 Choice</span>
+                       <div className="absolute -top-3 bg-purple-600 text-white font-bold px-2.5 py-0.5 rounded-full text-[8px] uppercase tracking-wider shadow-[0_0_12px_rgba(168,85,247,0.8)] animate-bounce flex items-center gap-1 z-30">
+                           <GameIcon name="alert" size={10} className="text-purple-200" />
+                           <span>🎯 Target Choice</span>
                        </div>
                    )}
                    {isTurn && !isTargeted && (
-                       <div className="absolute -top-2.5 bg-amber-500 text-stone-950 font-bold px-2 py-0.5 rounded-full text-[8px] uppercase tracking-wider shadow-md animate-pulse flex items-center gap-1">
-                           {phase === 'opponent-turn' ? <span>🧠 Thinking...</span> : <span>Turn</span>}
+                       <div className="absolute -top-3 bg-amber-500 text-stone-950 font-bold px-2.5 py-0.5 rounded-full text-[8px] uppercase tracking-wider shadow-[0_0_12px_rgba(245,158,11,0.8)] animate-pulse flex items-center gap-1 z-30">
+                           {phase === 'opponent-turn' ? (
+                               <>
+                                   <GameIcon name="thinking" size={10} className="text-stone-950 animate-spin" />
+                                   <span>Thinking...</span>
+                               </>
+                           ) : (
+                               <>
+                                   <GameIcon name="sparkles" size={10} className="text-stone-950" />
+                                   <span>Active Turn</span>
+                               </>
+                           )}
                        </div>
                    )}
 
