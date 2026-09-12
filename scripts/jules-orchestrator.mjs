@@ -276,18 +276,24 @@ async function main() {
     state.activeSession = null;
     stateChanged = true;
 
-    // Do not dispatch immediately from the pre-merge roadmap snapshot. A
-    // triage PR may have added new Ready tasks, so let the next heartbeat read
-    // the merged commit as the new canonical queue.
+    // A merged PR may have changed ROADMAP.md or IDEAS_BOX.md. Re-read both
+    // before selecting the next task; never dispatch from the pre-merge view.
     if (recurring) {
       saveState(state);
       commitAndPush();
       return;
     }
 
+    const refreshedRoadmapText = readFileSync(ROADMAP_PATH, 'utf8');
     const refreshedIdeasText = existsSync(IDEAS_PATH) ? readFileSync(IDEAS_PATH, 'utf8') : '';
-    const refreshedQueue = getDispatchQueue(roadmapText, refreshedIdeasText);
+    const refreshedQueue = getDispatchQueue(refreshedRoadmapText, refreshedIdeasText);
     next = refreshedQueue.tasks.find(task => !task.checked) ?? (refreshedQueue.recurring ? refreshedQueue.tasks[0] : null);
+
+    if (!next) {
+      saveState(state);
+      commitAndPush();
+      return;
+    }
   }
 
   if (!state.activeSession) {
