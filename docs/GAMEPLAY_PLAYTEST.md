@@ -40,6 +40,35 @@ During the session ask:
 - Is the table hierarchy helping me focus, or asking me to scan everything equally?
 - Are important states communicated without depending on color alone?
 
+## Repeatable Playtest Flow Baseline
+
+An automated Playwright test script (`tests/audit_playtest_flow.spec.ts`) captures visual screenshots and verifies the end-to-end playable journey.
+
+### Automated Playtest Steps (`npm run dev` & `npx playwright test tests/audit_playtest_flow.spec.ts`):
+1. **Landing & Onboarding**: Navigate to `http://localhost:3000`, click `ENTER THE TAVERN`, then `Challenge to Three-Dragon Ante`.
+2. **Lobby Setup**: Select opponent count (e.g. 3 opponents), pick player skill (e.g. Sleight of Hand), and choose game duration (Short: 3 Gambits).
+3. **Ante Phase**: Confirm prompt directive in Header HUD, inspect player hand fan, select an ante card, and verify ante reveal & leader assignment.
+4. **Gambit Rounds & AI Sequence**: Play cards during turn, observe AI decision pace & speech bubble triggers, verify seat chip highlights and turn banner transitions.
+5. **Opponent Inspection Drawer**: Click seat chip or inspect button to slide out Opponent Inspector Drawer and navigate opponent carousel.
+6. **Decision Prompts / Interruptions**: Verify `InteractionModal` options and formatted gold/power icons when card powers trigger choices.
+7. **Responsive Audit**: Test layout and card fan step-spacing at 1920x1080 (Desktop), 1024x768 (Tablet), and 375x667 (Mobile).
+
+## Audit Checklist (13 Acceptance Areas)
+
+1. **Onboarding**: Entry landing page, skill requirements, opponent count options, rulebook modal accessibility.
+2. **Table Hierarchy**: 3D perspective table, battleground pot, stakes, player hand area, sidebars.
+3. **Hand Readability**: Dynamic fan step-spacing, 10-card capacity warning badge, card strength & power indicators (`⚡ Power` / `⚔️ Str`).
+4. **Turn Ownership**: Active seat glow, leader crown, Header HUD directive banner, turn ownership banners.
+5. **Card Selection/Play**: Card click responsiveness, play commitment, visual confirmation.
+6. **AI Turns**: Thinking delay (1000–1400ms), speech line triggers, seat emotion changes.
+7. **Decision Prompts**: `InteractionModal` options, card targets, gold cost formatting, clear resolution.
+8. **Animation Timing**: Card spring physics, particle VFX (fire, lightning, poison), screen shake/flash.
+9. **Pot/Gold Feedback**: `CurrencyDisplay` coin rendering (copper/silver/gold), pot collection updates.
+10. **Opponent Readability**: Seat chips, gold balances, public flight cards, opponent inspector drawer.
+11. **End-of-round/game Feedback**: `EndGameModal` gambit summary, flight strengths, game over standings.
+12. **Audio/VFX**: Sound triggers (`CARD_SLAM`, `UI_CLICK`, `FIRE_BREATH`), screen effects.
+13. **Responsive Behavior**: Desktop (1920x1080), Tablet (1024x768), Mobile (375x667) viewport support.
+
 ## Pass/fail quality gate
 
 A quality gate is not “it looks good.” It passes when the documented core flow is readable, responsive, and free of critical ambiguity, and remaining observations are explicitly captured for the next cycle.

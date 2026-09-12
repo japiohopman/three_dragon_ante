@@ -79,3 +79,47 @@ Prioritize problems that disrupt:
 - maintaining tempo without feeling rushed;
 - reading the table, hand, opponents, and game state;
 - recovering from mistakes without confusion.
+
+---
+
+## Audit Findings
+
+### 2025-05-19 — Drawer Overlay obscures right-side table status and discard pile during AI turn auto-open
+- **Agent:** Jules
+- **Area:** UI / UX
+- **Observation:** When `phase === 'opponent-turn'`, `OpponentInspectorDrawer` automatically slides in on the right, covering the `TavernRightAside` panel (including the round log button and discard pile shortcut) without an option to minimize or collapse while remaining in turn view.
+- **Idea:** Add a collapse/dock toggle to `OpponentInspectorDrawer` or make auto-drawer opening optional in settings so table status remains fully visible during multi-opponent AI turns.
+- **Player value:** Prevents drawer overlay from blocking primary table state and discard inspection during long AI turn sequences.
+- **Evidence:** Playtest flow in `tests/audit_playtest_flow.spec.ts`, `TableTop.tsx` line 80-84 (`useEffect` auto-opening `isDrawerOpen` on `phase === 'opponent-turn'`).
+- **Confidence:** High
+- **Status:** NEW
+
+### 2025-05-19 — Mobile viewport card fan hover height and touch target overflow
+- **Agent:** Jules
+- **Area:** UX / Accessibility
+- **Observation:** On mobile viewports (375x667), when hovering or touching cards in a 10-card full hand, the `-120px` Y-axis hover translation (`getFanStyle` in `PlayerHandArea.tsx`) lifts the zoomed card above the top boundary of the hand container, occasionally clipping under the battleground pot.
+- **Idea:** Scale down card fan transform translation on narrow viewports (`y: -80` for mobile) and adjust hover z-index.
+- **Player value:** Ensures card preview remains fully visible on small mobile screens without clipping table elements.
+- **Evidence:** Playwright mobile screenshot (`verification/audit_08_mobile_viewport.png`), `PlayerHandArea.tsx` line 34.
+- **Confidence:** High
+- **Status:** NEW
+
+### 2025-05-19 — Visual progress indicator during targeted AI-to-AI card power interactions
+- **Agent:** Jules
+- **Area:** Animation / Gameplay
+- **Observation:** When an AI player plays a card with a targeted power against another AI opponent, `resolveAiInteraction()` is delayed by 1400ms (`setTimeout` in `turnSlice.ts`), but no visual progress or "AI choice..." progress bar is rendered on the seat chip, leaving a brief pause where the player cannot tell if the game is waiting or processing.
+- **Idea:** Add a subtle timer/spinner or "Thinking..." badge on the targeted opponent's seat chip during pending AI-to-AI interaction resolution.
+- **Player value:** Improves AI turn transparency and temporal feedback during automated card power interactions.
+- **Evidence:** Code inspection of `turnSlice.ts` lines 180-184 and `InteractionModal.tsx` lines 24-34.
+- **Confidence:** High
+- **Status:** NEW
+
+### 2025-05-19 — Onboarding skill requirement visual focus state
+- **Agent:** Jules
+- **Area:** UX / Accessibility
+- **Observation:** On the `LobbyScreen.tsx`, when a player has not yet selected a skill, the pulse warning "Select a skill above to start your match" appears, but keyboard Tab focus does not automatically cycle or highlight the skill cards, making keyboard-only onboarding less obvious.
+- **Idea:** Add clear `aria-selected` attributes and explicit outline styling on keyboard focus for skill cards in `LobbyScreen.tsx`.
+- **Player value:** Improves keyboard navigation accessibility and onboarding clarity for first-time players.
+- **Evidence:** Code inspection of `LobbyScreen.tsx` lines 61-128.
+- **Confidence:** High
+- **Status:** NEW
