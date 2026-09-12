@@ -200,10 +200,11 @@ export const createTurnSlice: StateCreator<GameStore, [], [], TurnSlice> = (set,
 
     const currentState = get();
     if (!currentState.pendingInteraction) {
-        setTimeout(() => get().finishTurn(aiPlayer.id), isTriggered ? 1400 : 1000);
+        // Standardized turn resolution cadence: 1200ms when power is triggered, 900ms for normal play
+        setTimeout(() => get().finishTurn(aiPlayer.id), isTriggered ? 1200 : 900);
     } else {
         if (currentState.pendingInteraction.target !== 'player') {
-            setTimeout(() => get().resolveAiInteraction(), 1400);
+            setTimeout(() => get().resolveAiInteraction(), 1200);
         }
     }
   }

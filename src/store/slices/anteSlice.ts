@@ -72,7 +72,8 @@ export const createAnteSlice: StateCreator<GameStore, [], [], AnteSlice> = (set,
       phase: 'ante-reveal'
     }, get()));
 
-    setTimeout(() => get().resolveAnte(), 1000);
+    // Give 1200ms for ante cards to animate onto table before triggering coin flights and stake deductions
+    setTimeout(() => get().resolveAnte(), 1200);
   },
 
   resolveAnte: () => {

@@ -153,3 +153,13 @@ Prioritize problems that disrupt:
 - **Evidence:** Code inspection of `Battleground.tsx` lines 28-33 and `useGameStore.ts` pot updates.
 - **Confidence:** High
 - **Status:** NEW
+
+### 2025-05-19 — Turn initiative banner entrance anticipation motion curve
+- **Agent:** Jules
+- **Area:** Animation / UI
+- **Observation:** In `VFXLayer.tsx`, the full-screen editorial turn banner (`showTurnBanner`) animates into view using a standard spring transition (`damping: 15, stiffness: 100`), but starts abruptly without a brief scale-up anticipation or pre-blur flash to signal the turn ownership shift to the player.
+- **Idea:** Add a 100ms subtle radial flash and pre-entrance scale anticipation to `motion.div` in `VFXLayer.tsx` when `triggerTurnBanner` is called.
+- **Player value:** Enhances anticipation and causal clarity when initiative switches between players during fast multi-opponent turns.
+- **Evidence:** Playtest observation during `tests/audit_playtest_flow.spec.ts` and code inspection of `VFXLayer.tsx` lines 140-144.
+- **Confidence:** High
+- **Status:** NEW

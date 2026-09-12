@@ -195,9 +195,9 @@ export const PlayerHandArea: React.FC<PlayerHandAreaProps> = ({
                               mass: 0.8,
                               zIndex: { delay: 0 }
                           }}
-                          className={`absolute origin-bottom will-change-transform transition-opacity duration-200 ${
+                          className={`absolute origin-bottom will-change-transform transition-all duration-200 ${
                               !isInteractive ? 'opacity-80 grayscale-[20%]' : 'opacity-100'
-                          } ${isCommitting ? 'scale-110 brightness-125 z-50' : ''}`}
+                          } ${isCommitting ? 'scale-125 -translate-y-8 brightness-150 ring-4 ring-amber-400 ring-offset-2 ring-offset-stone-900 shadow-[0_0_25px_rgba(245,158,11,0.8)] z-50' : ''}`}
                           onMouseEnter={() => setHoveredIndex(i)}
                           onFocus={() => setHoveredIndex(i)}
                           onBlur={() => setHoveredIndex(null)}
