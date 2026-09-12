@@ -1,111 +1,119 @@
 # 🗺️ Roadmap — The Dragon's Flagon: Three-Dragon Ante
 
-This is the single canonical dispatch roadmap for the Jules orchestrator: it says what's
-actually in scope *now*. `todo.md` (Phases 1–6, all complete) was the original build-out;
-this file is the polish and pre-integration pass — animation tuning, game flow, layout polish,
-D&D money icons visual alignment, Artificer layout understanding, migration planning, and performance optimization before embedding the TDA engine into [artificer](https://github.com/japiohopman/artificer).
+This is the **single canonical dispatch roadmap** for the Jules orchestrator. `todo.md` contains the original build-out (Phases 1–6, complete); this file controls the current product-development loop.
 
-Jules checks its own boxes: once it has personally verified a task (per AGENT_RULES.md §1),
-it flips that task's own `- [ ]` to `- [x]` in the same PR — the orchestrator script only
-reads this file, it never edits it. Your review/merge of the PR is the real checkpoint.
+The project is intentionally separated into three concepts:
+
+1. **Ready** — concrete work that Jules may implement now, in order.
+2. **Integration / Later** — work that is intentionally parked until the Ready quality gate allows it.
+3. **Continuous Improvement Triage** — a recurring planning trigger. When the Ready queue is empty and there are new ideas, Jules reviews `docs/IDEAS_BOX.md` and the current player experience, then proposes a small number of concrete Ready tasks. The trigger itself is never checked off.
+
+Jules checks ordinary task boxes only after personally verifying the work, per `AGENT_RULES.md §1`. The orchestrator never edits ordinary task checkboxes. Review and merge remain the real checkpoints.
+
+The target development loop is:
+
+**PLAYTEST → OBSERVE → IDEAS BOX → TRIAGE → READY → IMPLEMENT → VERIFY → MERGE → PLAYTEST AGAIN**
 
 ## Now
 
-### Completed Tasks
+### Ready — Game Experience Quality Gate
 
-- [x] **CI pipeline — build/lint/test on every push and PR**
-  - **Problem:** there was no `.github/workflows` CI at all — a broken build could land on `main` undetected.
-  - **Goal:** add `.github/workflows/ci.yml` that runs `npm ci`, `npm run lint` (`tsc --noEmit`), `npm run test` (`vitest run src/`), and `npm run build` on push/PR to `main`.
-  - **Acceptance:** workflow is green on a clean checkout; a deliberately broken type or a failing test fails CI.
+This queue is deliberately ordered. Do not skip ahead because a later item looks easier.
 
-- [x] **Repo hygiene — stop committing build/verification artifacts**
-  - **Problem:** `verification/` (8.2MB of PNGs) and `test-results/.last-run.json` were tracked in git.
-  - **Goal:** add `verification/` and `test-results/` to `.gitignore`, `git rm --cached` tracked copies.
-  - **Acceptance:** `git status` clean after Playwright run; repo clone size drops; CI passes.
+- [ ] **Game Experience Audit — full playable-flow baseline**
+  - **Problem:** the game is functionally complete, but the current product experience has not been assessed as one coherent player journey after the recent technical polish.
+  - **Goal:** play the main game from entry through multiple gambits and game end, inspect the implementation, and document concrete experience problems in `docs/IDEAS_BOX.md` rather than immediately coding fixes.
+  - **Acceptance:** audit covers onboarding, table hierarchy, hand readability, turn ownership, card selection/play, AI turns, decision prompts, animation timing, pot/gold feedback, opponent readability, end-of-round/game feedback, audio/VFX, and responsive behavior; findings contain evidence and player impact; at least one repeatable playtest flow is documented.
 
-- [x] **Performance pass — split the largest monolithic files**
-  - **Problem:** monolithic files (`useGameStore.ts`, `GameUI.tsx`, `TableTop.tsx`) mixed multiple concerns.
-  - **Goal:** split into smaller cohesion-based modules and slices without changing behavior.
-  - **Acceptance:** app behavior unchanged, `npm run test` and `npm run build` pass, no single file exceeds ~400 lines without documented reason.
+- [ ] **Card interaction feel — selection, affordance, play commitment & resolution**
+  - **Problem:** card interaction is one of the highest-frequency player actions and must communicate what can be selected, what will happen, and when the action is committed.
+  - **Goal:** refine selection affordance, playable/unplayable state, hover/focus feedback, commitment feedback, and post-play resolution without adding unnecessary UI chrome.
+  - **Acceptance:** a player can identify playable cards and understand selection/commitment state without guessing; feedback remains readable during fast AI turns; keyboard focus is not broken where interaction is supported.
 
-- [x] **Performance pass — table VFX and sprite loading**
-  - **Problem:** coin particle system and sprite atlas loading required performance verification.
-  - **Goal:** profile full 6-player gambits and document findings in `docs/PERFORMANCE.md`.
-  - **Acceptance:** written before/after performance note in `docs/PERFORMANCE.md`.
+- [ ] **Turn readability — ownership, phase, tempo & interruption states**
+  - **Problem:** a card game can feel chaotic when the player is uncertain whose turn it is, which phase is active, or whether an interruption is waiting for input.
+  - **Goal:** establish one consistent visual and motion language for turn ownership, phase changes, AI thinking, player decisions, and resolved triggers.
+  - **Acceptance:** in a 6-player sequence the active actor and current phase are immediately identifiable; decision-required states cannot be mistaken for passive animation; pacing communicates progress without unnecessary waiting.
 
-- [x] **Follow-up — finish the store split**
-  - **Problem:** `turnSlice.ts` and `interactionSlice.ts` were still over 400 lines.
-  - **Goal:** split slices further or document exceptions.
-  - **Acceptance:** both files carry documented maintainability notes; tests pass cleanly.
+- [ ] **Table hierarchy — make the important state visually dominant**
+  - **Problem:** table UI, seats, drawers, hand, pot, and effects can compete for attention even when only one element needs player focus.
+  - **Goal:** audit visual hierarchy and reduce competing emphasis so the board state, active player, current action, and meaningful rewards dominate secondary information.
+  - **Acceptance:** primary action/state is visually distinguishable from secondary information at a glance on desktop and tablet; no critical element is obscured by a drawer, seat, overlay, or effect.
 
-- [x] **UX pass — onboarding and in-game clarity**
-  - **Problem:** rulebook discoverability and hand-limit visual feedback needed polish.
-  - **Goal:** walk through full game as a new player and improve key UX affordances.
-  - **Acceptance:** before/after UX note in `docs/UX_PASS.md`.
+- [ ] **Animation language — anticipation → action → resolution**
+  - **Problem:** individual animations may be polished while the overall motion language still lacks consistent timing and causal readability.
+  - **Goal:** define and apply a coherent motion vocabulary for card movement, flights, coins, banners, opponent actions, and end states.
+  - **Acceptance:** important actions have readable anticipation, a clear action moment, and a visible resolution; animations remain non-blocking; repeated turns do not feel sluggish.
 
-- [x] **Artificer-readiness — define the TDA engine's integration boundary**
-  - **Problem:** no clear boundary existed between the TDA engine and this repo's host shell.
-  - **Goal:** document the TDA core engine vs host shell boundary in `docs/ARTIFICER_INTEGRATION.md`.
-  - **Acceptance:** concrete documentation outlining engine manifests, host shell boundaries, dependencies, and proposed embedding API contract (`TDAMinigameProps`).
+- [ ] **Opponent readability — AI intent, actions & reactions**
+  - **Problem:** AI participants need to feel like actors at the table rather than background state changes.
+  - **Goal:** improve clarity of opponent action, timing, relevant public information, and reaction feedback without exposing hidden information.
+  - **Acceptance:** players can follow which opponent acted and what public consequence occurred; AI turns have consistent cadence; no hidden state is accidentally revealed.
 
----
+- [ ] **Decision UX — interruption prompts and meaningful choices**
+  - **Problem:** rule-driven interruptions can become modal friction when their timing, consequence, or default path is unclear.
+  - **Goal:** standardize prompts for card powers and player decisions around context, available actions, consequence, and resolution.
+  - **Acceptance:** every player decision clearly states what requires input, available choices, and what happens after selection; no prompt traps the player or competes with unrelated animation.
 
-### Ready (Pre-Embedding Polish & Migration Prep)
+- [ ] **Reward & game-state feedback — gold, pot, flights and round endings**
+  - **Problem:** rewards and state changes are core reinforcement and should read as consequences of player actions, not incidental number updates.
+  - **Goal:** synchronize visual, motion, audio, and numerical feedback for gold/pot changes, flights, gambit completion, and game end.
+  - **Acceptance:** after a meaningful event the player can identify what changed and why; reward feedback has a clear destination and does not obscure the next decision.
 
-- [x] **Issue #28 — fix: prevent repeated special-flight resolution on extended flights**
-  - **Problem:** `finishTurn()` can re-evaluate an already-completed flight formation. If an extended/sudden-death flight still contains the qualifying three cards, the same special flight can potentially resolve again and duplicate its payout/effect.
-  - **Goal:** make special-flight resolution occur only for the newly completed formation while preserving all legitimate strength/color flight behavior.
-  - **Acceptance:** first-time strength and color flights still resolve correctly; an already-resolved formation cannot resolve again later in the same extended flight; focused regression tests cover both cases.
-  - **Issue:** https://github.com/japiohopman/three_dragon_ante/issues/28
-  - **Branch:** `fix/special-flight-resolution-20260904`
+- [ ] **Responsive & accessibility polish — final quality pass**
+  - **Problem:** desktop success does not guarantee a readable or usable experience at smaller sizes, reduced motion, or keyboard/focus interactions.
+  - **Goal:** verify responsive layout, text/icon readability, focus visibility, hit targets, overflow, reduced-motion behavior where applicable, and non-color-only state cues.
+  - **Acceptance:** core game remains usable without overlap or clipped critical controls at supported viewport sizes; important state is not conveyed by color alone; existing tests/build stay green.
 
-- [x] **Animation refinement — card motion & coin drop physics pass**
-  - **Problem:** card play transitions (slam, flip, slide) and coin particle drops can feel abrupt during fast turn sequences.
-  - **Goal:** audit and refine card animation timing curves in `Card.tsx` / `TableTop.tsx` and smooth coin drop physics trajectories in `useAnimationStore.ts`.
-  - **Acceptance:** playing cards and winning gold feel smooth, tactile, and non-blocking during turn progression.
+- [ ] **Full playtest regression — quality gate before embedding**
+  - **Problem:** isolated fixes can create interaction regressions when combined in a real game session.
+  - **Goal:** run the standardized playtest flow after the quality tasks and compare against the audit findings.
+  - **Acceptance:** no critical UX blocker remains in the documented flow; remaining issues are captured in `IDEAS_BOX.md` with status; the game is judged ready for the integration phase based on observable criteria rather than optimism.
 
-- [x] **Artificer SVG icon system — canonical main-game icon integration (Issue #34)**
-  - **Problem:** the main game is not currently using the canonical Artificer Solo SVG icon system. `docs/IconSystemMainGame.md` defines the intended registry, standalone SVG asset structure, and centralized `GameIcon` component, but the SVG system is not actually used throughout production game UI.
-  - **Goal:** integrate the Artificer-compatible Solo SVG icon system as the canonical icon source for TDA, using the existing Artificer `public/assets/icons/svg/` conventions and the icons already available under `minigame/` where applicable.
-  - **Acceptance:** production game UI actually renders canonical SVG icons through the documented `GameIcon`/registry architecture; existing ad-hoc icon/emoji/inline-SVG usages are migrated where an equivalent canonical icon exists; asset paths and naming remain migration-safe for embedding into Artificer; tests, lint, and build pass; documentation matches the final implementation.
-  - **Issue:** https://github.com/japiohopman/three_dragon_ante/issues/34
-  - **Reference:** https://github.com/japiohopman/artificer/tree/main/public/assets/icons/svg
-  - **Documentation:** `docs/IconSystemMainGame.md`
+## Integration Gate
 
-- [x] **Game flow polish — turn pacing, auto-pass & decision prompts**
-  - **Problem:** turn transitions between multi-AI opponents can feel either too fast to read or sluggish during complex card power triggers.
-  - **Goal:** adjust AI turn delay pacing, provide clear banner cues during decision/interruption phases (e.g. Green Dragon card options), and ensure smooth gambit end state transitions.
-  - **Acceptance:** player can comfortably follow turn order across 6 players without getting stuck or missing card power resolutions.
+- **Integration status:** `BLOCKED`
+- **Owner:** human project owner
+- **Meaning:** the orchestrator must not dispatch Integration work while this status is `BLOCKED`.
+- **To unlock:** after reviewing the Quality Gate results and merged history, change only the value from `BLOCKED` to `READY` in a deliberate human review commit.
 
-- [x] **Layout polish & bug fixes — 6-player responsive table & z-index layers**
-  - **Problem:** on smaller viewports or non-standard aspect ratios, 6-player seat chips and opponent drawers can obscure the battleground or player hand.
-  - **Goal:** audit and adjust flex/grid positioning in `TableTop.tsx`, `MultiplayerSeats.tsx`, and `OpponentInspectorDrawer.tsx` to fix z-index layering and clipping bugs.
-  - **Acceptance:** 6-player layout renders cleanly across desktop and tablet screen sizes without overlapping UI elements.
-
-- [x] **Money icons & currency art alignment — D&D 5e copper/silver/gold visual pass**
-  - **Problem:** gold displays currently use generic text or simple coin badges rather than matching `japiohopman/artificer`'s rich D&D 5e currency icon system (copper, silver, gold, electrum, platinum).
-  - **Goal:** integrate standard D&D currency icon SVGs and formatting helpers from `src/utils/currency.ts` into header HUDs, player seats, inspect drawers, and pot displays.
-  - **Acceptance:** currency amounts display with high-fidelity D&D coin icons and formatted copper/silver/gold weight tooltips matching Artificer standards.
-
-- [x] **Artificer layout analysis & deep understanding**
-  - **Problem:** embedding TDA inside `japiohopman/artificer` requires matching Artificer's container grid, navigation dock, color tokens, and modal overlays.
-  - **Goal:** analyze `japiohopman/artificer` layout specs, theme tokens, and component conventions; document findings in `docs/ARTIFICER_LAYOUT_ANALYSIS.md`.
-  - **Acceptance:** document details Artificer's layout grid, CSS variable tokens, sidebar dock dimensions, and target mount point for minigames.
-
-- [x] **Migration planning — step-by-step TDA minigame embedding spec**
-  - **Problem:** migrating TDA into the main `artificer` repository requires a clear, zero-regression step-by-step plan.
-  - **Goal:** write `docs/MIGRATION_PLAN.md` detailing file copying/import steps, state store scoping, host event wiring (`onExit`, character gold sync), and asset bundle paths.
-  - **Acceptance:** document provides a comprehensive migration checklist ready for execution when `artificer` minigame hosting is enabled.
-
-- [x] **Performance & asset optimization — particle pooling & sprite atlas caching**
-  - **Problem:** spawning multiple coin particle bursts in quick succession could create unnecessary DOM element allocations.
-  - **Goal:** implement DOM element pooling or canvas particle fallback in `useAnimationStore.ts` and verify `enhanced_tiamat.webp` atlas preloading.
-  - **Acceptance:** smooth 60fps performance maintained during multi-flight coin awards and rapid gambit rounds.
-
----
-
-## Later — Parked until Pre-Embedding Polish is Complete
+## Integration — only when Integration status is READY
 
 - [ ] **TDA Minigame Migration** — Execute embedding of TDA into `artificer` following `docs/MIGRATION_PLAN.md`.
+- [ ] **Host integration verification** — validate `TDAMinigameProps`, gold synchronization, exit flow, state boundaries, and asset paths inside Artificer.
+- [ ] **Migration regression pass** — verify TDA works in the real Artificer host without changing unrelated Artificer behavior.
+
+## Later — Non-TDA backlog
+
 - [ ] **Mobile/touch input pass** for Solitaire and Memory minigames.
 - [ ] **NPC dialogue variety pass** — extended Gemini-driven reactions per Voice Archetype.
+
+## Continuous Improvement Triage
+
+- [ ] **🔁 Experience Triage Cycle — recurring planning trigger (DO NOT CHECK OFF)**
+  - **Purpose:** when the Ready queue is empty and `docs/IDEAS_BOX.md` contains `NEW` ideas, review the evidence and replenish the Ready queue with the next small set of high-value, testable tasks.
+  - **Rules:** do not implement the promoted work in the triage PR; do not promote vague ideas; challenge assumptions; consolidate duplicates; preserve evidence; add no more than 3–5 Ready tasks per cycle; keep Integration blocked until the explicit human gate is set to `READY`.
+  - **Completion semantics:** recurring trigger, not a one-time completion marker. Leave it unchecked after a successful triage cycle.
+  - **Primary source:** `docs/IDEAS_BOX.md`.
+  - **Design lens:** **Anticipation → Action → Resolution → Feedback → Next decision**.
+
+## Completed Work Archive
+
+The following work is complete and retained here as historical context. It is **not** part of the active dispatch queue.
+
+- [x] CI pipeline — build/lint/test on every push and PR.
+- [x] Repo hygiene — stop committing build/verification artifacts.
+- [x] Performance pass — split the largest monolithic files.
+- [x] Performance pass — table VFX and sprite loading.
+- [x] Follow-up — finish the store split.
+- [x] UX pass — onboarding and in-game clarity.
+- [x] Artificer-readiness — define the TDA engine's integration boundary.
+- [x] Issue #28 — prevent repeated special-flight resolution on extended flights.
+- [x] Animation refinement — card motion & coin drop physics pass.
+- [x] Artificer SVG icon system — canonical main-game icon integration.
+- [x] Game flow polish — turn pacing, auto-pass & decision prompts.
+- [x] Layout polish & bug fixes — 6-player responsive table & z-index layers.
+- [x] Money icons & currency art alignment — D&D 5e copper/silver/gold visual pass.
+- [x] Artificer layout analysis & deep understanding.
+- [x] Migration planning — step-by-step TDA minigame embedding spec.
+- [x] Performance & asset optimization — particle pooling & sprite atlas caching.
