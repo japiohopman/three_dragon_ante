@@ -30,7 +30,7 @@ This queue is deliberately ordered. Do not skip ahead because a later item looks
   - **Goal:** refine selection affordance, playable/unplayable state, hover/focus feedback, commitment feedback, and post-play resolution without adding unnecessary UI chrome.
   - **Acceptance:** a player can identify playable cards and understand selection/commitment state without guessing; feedback remains readable during fast AI turns; keyboard focus is not broken where interaction is supported.
 
-- [ ] **Turn readability — ownership, phase, tempo & interruption states**
+- [x] **Turn readability — ownership, phase, tempo & interruption states**
   - **Problem:** a card game can feel chaotic when the player is uncertain whose turn it is, which phase is active, or whether an interruption is waiting for input.
   - **Goal:** establish one consistent visual and motion language for turn ownership, phase changes, AI thinking, player decisions, and resolved triggers.
   - **Acceptance:** in a 6-player sequence the active actor and current phase are immediately identifiable; decision-required states cannot be mistaken for passive animation; pacing communicates progress without unnecessary waiting.

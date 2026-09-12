@@ -22,7 +22,40 @@ export const HeaderHUD: React.FC<HeaderHUDProps> = ({
   getPhaseInstruction,
   longTurn
 }) => {
-  const { playerGold, playerHand, fixGameState } = useGameStore();
+  const { playerGold, playerHand, fixGameState, phase, players, activePlayerIndex, pendingInteraction } = useGameStore();
+
+  const activeP = players[activePlayerIndex];
+
+  const getPhaseBadge = () => {
+    if (pendingInteraction) {
+      if (pendingInteraction.target === 'player') {
+        return { label: 'ACTION REQUIRED', color: 'bg-purple-950/90 border-purple-400 text-purple-200 animate-pulse shadow-[0_0_12px_rgba(168,85,247,0.4)]', icon: '⚡' };
+      }
+      return { label: 'AI RESOLVING', color: 'bg-purple-950/70 border-purple-500/60 text-purple-300', icon: '⏳' };
+    }
+    if (phase === 'ante-selection') {
+      return { label: 'ANTE PHASE', color: 'bg-amber-950/80 border-amber-500/80 text-amber-200', icon: '✨' };
+    }
+    if (phase === 'ante-reveal') {
+      return { label: 'ANTE REVEAL', color: 'bg-amber-900/60 border-amber-600/60 text-amber-300', icon: '👁️' };
+    }
+    if (phase === 'player-turn' || (phase === 'round-start' && activeP?.id === 'player')) {
+      return { label: 'YOUR TURN', color: 'bg-emerald-950/90 border-emerald-500/80 text-emerald-200 shadow-[0_0_10px_rgba(16,185,129,0.2)]', icon: '⚔️' };
+    }
+    if (phase === 'opponent-turn' || (phase === 'round-start' && activeP?.isNpc)) {
+      const name = activeP?.name ? activeP.name.toUpperCase() : 'AI';
+      return { label: `${name}'S TURN`, color: 'bg-blue-950/80 border-blue-500/70 text-blue-200', icon: '🤖' };
+    }
+    if (phase === 'round-resolution') {
+      return { label: 'RESOLVING ROUND', color: 'bg-amber-950/60 border-amber-600/60 text-amber-300', icon: '📜' };
+    }
+    if (phase === 'gambit-end') {
+      return { label: 'GAMBIT COMPLETE', color: 'bg-amber-900/80 border-amber-400 text-amber-100', icon: '🏆' };
+    }
+    return { label: 'IN MATCH', color: 'bg-stone-900 border-stone-700 text-stone-300', icon: '🎮' };
+  };
+
+  const badge = getPhaseBadge();
 
   return (
     <div className="w-full h-14 sm:h-16 bg-stone-950/95 border-b border-amber-900/30 shadow-2xl backdrop-blur-xl flex items-center justify-between px-3 sm:px-6 pointer-events-auto relative z-[100]">
@@ -76,12 +109,17 @@ export const HeaderHUD: React.FC<HeaderHUDProps> = ({
               </div>
           ) : (
               <div className="flex flex-col items-center">
-                  <span className="text-[9px] uppercase tracking-[0.4em] text-stone-600 font-bold mb-1">Current Directive</span>
-                  <div className="flex items-center gap-4">
-                      <span className={`text-sm font-serif italic ${isAiThinking ? 'text-amber-500 animate-pulse' : 'text-stone-300'}`}>
+                  <div className="flex items-center gap-2 mb-1">
+                      <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider border flex items-center gap-1 ${badge.color}`}>
+                          <span>{badge.icon}</span>
+                          <span>{badge.label}</span>
+                      </span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                      <span className={`text-xs sm:text-sm font-serif italic ${isAiThinking ? 'text-amber-400 animate-pulse' : pendingInteraction?.target === 'player' ? 'text-purple-200 font-semibold' : 'text-stone-300'}`}>
                           {getPhaseInstruction()}
                       </span>
-                      {isAiThinking && <GameIcon name="thinking" size={14} className="text-amber-500" />}
+                      {isAiThinking && <GameIcon name="thinking" size={14} className="text-amber-500 animate-spin" />}
                   </div>
               </div>
           )}
