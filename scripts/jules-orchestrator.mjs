@@ -147,7 +147,20 @@ function getIntegrationStatus(roadmapText) {
 }
 
 function countNewIdeas(ideasText) {
-  return (ideasText.match(/^\s*-\s*\*\*Status:\*\*\s*NEW\s*$/gim) || []).length;
+  const lines = ideasText.split('\n');
+  let inCodeFence = false;
+  let count = 0;
+
+  for (const line of lines) {
+    if (/^\s*```/.test(line)) {
+      inCodeFence = !inCodeFence;
+      continue;
+    }
+    if (inCodeFence) continue;
+    if (/^\s*-\s*\*\*Status:\*\*\s*NEW\s*$/i.test(line)) count += 1;
+  }
+
+  return count;
 }
 
 function findRecurringTriageTask(roadmapText) {
