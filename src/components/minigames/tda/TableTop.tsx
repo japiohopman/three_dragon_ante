@@ -75,12 +75,6 @@ const TableTop: React.FC = () => {
     }
   }, [activePlayerIndex, players.length, setFocusedOpponentIndex]);
 
-  React.useEffect(() => {
-    if (phase === 'opponent-turn' || (phase === 'round-start' && activePlayer !== 'player' && activePlayer !== null)) {
-      setIsDrawerOpen(true);
-    }
-  }, [phase, activePlayer]);
-
   const isPlayerTurn = (phase === 'player-turn' && activePlayer === 'player') ||
                        (phase === 'round-start' && currentLeader === 'player');
 
