@@ -20,7 +20,7 @@ The target development loop is:
 
 This queue is deliberately ordered. Do not skip ahead because a later item looks easier.
 
-- [ ] **Game Experience Audit — full playable-flow baseline**
+- [x] **Game Experience Audit — full playable-flow baseline**
   - **Problem:** the game is functionally complete, but the current product experience has not been assessed as one coherent player journey after the recent technical polish.
   - **Goal:** play the main game from entry through multiple gambits and game end, inspect the implementation, and document concrete experience problems in `docs/IDEAS_BOX.md` rather than immediately coding fixes.
   - **Acceptance:** audit covers onboarding, table hierarchy, hand readability, turn ownership, card selection/play, AI turns, decision prompts, animation timing, pot/gold feedback, opponent readability, end-of-round/game feedback, audio/VFX, and responsive behavior; findings contain evidence and player impact; at least one repeatable playtest flow is documented.
