@@ -50,7 +50,7 @@ This queue is deliberately ordered. Do not skip ahead because a later item looks
   - **Goal:** improve clarity of opponent action, timing, relevant public information, and reaction feedback without exposing hidden information.
   - **Acceptance:** players can follow which opponent acted and what public consequence occurred; AI turns have consistent cadence; no hidden state is accidentally revealed.
 
-- [ ] **Decision UX — interruption prompts and meaningful choices**
+- [x] **Decision UX — interruption prompts and meaningful choices**
   - **Problem:** rule-driven interruptions can become modal friction when their timing, consequence, or default path is unclear.
   - **Goal:** standardize prompts for card powers and player decisions around context, available actions, consequence, and resolution.
   - **Acceptance:** every player decision clearly states what requires input, available choices, and what happens after selection; no prompt traps the player or competes with unrelated animation.
