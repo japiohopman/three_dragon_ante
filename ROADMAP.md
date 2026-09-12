@@ -45,7 +45,7 @@ This queue is deliberately ordered. Do not skip ahead because a later item looks
   - **Goal:** define and apply a coherent motion vocabulary for card movement, flights, coins, banners, opponent actions, and end states.
   - **Acceptance:** important actions have readable anticipation, a clear action moment, and a visible resolution; animations remain non-blocking; repeated turns do not feel sluggish.
 
-- [ ] **Opponent readability — AI intent, actions & reactions**
+- [x] **Opponent readability — AI intent, actions & reactions**
   - **Problem:** AI participants need to feel like actors at the table rather than background state changes.
   - **Goal:** improve clarity of opponent action, timing, relevant public information, and reaction feedback without exposing hidden information.
   - **Acceptance:** players can follow which opponent acted and what public consequence occurred; AI turns have consistent cadence; no hidden state is accidentally revealed.

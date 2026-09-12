@@ -29,20 +29,11 @@ const TableTop: React.FC = () => {
     currentLeader,
     deck,
     discardPile,
-    opponentGold,
-    opponentEmotion,
-    npcId,
-    npcLine,
-    isTalking,
     pot,
     gambitsPlayed,
     maxGambits,
     round
   } = useGameStore();
-
-  const getNPCName = () => {
-    return NPC_LIST.find(n => n.id === npcId)?.name || 'Opponent';
-  };
 
   const [showLog, setShowLog] = useState(false);
   const [browsingPile, setBrowsingPile] = useState<'deck' | 'discard' | null>(null);
@@ -83,14 +74,9 @@ const TableTop: React.FC = () => {
 
       {/* 1. LEFT ASIDE: TAVERN & NPC INFO */}
       <TavernLeftAside
-        npcId={npcId}
-        opponentEmotion={opponentEmotion}
-        isTalking={isTalking}
-        npcLine={npcLine}
+        focusedOpponent={focusedOpponent}
         activePlayer={activePlayer}
-        getNPCName={getNPCName}
         currentLeader={currentLeader}
-        opponentGold={opponentGold}
         deckLength={deck.length}
         onOpenDeck={() => setBrowsingPile('deck')}
       />
