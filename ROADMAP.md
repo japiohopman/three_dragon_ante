@@ -70,6 +70,26 @@ This queue is deliberately ordered. Do not skip ahead because a later item looks
   - **Goal:** run the standardized playtest flow after the quality tasks and compare against the audit findings.
   - **Acceptance:** no critical UX blocker remains in the documented flow; remaining issues are captured in `IDEAS_BOX.md` with status; the game is judged ready for the integration phase based on observable criteria rather than optimism.
 
+- [ ] **Opponent drawer auto-open & table status readability**
+  - **Problem:** when `phase === 'opponent-turn'`, `OpponentInspectorDrawer` automatically slides in on the right, covering the `TavernRightAside` panel (including the round log button and discard pile shortcut) without an option to minimize or collapse while remaining in turn view.
+  - **Goal:** add a collapse/dock toggle to `OpponentInspectorDrawer` or make auto-drawer opening optional in settings so table status remains fully visible during multi-opponent AI turns.
+  - **Acceptance:** player can view right-side table status and discard pile during AI turn sequences; drawer overlay does not permanently block primary table controls.
+
+- [ ] **Mobile viewport card fan translation & target bounds**
+  - **Problem:** on mobile viewports (375x667), when hovering or touching cards in a full 10-card hand, the hover translation lifts zoomed cards above the hand container top boundary, clipping under the battleground pot.
+  - **Goal:** adjust card fan Y-translation and hover bounds for mobile viewports to keep zoomed cards fully visible without clipping table elements.
+  - **Acceptance:** zoomed cards in full 10-card hands remain fully readable and unobstructed on narrow mobile viewports; no clipping occurs with central battleground elements.
+
+- [ ] **Visual progress indicator during targeted AI-to-AI card power interactions**
+  - **Problem:** when an AI player plays a targeted power against another AI opponent, resolution is delayed by 1400ms without visual progress or status indicator on seat chips, creating ambiguous pauses.
+  - **Goal:** display a subtle "Thinking..." badge or resolution spinner on targeted opponent seat chips during automated AI-to-AI card power resolution.
+  - **Acceptance:** targeted AI-to-AI interactions clearly communicate pending resolution on the affected seat chip; turn pacing remains transparent and readable.
+
+- [ ] **Flight card power preview tooltips**
+  - **Problem:** cards played in player or opponent flights render at scaled-down sizes (`scale-[0.75]`), obscuring card power description text and requiring memory or inspection drawer searching.
+  - **Goal:** add an expanded preview tooltip or hover card overlay for cards in active flights showing full power text and round information.
+  - **Acceptance:** hovering over any card in a flight displays a readable card description tooltip without requiring full drawer modal inspection; turn flow is uninterrupted.
+
 ## Integration Gate
 
 - **Integration status:** `BLOCKED`

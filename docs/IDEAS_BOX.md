@@ -92,7 +92,7 @@ Prioritize problems that disrupt:
 - **Player value:** Prevents drawer overlay from blocking primary table state and discard inspection during long AI turn sequences.
 - **Evidence:** Playtest flow in `tests/audit_playtest_flow.spec.ts`, `TableTop.tsx` line 80-84 (`useEffect` auto-opening `isDrawerOpen` on `phase === 'opponent-turn'`).
 - **Confidence:** High
-- **Status:** NEW
+- **Status:** PROMOTED
 
 ### 2025-05-19 — Mobile viewport card fan hover height and touch target overflow
 - **Agent:** Jules
@@ -102,7 +102,7 @@ Prioritize problems that disrupt:
 - **Player value:** Ensures card preview remains fully visible on small mobile screens without clipping table elements.
 - **Evidence:** Playwright mobile screenshot (`verification/audit_08_mobile_viewport.png`), `PlayerHandArea.tsx` line 34.
 - **Confidence:** High
-- **Status:** NEW
+- **Status:** PROMOTED
 
 ### 2025-05-19 — Visual progress indicator during targeted AI-to-AI card power interactions
 - **Agent:** Jules
@@ -112,7 +112,7 @@ Prioritize problems that disrupt:
 - **Player value:** Improves AI turn transparency and temporal feedback during automated card power interactions.
 - **Evidence:** Code inspection of `turnSlice.ts` lines 180-184 and `InteractionModal.tsx` lines 24-34.
 - **Confidence:** High
-- **Status:** NEW
+- **Status:** PROMOTED
 
 ### 2025-05-19 — Onboarding skill requirement visual focus state
 - **Agent:** Jules
@@ -132,7 +132,7 @@ Prioritize problems that disrupt:
 - **Player value:** Allows players to quickly review previously played powers and evaluate flight formations without interrupting turn flow.
 - **Evidence:** Code inspection of `PlayerHandArea.tsx` lines 78-83 and `MultiplayerSeats.tsx` lines 98-105.
 - **Confidence:** High
-- **Status:** NEW
+- **Status:** PROMOTED
 
 ### 2025-05-19 — Phase transition audio cues for turn initiative changes
 - **Agent:** Jules
