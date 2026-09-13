@@ -80,7 +80,7 @@ This queue is deliberately ordered. Do not skip ahead because a later item looks
   - **Goal:** adjust card fan Y-translation and hover bounds for mobile viewports to keep zoomed cards fully visible without clipping table elements.
   - **Acceptance:** zoomed cards in full 10-card hands remain fully readable and unobstructed on narrow mobile viewports; no clipping occurs with central battleground elements.
 
-- [ ] **Visual progress indicator during targeted AI-to-AI card power interactions**
+- [x] **Visual progress indicator during targeted AI-to-AI card power interactions**
   - **Problem:** when an AI player plays a targeted power against another AI opponent, resolution is delayed by 1400ms without visual progress or status indicator on seat chips, creating ambiguous pauses.
   - **Goal:** display a subtle "Thinking..." badge or resolution spinner on targeted opponent seat chips during automated AI-to-AI card power resolution.
   - **Acceptance:** targeted AI-to-AI interactions clearly communicate pending resolution on the affected seat chip; turn pacing remains transparent and readable.

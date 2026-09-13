@@ -57,9 +57,9 @@ export const MultiplayerSeats: React.FC<MultiplayerSeatsProps> = ({
                   `}
                >
                    {isTargeted && (
-                       <div className="absolute -top-3 bg-purple-600 text-white font-bold px-2.5 py-0.5 rounded-full text-[8px] uppercase tracking-wider shadow-[0_0_12px_rgba(168,85,247,0.8)] animate-bounce flex items-center gap-1 z-30">
-                           <GameIcon name="alert" size={10} className="text-purple-200" />
-                           <span>🎯 Target Choice</span>
+                       <div className="absolute -top-3 bg-purple-700 text-purple-100 font-bold px-2.5 py-0.5 rounded-full text-[8px] uppercase tracking-wider shadow-[0_0_14px_rgba(168,85,247,0.9)] animate-pulse flex items-center gap-1 z-30">
+                           <GameIcon name="thinking" size={10} className="text-purple-200 animate-spin" />
+                           <span>Resolving Power...</span>
                        </div>
                    )}
                    {isTurn && !isTargeted && (
