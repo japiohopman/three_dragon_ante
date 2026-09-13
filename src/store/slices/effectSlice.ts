@@ -42,10 +42,12 @@ export const createEffectSlice: StateCreator<GameStore, [], [], EffectSlice> = (
               if (delta) {
                   const POS = getPos(idx, state.players.length);
                   if (delta > 0) {
-                      useAnimationStore.getState().spawnCoins(Math.min(5, delta / 100), { x: window.innerWidth / 2, y: window.innerHeight / 2 }, POS);
+                      if (idx === 0) playSound(delta >= 300 ? 'GOLD_GAIN_LARGE' : 'GOLD_GAIN_SMALL');
+                      useAnimationStore.getState().spawnCoins(Math.min(5, Math.max(1, delta / 100)), { x: window.innerWidth / 2, y: window.innerHeight / 2 }, POS);
                       useAnimationStore.getState().triggerFloatingText(POS.x, POS.y, `+${formatPrice(delta)}`, 'gold');
                   } else {
-                      useAnimationStore.getState().spawnCoins(Math.min(5, Math.abs(delta) / 100), POS, { x: window.innerWidth / 2, y: window.innerHeight / 2 });
+                      if (idx === 0) playSound('GOLD_LOSS');
+                      useAnimationStore.getState().spawnCoins(Math.min(5, Math.max(1, Math.abs(delta) / 100)), POS, { x: window.innerWidth / 2, y: window.innerHeight / 2 });
                       useAnimationStore.getState().triggerFloatingText(POS.x, POS.y, `-${formatPrice(Math.abs(delta))}`, 'red');
                   }
                   return { ...p, gold: p.gold + delta };

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { GameIcon } from '../../../../assets/icons';
 import { GambitResult } from '../../../../types';
 import { playSound } from '../../../../services/soundService';
@@ -27,6 +27,16 @@ export const EndGameModal: React.FC<EndGameModalProps> = ({
   resetGame,
   onExit
 }) => {
+  useEffect(() => {
+    if (isGameOver) {
+      if (playerGold > opponentGold) {
+        playSound('MATCH_VICTORY');
+      } else {
+        playSound('MATCH_DEFEAT');
+      }
+    }
+  }, [isGameOver, playerGold, opponentGold]);
+
   if (isGambitEnd && gambitResult) {
     return (
       <div className="absolute inset-0 bg-black/90 flex flex-col items-center justify-center z-[200] pointer-events-auto animate-in fade-in duration-700">

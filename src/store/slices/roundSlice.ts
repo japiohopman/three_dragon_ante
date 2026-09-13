@@ -62,6 +62,8 @@ export const createRoundSlice: StateCreator<GameStore, [], [], RoundSlice> = (se
                      }
                  });
 
+                 playSound(pIdx === 0 ? 'GOLD_GAIN_LARGE' : 'GOLD_LOSS');
+                 playSound('COIN_JINGLE');
                  get().addNotification(`${playerState.name.toUpperCase()} COLOR FLIGHT! Everybody pays them ${formatPrice(rewardCp)}.`, 'gold-gain');
             } else if (specialFlight.type === 'strength') {
                  const reward = specialFlight.strength || 0;
@@ -75,7 +77,9 @@ export const createRoundSlice: StateCreator<GameStore, [], [], RoundSlice> = (se
                  }
 
                  const toPOS = getPos(pIdx, state.players.length);
-                 playSound('GOLD_GAIN_LARGE');
+                 playSound(pIdx === 0 ? 'GOLD_GAIN_LARGE' : 'GOLD_LOSS');
+                 playSound('COIN_SACK');
+                 useAnimationStore.getState().triggerShake(1);
                  useAnimationStore.getState().spawnCoins(8, { x: window.innerWidth / 2, y: window.innerHeight / 2 }, toPOS);
                  useAnimationStore.getState().triggerFloatingText(toPOS.x, toPOS.y, `+${formatPrice(finalRewardCp)}`, 'gold');
 
