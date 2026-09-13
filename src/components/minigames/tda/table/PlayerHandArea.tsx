@@ -78,12 +78,14 @@ export const PlayerHandArea: React.FC<PlayerHandAreaProps> = ({
     const step = total > 6 ? Math.max(35, Math.min(90, 520 / total)) : 110;
     const xOffset = dist * step;
 
+    const isMobile = typeof window !== 'undefined' && window.innerWidth < 640;
+
     if (isHovered) {
         return {
             x: xOffset,
-            y: -120,
+            y: isMobile ? -75 : -120,
             rotate: 0,
-            scale: total > 6 ? 1.4 : 1.55,
+            scale: total > 6 ? (isMobile ? 1.25 : 1.4) : (isMobile ? 1.35 : 1.55),
             zIndex: 100,
             filter: 'brightness(1.1) contrast(1.1) drop-shadow(0 20.1px 40px rgba(0,0,0,0.8))',
         };

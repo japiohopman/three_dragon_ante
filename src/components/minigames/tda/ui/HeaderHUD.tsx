@@ -70,7 +70,8 @@ export const HeaderHUD: React.FC<HeaderHUDProps> = ({
                    <div className="flex items-center gap-2">
                        <button
                           onClick={fixGameState}
-                          className={`p-1.5 bg-stone-900 rounded border border-stone-800 text-stone-500 hover:text-amber-500 hover:border-amber-900/50 transition-all ${longTurn ? 'animate-pulse ring-1 ring-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.2)]' : ''}`}
+                          aria-label="Fix Game State"
+                          className={`p-1.5 bg-stone-900 rounded border border-stone-800 text-stone-500 hover:text-amber-500 hover:border-amber-900/50 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:ring-offset-2 focus-visible:ring-offset-stone-950 ${longTurn ? 'animate-pulse ring-1 ring-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.2)]' : ''}`}
                           title="Fix Game State"
                        >
                                <GameIcon name="wrench" size={14} />
@@ -80,7 +81,8 @@ export const HeaderHUD: React.FC<HeaderHUDProps> = ({
                               playSound('UI_CLICK');
                               onExit?.();
                           }}
-                          className="px-3 py-1 bg-red-950/20 hover:bg-red-900/40 text-red-500/70 hover:text-red-400 text-[9px] uppercase tracking-widest border border-red-900/30 hover:border-red-500/50 rounded transition-all font-bold"
+                          aria-label="Give up and exit match"
+                          className="px-3 py-1.5 bg-red-950/20 hover:bg-red-900/40 text-red-500/70 hover:text-red-400 text-[9px] uppercase tracking-widest border border-red-900/30 hover:border-red-500/50 rounded transition-all font-bold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:ring-offset-2 focus-visible:ring-offset-stone-950 min-h-[32px]"
                        >
                           Give up
                        </button>
@@ -150,7 +152,8 @@ export const HeaderHUD: React.FC<HeaderHUDProps> = ({
                    </div>
                    <button
                       onClick={() => setShowRules(true)}
-                      className="px-2.5 py-1 bg-amber-950/40 hover:bg-amber-900/60 text-amber-300 hover:text-amber-200 border border-amber-800/60 hover:border-amber-500/80 rounded-md transition-all shadow-sm flex items-center gap-1.5 text-xs font-semibold group"
+                      aria-label="Open Rulebook (Shortcut: ? or H)"
+                      className="px-2.5 py-1 bg-amber-950/40 hover:bg-amber-900/60 text-amber-300 hover:text-amber-200 border border-amber-800/60 hover:border-amber-500/80 rounded-md transition-all shadow-sm flex items-center gap-1.5 text-xs font-semibold group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:ring-offset-2 focus-visible:ring-offset-stone-950 min-h-[32px]"
                       title="Open Rulebook (Shortcut: ? or H)"
                    >
                        <GameIcon name="scroll" size={16} className="text-amber-400 group-hover:scale-110 transition-transform" />

@@ -57,7 +57,8 @@ export const OpponentInspectorDrawer: React.FC<OpponentInspectorDrawerProps> = (
                 <button
                   onClick={prevOpponent}
                   disabled={players.length <= 2}
-                  className="p-2 hover:bg-stone-800 disabled:opacity-30 disabled:cursor-not-allowed rounded-lg border border-stone-800 hover:border-stone-700 transition-colors text-amber-500"
+                  aria-label="Inspect Previous Opponent"
+                  className="p-2.5 hover:bg-stone-800 disabled:opacity-30 disabled:cursor-not-allowed rounded-lg border border-stone-800 hover:border-stone-700 transition-colors text-amber-500 min-h-[44px] min-w-[44px] flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:ring-offset-2 focus-visible:ring-offset-stone-950"
                   title="Previous Opponent"
                 >
                     <GameIcon name="chevron_left" size={18} />
@@ -72,14 +73,16 @@ export const OpponentInspectorDrawer: React.FC<OpponentInspectorDrawerProps> = (
                     <button
                       onClick={nextOpponent}
                       disabled={players.length <= 2}
-                      className="p-2 hover:bg-stone-800 disabled:opacity-30 disabled:cursor-not-allowed rounded-lg border border-stone-800 hover:border-stone-700 transition-colors text-amber-500"
+                      aria-label="Inspect Next Opponent"
+                      className="p-2.5 hover:bg-stone-800 disabled:opacity-30 disabled:cursor-not-allowed rounded-lg border border-stone-800 hover:border-stone-700 transition-colors text-amber-500 min-h-[44px] min-w-[44px] flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:ring-offset-2 focus-visible:ring-offset-stone-950"
                       title="Next Opponent"
                     >
                         <GameIcon name="chevron_right" size={18} />
                     </button>
                     <button
                       onClick={onClose}
-                      className="p-2 hover:bg-stone-800 rounded-lg border border-stone-800 hover:border-stone-700 transition-colors text-stone-400 hover:text-white"
+                      aria-label="Close Inspector"
+                      className="p-2.5 hover:bg-stone-800 rounded-lg border border-stone-800 hover:border-stone-700 transition-colors text-stone-400 hover:text-white min-h-[44px] min-w-[44px] flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:ring-offset-2 focus-visible:ring-offset-stone-950"
                       title="Close Inspector"
                     >
                         <GameIcon name="close" size={18} />
@@ -194,7 +197,8 @@ export const OpponentInspectorDrawer: React.FC<OpponentInspectorDrawerProps> = (
                       playSound('UI_CLICK');
                       onClose();
                   }}
-                  className="w-full py-3 bg-stone-800 hover:bg-stone-700 text-stone-300 hover:text-white rounded-lg border border-stone-700 transition-all text-xs font-bold uppercase tracking-widest"
+                  aria-label="Close Inspector Drawer"
+                  className="w-full py-3 bg-stone-800 hover:bg-stone-700 text-stone-300 hover:text-white rounded-lg border border-stone-700 transition-all text-xs font-bold uppercase tracking-widest min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:ring-offset-2 focus-visible:ring-offset-stone-950"
                 >
                     Close Inspector
                 </button>
