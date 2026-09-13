@@ -75,7 +75,7 @@ This queue is deliberately ordered. Do not skip ahead because a later item looks
   - **Goal:** add a collapse/dock toggle to `OpponentInspectorDrawer` or make auto-drawer opening optional in settings so table status remains fully visible during multi-opponent AI turns.
   - **Acceptance:** player can view right-side table status and discard pile during AI turn sequences; drawer overlay does not permanently block primary table controls.
 
-- [ ] **Mobile viewport card fan translation & target bounds**
+- [x] **Mobile viewport card fan translation & target bounds**
   - **Problem:** on mobile viewports (375x667), when hovering or touching cards in a full 10-card hand, the hover translation lifts zoomed cards above the hand container top boundary, clipping under the battleground pot.
   - **Goal:** adjust card fan Y-translation and hover bounds for mobile viewports to keep zoomed cards fully visible without clipping table elements.
   - **Acceptance:** zoomed cards in full 10-card hands remain fully readable and unobstructed on narrow mobile viewports; no clipping occurs with central battleground elements.

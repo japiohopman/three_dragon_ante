@@ -83,9 +83,9 @@ export const PlayerHandArea: React.FC<PlayerHandAreaProps> = ({
     if (isHovered) {
         return {
             x: xOffset,
-            y: isMobile ? -75 : -120,
+            y: isMobile ? -45 : -120,
             rotate: 0,
-            scale: total > 6 ? (isMobile ? 1.25 : 1.4) : (isMobile ? 1.35 : 1.55),
+            scale: total > 6 ? (isMobile ? 1.15 : 1.4) : (isMobile ? 1.25 : 1.55),
             zIndex: 100,
             filter: 'brightness(1.1) contrast(1.1) drop-shadow(0 20.1px 40px rgba(0,0,0,0.8))',
         };
@@ -93,7 +93,11 @@ export const PlayerHandArea: React.FC<PlayerHandAreaProps> = ({
         const distFromHover = index - hoveredIndex;
         const absDist = Math.abs(distFromHover);
         if (absDist <= 2) {
-            const shiftX = distFromHover * (absDist === 1 ? (total > 6 ? 50 : 80) : (total > 6 ? 25 : 40));
+            const shiftX = distFromHover * (
+                absDist === 1
+                    ? (total > 6 ? (isMobile ? 35 : 50) : (isMobile ? 55 : 80))
+                    : (total > 6 ? (isMobile ? 18 : 25) : (isMobile ? 28 : 40))
+            );
             const rOffset = distFromHover * (absDist === 1 ? 12 : 8);
             return {
                 x: xOffset + shiftX,
