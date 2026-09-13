@@ -5,12 +5,17 @@ import { getNPCPersona } from '../../constants/npcLines';
 import { NPCEmotion } from '../../types';
 
 export interface UISlice {
+  autoOpenInspector: boolean;
+  toggleAutoOpenInspector: () => void;
   speak: (line: string, duration?: number, dynamic?: boolean) => void;
   addNotification: (message: string, type?: 'info' | 'gold-gain' | 'gold-loss' | 'power' | 'alert') => void;
   fixGameState: () => void;
 }
 
 export const createUISlice: StateCreator<GameStore, [], [], UISlice> = (set, get) => ({
+  autoOpenInspector: false,
+  toggleAutoOpenInspector: () => set((state) => ({ autoOpenInspector: !state.autoOpenInspector })),
+
   speak: (line: string, duration: number = 3000, dynamic: boolean = false) => {
     const state = get();
     const focusedIdx = state.focusedOpponentIndex;

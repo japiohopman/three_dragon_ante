@@ -17,6 +17,8 @@ const TableTop: React.FC = () => {
     activePlayerIndex,
     focusedOpponentIndex,
     setFocusedOpponentIndex,
+    autoOpenInspector,
+    toggleAutoOpenInspector,
     playerHand,
     playerFlight,
     playerAnte,
@@ -63,8 +65,11 @@ const TableTop: React.FC = () => {
   React.useEffect(() => {
     if (activePlayerIndex > 0 && activePlayerIndex < players.length) {
       setFocusedOpponentIndex(activePlayerIndex);
+      if (autoOpenInspector && phase === 'opponent-turn') {
+        setIsDrawerOpen(true);
+      }
     }
-  }, [activePlayerIndex, players.length, setFocusedOpponentIndex]);
+  }, [activePlayerIndex, players.length, setFocusedOpponentIndex, autoOpenInspector, phase]);
 
   const isPlayerTurn = (phase === 'player-turn' && activePlayer === 'player') ||
                        (phase === 'round-start' && currentLeader === 'player');
@@ -178,6 +183,8 @@ const TableTop: React.FC = () => {
         direction={direction}
         prevOpponent={prevOpponent}
         nextOpponent={nextOpponent}
+        autoOpenInspector={autoOpenInspector}
+        toggleAutoOpenInspector={toggleAutoOpenInspector}
         onClose={() => setIsDrawerOpen(false)}
       />
 

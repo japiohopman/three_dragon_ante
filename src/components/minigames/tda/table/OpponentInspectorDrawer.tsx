@@ -18,6 +18,8 @@ interface OpponentInspectorDrawerProps {
   direction: number;
   prevOpponent: () => void;
   nextOpponent: () => void;
+  autoOpenInspector?: boolean;
+  toggleAutoOpenInspector?: () => void;
   onClose: () => void;
 }
 
@@ -31,64 +33,107 @@ export const OpponentInspectorDrawer: React.FC<OpponentInspectorDrawerProps> = (
   direction,
   prevOpponent,
   nextOpponent,
+  autoOpenInspector = false,
+  toggleAutoOpenInspector,
   onClose
 }) => {
+  const [isCollapsed, setIsCollapsed] = React.useState(false);
+
+  React.useEffect(() => {
+    if (isDrawerOpen) {
+      setIsCollapsed(false);
+    }
+  }, [isDrawerOpen]);
+
   return (
     <AnimatePresence>
       {isDrawerOpen && focusedOpponent && (
         <>
-          {/* Backdrop overlay for smaller screens */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={onClose}
-            className="lg:hidden fixed inset-0 bg-black/50 backdrop-blur-xs z-[125] pointer-events-auto"
-          />
-          <motion.div
-            initial={{ x: '100%' }}
-            animate={{ x: 0 }}
-            exit={{ x: '100%' }}
-            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className="fixed top-0 right-0 w-full max-w-[420px] sm:w-[420px] h-full border-l border-stone-800 bg-stone-950/98 backdrop-blur-2xl shadow-[-20px_0_50px_rgba(0,0,0,0.85)] z-[130] flex flex-col pointer-events-auto"
-          >
-            {/* Drawer Header with Navigation and Close Button */}
-            <div className="p-4 sm:p-6 border-b border-stone-800 flex items-center justify-between bg-stone-900/40">
-                <button
-                  onClick={prevOpponent}
-                  disabled={players.length <= 2}
-                  aria-label="Inspect Previous Opponent"
-                  className="p-2.5 hover:bg-stone-800 disabled:opacity-30 disabled:cursor-not-allowed rounded-lg border border-stone-800 hover:border-stone-700 transition-colors text-amber-500 min-h-[44px] min-w-[44px] flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:ring-offset-2 focus-visible:ring-offset-stone-950"
-                  title="Previous Opponent"
-                >
-                    <GameIcon name="chevron_left" size={18} />
-                </button>
-
-                <div className="text-center flex flex-col mx-2 min-w-0">
-                    <span className="text-[9px] uppercase tracking-[0.3em] text-stone-500 font-bold mb-0.5">Inspecting Opponent</span>
-                    <span className="text-base sm:text-lg text-amber-100 font-serif font-bold uppercase tracking-widest truncate">{focusedOpponent.name}</span>
-                </div>
-
-                <div className="flex items-center gap-1.5">
+          {/* Docked trigger tab when drawer is collapsed */}
+          {isCollapsed ? (
+            <motion.button
+              key="docked-tab"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
+              onClick={() => {
+                playSound('UI_CLICK');
+                setIsCollapsed(false);
+              }}
+              aria-label="Expand Inspector Drawer"
+              title="Expand Inspector Drawer"
+              className="fixed top-1/2 -translate-y-1/2 right-0 z-[130] bg-stone-900/95 hover:bg-stone-800 text-amber-400 border-l-2 border-y border-amber-600/50 rounded-l-xl p-3 shadow-2xl flex flex-col items-center gap-2 cursor-pointer transition-all pointer-events-auto group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
+            >
+              <GameIcon name="chevron_left" size={18} className="group-hover:-translate-x-1 transition-transform" />
+              <span className="text-[10px] font-bold uppercase tracking-widest text-amber-200 [writing-mode:vertical-lr] rotate-180">
+                Inspect ({focusedOpponent.name})
+              </span>
+            </motion.button>
+          ) : (
+            <>
+              {/* Backdrop overlay for smaller screens */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={onClose}
+                className="lg:hidden fixed inset-0 bg-black/50 backdrop-blur-xs z-[125] pointer-events-auto"
+              />
+              <motion.div
+                initial={{ x: '100%' }}
+                animate={{ x: 0 }}
+                exit={{ x: '100%' }}
+                transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                className="fixed top-0 right-0 w-full max-w-[420px] sm:w-[420px] h-full border-l border-stone-800 bg-stone-950/98 backdrop-blur-2xl shadow-[-20px_0_50px_rgba(0,0,0,0.85)] z-[130] flex flex-col pointer-events-auto"
+              >
+                {/* Drawer Header with Navigation, Collapse, and Close Buttons */}
+                <div className="p-4 sm:p-6 border-b border-stone-800 flex items-center justify-between bg-stone-900/40">
                     <button
-                      onClick={nextOpponent}
+                      onClick={prevOpponent}
                       disabled={players.length <= 2}
-                      aria-label="Inspect Next Opponent"
+                      aria-label="Inspect Previous Opponent"
                       className="p-2.5 hover:bg-stone-800 disabled:opacity-30 disabled:cursor-not-allowed rounded-lg border border-stone-800 hover:border-stone-700 transition-colors text-amber-500 min-h-[44px] min-w-[44px] flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:ring-offset-2 focus-visible:ring-offset-stone-950"
-                      title="Next Opponent"
+                      title="Previous Opponent"
                     >
-                        <GameIcon name="chevron_right" size={18} />
+                        <GameIcon name="chevron_left" size={18} />
                     </button>
-                    <button
-                      onClick={onClose}
-                      aria-label="Close Inspector"
-                      className="p-2.5 hover:bg-stone-800 rounded-lg border border-stone-800 hover:border-stone-700 transition-colors text-stone-400 hover:text-white min-h-[44px] min-w-[44px] flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:ring-offset-2 focus-visible:ring-offset-stone-950"
-                      title="Close Inspector"
-                    >
-                        <GameIcon name="close" size={18} />
-                    </button>
+
+                    <div className="text-center flex flex-col mx-2 min-w-0">
+                        <span className="text-[9px] uppercase tracking-[0.3em] text-stone-500 font-bold mb-0.5">Inspecting Opponent</span>
+                        <span className="text-base sm:text-lg text-amber-100 font-serif font-bold uppercase tracking-widest truncate">{focusedOpponent.name}</span>
+                    </div>
+
+                    <div className="flex items-center gap-1.5">
+                        <button
+                          onClick={nextOpponent}
+                          disabled={players.length <= 2}
+                          aria-label="Inspect Next Opponent"
+                          className="p-2.5 hover:bg-stone-800 disabled:opacity-30 disabled:cursor-not-allowed rounded-lg border border-stone-800 hover:border-stone-700 transition-colors text-amber-500 min-h-[44px] min-w-[44px] flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:ring-offset-2 focus-visible:ring-offset-stone-950"
+                          title="Next Opponent"
+                        >
+                            <GameIcon name="chevron_right" size={18} />
+                        </button>
+                        <button
+                          onClick={() => {
+                              playSound('UI_CLICK');
+                              setIsCollapsed(true);
+                          }}
+                          aria-label="Collapse to Dock"
+                          className="p-2.5 hover:bg-stone-800 rounded-lg border border-stone-800 hover:border-stone-700 transition-colors text-amber-500 hover:text-amber-400 min-h-[44px] min-w-[44px] flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:ring-offset-2 focus-visible:ring-offset-stone-950"
+                          title="Collapse to Dock"
+                        >
+                            <GameIcon name="chevron_right" size={18} />
+                        </button>
+                        <button
+                          onClick={onClose}
+                          aria-label="Close Inspector"
+                          className="p-2.5 hover:bg-stone-800 rounded-lg border border-stone-800 hover:border-stone-700 transition-colors text-stone-400 hover:text-white min-h-[44px] min-w-[44px] flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:ring-offset-2 focus-visible:ring-offset-stone-950"
+                          title="Close Inspector"
+                        >
+                            <GameIcon name="close" size={18} />
+                        </button>
+                    </div>
                 </div>
-            </div>
 
             {/* Drawer Body - Panning Area */}
             <div className="flex-1 overflow-y-auto custom-scrollbar p-6 flex flex-col gap-6 relative overflow-x-hidden">
@@ -190,8 +235,25 @@ export const OpponentInspectorDrawer: React.FC<OpponentInspectorDrawerProps> = (
 
             </div>
 
-            {/* Drawer Footer with close button */}
-            <div className="p-4 border-t border-stone-800 flex justify-center bg-stone-900/20">
+            {/* Drawer Footer with auto-open setting toggle and close button */}
+            <div className="p-4 border-t border-stone-800 flex flex-col gap-2.5 justify-center bg-stone-900/20">
+                {toggleAutoOpenInspector && (
+                    <button
+                      onClick={() => {
+                          playSound('UI_CLICK');
+                          toggleAutoOpenInspector();
+                      }}
+                      className={`w-full py-2.5 px-3 rounded-lg border transition-all text-[10px] font-bold uppercase tracking-widest min-h-[40px] flex items-center justify-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:ring-offset-2 focus-visible:ring-offset-stone-950 ${
+                        autoOpenInspector
+                          ? 'bg-amber-950/40 border-amber-600/50 text-amber-300 hover:bg-amber-900/50'
+                          : 'bg-stone-900/60 border-stone-800 text-stone-400 hover:text-stone-300 hover:bg-stone-800/60'
+                      }`}
+                      title="Toggle auto-opening inspector during opponent turn"
+                    >
+                        <GameIcon name="thinking" size={14} />
+                        <span>Auto-Open on AI Turn: {autoOpenInspector ? 'ON' : 'OFF'}</span>
+                    </button>
+                )}
                 <button
                   onClick={() => {
                       playSound('UI_CLICK');
@@ -204,6 +266,8 @@ export const OpponentInspectorDrawer: React.FC<OpponentInspectorDrawerProps> = (
                 </button>
             </div>
         </motion.div>
+            </>
+          )}
         </>
       )}
     </AnimatePresence>
