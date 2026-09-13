@@ -173,3 +173,13 @@ Prioritize problems that disrupt:
 - **Evidence:** Code inspection of `MultiplayerSeats.tsx` lines 90-94 and `OpponentInspectorDrawer.tsx`.
 - **Confidence:** High
 - **Status:** NEW
+
+### 2025-05-19 — Automatic drawer backdrop dimming during decision prompts
+- **Agent:** Jules
+- **Area:** UX / UI
+- **Observation:** When an interruption decision prompt (`InteractionModal`) appears (`pendingInteraction.target === 'player'`), `OpponentInspectorDrawer` or `PileBrowserModal` can remain open in the background layer (`z-[130]`/`z-[150]`), creating visual competition behind the decision modal (`z-[200]`).
+- **Idea:** Temporarily minimize or increase backdrop dimming on open drawers when `pendingInteraction` triggers for the human player.
+- **Player value:** Reduces visual distraction and directs player focus solely to the pending rule-driven decision.
+- **Evidence:** Code inspection of `InteractionModal.tsx` and `TableTop.tsx` (`pendingInteraction` modal overlay z-index layering).
+- **Confidence:** High
+- **Status:** NEW

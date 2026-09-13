@@ -13,6 +13,38 @@ interface InteractionModalProps {
   respondToInteraction: (optionValue: string, selectedCardId?: string) => void;
 }
 
+const getPowerContextDescription = (sourceCardName: string, sourcePrefix: string): string => {
+  switch (sourceCardName) {
+    case 'Green Dragon':
+      return `${sourcePrefix}Green Dragon demands tribute! You must surrender a weaker evil dragon card from your hand or pay 5 gold into the pot.`;
+    case 'Brass Dragon':
+      return `${sourcePrefix}Brass Dragon demands tribute! You must surrender a stronger good dragon card from your hand or pay 5 gold into the pot.`;
+    case 'Blue Dragon':
+      return `Your Blue Dragon's power is active! Choose whether to steal gold from the central pot or force your opponent to pay you directly.`;
+    case 'The Thief':
+      return `The Thief steals 7 gold from the pot! Select 1 card from your hand to discard.`;
+    default:
+      return `${sourcePrefix}${sourceCardName} power requires your decision. Select an option below to proceed.`;
+  }
+};
+
+const getOptionConsequence = (optVal: string, cost?: number, amount?: number): string => {
+  switch (optVal) {
+    case 'pay-gold':
+      return `Consequence: Deducts ${cost || 5} gold from your purse and adds it to the pot.`;
+    case 'give-card':
+      return `Consequence: Transfers the selected card from your hand to the active opponent.`;
+    case 'discard-card':
+      return `Consequence: Removes the selected card from your hand and places it in the discard pile.`;
+    case 'steal-pot':
+      return `Consequence: Collects ${amount || 1} gold from the central pot directly into your purse.`;
+    case 'opp-pay':
+      return `Consequence: Forces the opponent to pay ${amount || 1} gold directly to your purse.`;
+    default:
+      return 'Consequence: Resolves this card action immediately.';
+  }
+};
+
 export const InteractionModal: React.FC<InteractionModalProps> = ({
   pendingInteraction,
   playerGold,
@@ -31,7 +63,7 @@ export const InteractionModal: React.FC<InteractionModalProps> = ({
       return (
           <div className="absolute top-24 left-1/2 -translate-x-1/2 bg-stone-950/95 border-2 border-purple-500/80 text-purple-100 px-8 py-4 rounded-xl shadow-[0_0_30px_rgba(168,85,247,0.3)] flex items-center gap-4 z-[180] animate-in slide-in-from-top duration-300">
               <div className="p-3 rounded-full bg-purple-900/60 text-purple-300 animate-pulse">
-                  {getIcon('ui', 'swords', { size: 24 })}
+                  {getIcon('minigames', 'swords', { size: 24 })}
               </div>
               <div>
                   <div className="flex items-center gap-2">
@@ -48,6 +80,7 @@ export const InteractionModal: React.FC<InteractionModalProps> = ({
 
   const activeP = players[activePlayerIndex];
   const sourcePrefix = activeP && activeP.id !== 'player' ? `${activeP.name}'s ` : '';
+  const contextDesc = getPowerContextDescription(pendingInteraction.sourceCardName, sourcePrefix);
 
   const renderFormattedMessage = (text: string) => {
       const regex = /(\d+\s*gold)|(gold)|(draw)|(discard)|(steal)|(pickup)|(dispell)|(magic)/gi;
@@ -92,71 +125,121 @@ export const InteractionModal: React.FC<InteractionModalProps> = ({
       });
   };
 
+  const allOptionsDisabled = pendingInteraction.options.every(opt => {
+      const isCardAction = opt.value === 'give-card' || opt.value === 'discard-card';
+      return isCardAction && selectableCards.length === 0;
+  });
+
   return (
     <div className="absolute inset-0 top-20 flex flex-col items-center justify-center z-[200] pointer-events-auto animate-in fade-in duration-300">
-          <div className="bg-stone-950 border-2 border-purple-500 p-8 rounded-xl max-w-2xl w-full mx-4 shadow-[0_0_40px_rgba(168,85,247,0.4)] relative">
+          <div className="bg-stone-950 border-2 border-purple-500 p-6 sm:p-8 rounded-xl max-w-2xl w-full mx-4 shadow-[0_0_40px_rgba(168,85,247,0.4)] relative">
+              {/* HEADER BADGE */}
               <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 bg-purple-950 border-2 border-purple-400 px-5 py-2 rounded-full shadow-lg flex items-center gap-2 animate-pulse">
-                 {getIcon('ui', 'alert', { className: "text-purple-300 inline-block" })}
+                 {getIcon('ui', 'alert_triangle', { className: "text-purple-300 inline-block" })}
                  <span className="text-purple-100 font-bold uppercase tracking-wider text-sm">⚡ DECISION REQUIRED: {sourcePrefix}{pendingInteraction.sourceCardName}</span>
               </div>
 
-              <h3 className="text-center text-xl text-purple-100 mb-8 mt-4 font-serif font-bold">
-                  You must make a choice:
+              {/* CONTEXT BANNER */}
+              <div className="mt-4 mb-6 p-3 bg-purple-950/50 border border-purple-600/40 rounded-lg text-center">
+                  <p className="text-sm text-purple-200 font-sans leading-relaxed">{contextDesc}</p>
+              </div>
+
+              <h3 className="text-center text-lg sm:text-xl text-purple-100 mb-6 font-serif font-bold">
+                  Select your action:
               </h3>
 
-              <div className="flex flex-col gap-4">
-                  {pendingInteraction.options.map((opt, idx) => {
-                      const isCardAction = opt.value === 'give-card' || opt.value === 'discard-card';
-                      const isPayAction = opt.value === 'pay-gold';
-                      const costCp = (opt.cost || 0) * 100;
-                      const hasCards = isCardAction ? selectableCards.length > 0 : true;
-                      const isDisabled = (isCardAction && !hasCards);
+              {allOptionsDisabled ? (
+                  <div className="flex flex-col items-center gap-4 py-4">
+                      <p className="text-amber-300 text-sm italic text-center">No eligible cards available in hand to fulfill card requirement.</p>
+                      <button
+                          onClick={() => {
+                              playSound('UI_CLICK');
+                              respondToInteraction('skip-no-cards');
+                          }}
+                          className="w-full py-4 bg-amber-900/80 hover:bg-amber-800 border-2 border-amber-500 text-amber-100 rounded-lg font-bold text-lg transition-all shadow-lg focus:outline-none focus:ring-2 focus:ring-amber-400"
+                      >
+                          Skip Action (No Matching Cards Available)
+                      </button>
+                  </div>
+              ) : (
+                  <div className="flex flex-col gap-5">
+                      {pendingInteraction.options.map((opt, idx) => {
+                          const isCardAction = opt.value === 'give-card' || opt.value === 'discard-card';
+                          const isPayAction = opt.value === 'pay-gold';
+                          const costCp = (opt.cost || 0) * 100;
+                          const hasCards = isCardAction ? selectableCards.length > 0 : true;
+                          const isDisabled = (isCardAction && !hasCards);
+                          const consequenceText = getOptionConsequence(opt.value, opt.cost, opt.amount);
 
-                      let label = opt.label;
-                      if (isPayAction && playerGold < costCp) {
-                          const debtAmountCp = costCp - Math.max(0, playerGold);
-                          label = `${opt.label} (Debt: ${formatPrice(debtAmountCp)})`;
-                      }
+                          let label = opt.label;
+                          if (isPayAction && playerGold < costCp) {
+                              const debtAmountCp = costCp - Math.max(0, playerGold);
+                              label = `${opt.label} (Debt: ${formatPrice(debtAmountCp)})`;
+                          }
 
-                      return (
-                          <div key={idx} className="flex flex-col gap-2">
-                              <button
-                                 onClick={() => {
-                                     playSound('UI_CLICK');
-                                     if (!isCardAction) respondToInteraction(opt.value);
-                                 }}
-                                 disabled={isDisabled}
-                                 className={`w-full py-4 border border-stone-600 rounded text-lg font-bold transition-all
-                                     ${isDisabled
-                                         ? 'bg-stone-800 text-stone-600 cursor-not-allowed'
-                                         : 'bg-stone-800 hover:bg-amber-900 text-amber-100 hover:border-amber-500 shadow-lg'}
-                                 `}
-                              >
-                                  {renderFormattedMessage(label)}
-                                  {!hasCards && isCardAction && <span className="text-xs ml-2 text-red-500">(No matching cards)</span>}
-                              </button>
+                          return (
+                              <div key={idx} className="flex flex-col gap-2">
+                                  <button
+                                     onClick={() => {
+                                         playSound('UI_CLICK');
+                                         if (!isCardAction) respondToInteraction(opt.value);
+                                     }}
+                                     disabled={isDisabled}
+                                     className={`w-full py-3.5 px-4 border border-stone-600 rounded-lg font-bold transition-all flex flex-col items-center gap-1
+                                         ${isDisabled
+                                             ? 'bg-stone-900/80 text-stone-600 border-stone-800 cursor-not-allowed'
+                                             : 'bg-stone-900 hover:bg-amber-950 text-amber-100 hover:border-amber-500 shadow-lg focus:outline-none focus:ring-2 focus:ring-amber-400'}
+                                     `}
+                                  >
+                                      <div className="text-lg">
+                                          {renderFormattedMessage(label)}
+                                          {!hasCards && isCardAction && <span className="text-xs ml-2 text-red-400">(No matching cards)</span>}
+                                      </div>
+                                      <span className="text-xs font-normal text-stone-400 tracking-wide">
+                                          {consequenceText}
+                                      </span>
+                                  </button>
 
-                              {isCardAction && hasCards && (
-                                  <div className="flex justify-center gap-2 py-2 overflow-x-auto">
-                                      {selectableCards.map(card => (
-                                          <div key={card.id} className="transform scale-75 hover:scale-90 focus-within:scale-90 transition-transform origin-top">
-                                              <Card
-                                                 card={card}
-                                                 onClick={() => {
-                                                     playSound('UI_CLICK');
-                                                     respondToInteraction(opt.value, card.id);
-                                                 }}
-                                                 className="hover:ring-4 hover:ring-amber-400 focus-visible:ring-4 focus-visible:ring-amber-400"
-                                                 disableFocus={false}
-                                              />
+                                  {isCardAction && hasCards && (
+                                      <div className="flex flex-col items-center gap-2 py-2">
+                                          <span className="text-xs text-amber-300/90 font-medium tracking-wide">
+                                              Click or press Enter/Space to select card:
+                                          </span>
+                                          <div className="flex justify-center gap-2 overflow-x-auto max-w-full py-1">
+                                              {selectableCards.map(card => (
+                                                  <div
+                                                      key={card.id}
+                                                      role="button"
+                                                      tabIndex={0}
+                                                      aria-label={`Select ${card.name}, strength ${card.strength}`}
+                                                      onKeyDown={(e) => {
+                                                          if (e.key === 'Enter' || e.key === ' ') {
+                                                              e.preventDefault();
+                                                              playSound('UI_CLICK');
+                                                              respondToInteraction(opt.value, card.id);
+                                                          }
+                                                      }}
+                                                      className="transform scale-75 hover:scale-90 focus-within:scale-90 transition-transform origin-top focus:outline-none focus:ring-2 focus:ring-amber-400 rounded-lg"
+                                                  >
+                                                      <Card
+                                                         card={card}
+                                                         onClick={() => {
+                                                             playSound('UI_CLICK');
+                                                             respondToInteraction(opt.value, card.id);
+                                                         }}
+                                                         className="hover:ring-4 hover:ring-amber-400 focus-visible:ring-4 focus-visible:ring-amber-400"
+                                                         disableFocus={false}
+                                                      />
+                                                  </div>
+                                              ))}
                                           </div>
-                                      ))}
-                                  </div>
-                              )}
-                          </div>
-                      );
-                  })}
-              </div>
+                                      </div>
+                                  )}
+                              </div>
+                          );
+                      })}
+                  </div>
+              )}
           </div>
     </div>
   );

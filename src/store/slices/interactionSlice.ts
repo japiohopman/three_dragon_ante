@@ -16,102 +16,107 @@ export const createInteractionSlice: StateCreator<GameStore, [], [], Interaction
     const { pendingInteraction, players, pot, discardPile } = state;
     if (!pendingInteraction) return;
 
-    const p0 = players[0];
-    const option = pendingInteraction.options.find(o => o.value === optionValue);
-    if (!option) return;
-
     let logMsg = "";
     let updatedPlayers = [...players];
     let updatedPot = pot;
 
     const POS = getPos(0, players.length);
 
-    if (optionValue === 'pay-gold') {
-       const costCp = (option.cost || 0) * 100;
-       updatedPlayers = players.map((p, idx) => {
-           if (idx === 0) return { ...p, gold: p.gold - costCp };
-           return p;
-       });
-       updatedPot = pot + costCp;
-       playSound('GOLD_LOSS');
-       useAnimationStore.getState().spawnCoins(3, POS, { x: window.innerWidth / 2, y: window.innerHeight / 2 });
-       useAnimationStore.getState().triggerFloatingText(POS.x, POS.y, `-${formatPrice(costCp)}`, 'red');
-       logMsg = `You pay ${formatPrice(costCp)}.`;
-    }
-    else if (optionValue === 'give-card') {
-       if (selectedCardId) {
-           const cardIndex = p0.hand.findIndex(c => c.id === selectedCardId);
-           if (cardIndex > -1) {
-               const card = p0.hand[cardIndex];
-               const newPHand = p0.hand.filter(c => c.id !== selectedCardId);
+    if (optionValue === 'skip-no-cards') {
+        logMsg = "Action skipped (no matching cards in hand).";
+    } else {
+        const option = pendingInteraction.options.find(o => o.value === optionValue);
+        if (!option) return;
 
-               // Give to the active player or source card owner
-               const recipientIdx = state.activePlayerIndex;
-               updatedPlayers = players.map((p, idx) => {
-                   if (idx === 0) return { ...p, hand: newPHand };
-                   if (idx === recipientIdx) return { ...p, hand: [...p.hand, card] };
-                   return p;
-               });
+        const p0 = players[0];
 
-               playSound('CARD_SLIDE');
-               logMsg = `You give ${card.name} to ${players[recipientIdx].name}.`;
+        if (optionValue === 'pay-gold') {
+           const costCp = (option.cost || 0) * 100;
+           updatedPlayers = players.map((p, idx) => {
+               if (idx === 0) return { ...p, gold: p.gold - costCp };
+               return p;
+           });
+           updatedPot = pot + costCp;
+           playSound('GOLD_LOSS');
+           useAnimationStore.getState().spawnCoins(3, POS, { x: window.innerWidth / 2, y: window.innerHeight / 2 });
+           useAnimationStore.getState().triggerFloatingText(POS.x, POS.y, `-${formatPrice(costCp)}`, 'red');
+           logMsg = `You pay ${formatPrice(costCp)}.`;
+        }
+        else if (optionValue === 'give-card') {
+           if (selectedCardId) {
+               const cardIndex = p0.hand.findIndex(c => c.id === selectedCardId);
+               if (cardIndex > -1) {
+                   const card = p0.hand[cardIndex];
+                   const newPHand = p0.hand.filter(c => c.id !== selectedCardId);
+
+                   // Give to the active player or source card owner
+                   const recipientIdx = state.activePlayerIndex;
+                   updatedPlayers = players.map((p, idx) => {
+                       if (idx === 0) return { ...p, hand: newPHand };
+                       if (idx === recipientIdx) return { ...p, hand: [...p.hand, card] };
+                       return p;
+                   });
+
+                   playSound('CARD_SLIDE');
+                   logMsg = `You give ${card.name} to ${players[recipientIdx].name}.`;
+               }
            }
-       }
-    }
-    else if (optionValue === 'discard-card') {
-        if (selectedCardId) {
-            const cardIndex = p0.hand.findIndex(c => c.id === selectedCardId);
-            if (cardIndex > -1) {
-               const card = p0.hand[cardIndex];
-               const newHand = p0.hand.filter(c => c.id !== selectedCardId);
-               updatedPlayers = players.map((p, idx) => {
-                   if (idx === 0) return { ...p, hand: newHand };
-                   return p;
-               });
-               playSound('CARD_SLIDE');
-               set({ discardPile: [...discardPile, card] });
-               logMsg = `You discard ${card.name}.`;
+        }
+        else if (optionValue === 'discard-card') {
+            if (selectedCardId) {
+                const cardIndex = p0.hand.findIndex(c => c.id === selectedCardId);
+                if (cardIndex > -1) {
+                   const card = p0.hand[cardIndex];
+                   const newHand = p0.hand.filter(c => c.id !== selectedCardId);
+                   updatedPlayers = players.map((p, idx) => {
+                       if (idx === 0) return { ...p, hand: newHand };
+                       return p;
+                   });
+                   playSound('CARD_SLIDE');
+                   set({ discardPile: [...discardPile, card] });
+                   logMsg = `You discard ${card.name}.`;
+                }
             }
         }
-    }
-    else if (optionValue === 'steal-pot') {
-        const amountCp = (option.amount || 0) * 100;
-        let stolenCp = Math.min(pot, amountCp);
+        else if (optionValue === 'steal-pot') {
+            const amountCp = (option.amount || 0) * 100;
+            let stolenCp = Math.min(pot, amountCp);
 
-        if (state.playerSkill === 'sleight-of-hand' && pot > stolenCp) {
-             stolenCp += 100;
+            if (state.playerSkill === 'sleight-of-hand' && pot > stolenCp) {
+                 stolenCp += 100;
+            }
+
+            updatedPot = pot - stolenCp;
+            updatedPlayers = players.map((p, idx) => {
+               if (idx === 0) return { ...p, gold: p.gold + stolenCp };
+               return p;
+            });
+
+            playSound('GOLD_GAIN_LARGE');
+            useAnimationStore.getState().spawnCoins(5, { x: window.innerWidth / 2, y: window.innerHeight / 2 }, POS);
+            useAnimationStore.getState().triggerFloatingText(POS.x, POS.y, `+${formatPrice(stolenCp)}`, 'gold');
+            logMsg = `Blue Dragon: You steal ${formatPrice(stolenCp)}.`;
         }
+        else if (optionValue === 'opp-pay') {
+            const amountCp = (option.amount || 0) * 100;
 
-        updatedPot = pot - stolenCp;
-        updatedPlayers = players.map((p, idx) => {
-           if (idx === 0) return { ...p, gold: p.gold + stolenCp };
-           return p;
-        });
+            // Take from the active player index
+            const payIdx = state.activePlayerIndex;
+            const payPlayer = players[payIdx];
+            const payPOS = getPos(payIdx, players.length);
 
-        playSound('GOLD_GAIN_LARGE');
-        useAnimationStore.getState().spawnCoins(5, { x: window.innerWidth / 2, y: window.innerHeight / 2 }, POS);
-        useAnimationStore.getState().triggerFloatingText(POS.x, POS.y, `+${formatPrice(stolenCp)}`, 'gold');
-        logMsg = `Blue Dragon: You steal ${formatPrice(stolenCp)}.`;
-    }
-    else if (optionValue === 'opp-pay') {
-        const amountCp = (option.amount || 0) * 100;
+            updatedPlayers = players.map((p, idx) => {
+                if (idx === payIdx) return { ...p, gold: p.gold - amountCp };
+                if (idx === 0) return { ...p, gold: p.gold + amountCp };
+                return p;
+            });
 
-        // Take from the active player index
-        const payIdx = state.activePlayerIndex;
-        const payPlayer = players[payIdx];
-        const payPOS = getPos(payIdx, players.length);
-
-        updatedPlayers = players.map((p, idx) => {
-            if (idx === payIdx) return { ...p, gold: p.gold - amountCp };
-            if (idx === 0) return { ...p, gold: p.gold + amountCp };
-            return p;
-        });
-
-        playSound('GOLD_LOSS');
-        useAnimationStore.getState().spawnCoins(5, payPOS, POS);
-        useAnimationStore.getState().triggerFloatingText(payPOS.x, payPOS.y, `-${formatPrice(amountCp)}`, 'red');
-        useAnimationStore.getState().triggerFloatingText(POS.x, POS.y, `+${formatPrice(amountCp)}`, 'gold');
-        logMsg = `Blue Dragon: ${payPlayer.name} pays you ${formatPrice(amountCp)}.`;
+            playSound('GOLD_LOSS');
+            useAnimationStore.getState().spawnCoins(5, payPOS, POS);
+            useAnimationStore.getState().triggerFloatingText(payPOS.x, payPOS.y, `-${formatPrice(amountCp)}`, 'red');
+            useAnimationStore.getState().triggerFloatingText(POS.x, POS.y, `+${formatPrice(amountCp)}`, 'gold');
+            logMsg = `Blue Dragon: ${payPlayer.name} pays you ${formatPrice(amountCp)}.`;
+        }
     }
 
     set(syncCompatibility({
@@ -158,7 +163,11 @@ export const createInteractionSlice: StateCreator<GameStore, [], [], Interaction
           const giveCardOption = options.find(o => o.value === 'give-card');
           const discardOption = options.find(o => o.value === 'discard-card');
 
-          if (discardOption) chosenOption = discardOption;
+          if (discardOption) {
+              const sortedHand = [...aiPlayer.hand].sort((a,b) => a.strength - b.strength);
+              if (sortedHand.length > 0) chosenOption = discardOption;
+              else if (payOption) chosenOption = payOption;
+          }
           else if (payOption && giveCardOption) {
               const validCards = aiPlayer.hand.filter(giveCardOption.cardFilter || (() => false));
               if (validCards.length > 0) {
@@ -198,6 +207,8 @@ export const createInteractionSlice: StateCreator<GameStore, [], [], Interaction
 
                playSound('CARD_SLIDE');
                logMsg = `${aiPlayer.name} gives you ${cardToGive.name}.`;
+           } else {
+               logMsg = `${aiPlayer.name} has no matching cards to give.`;
            }
       }
       else if (chosenOption.value === 'discard-card') {
@@ -212,6 +223,8 @@ export const createInteractionSlice: StateCreator<GameStore, [], [], Interaction
                 playSound('CARD_SLIDE');
                 set({ discardPile: [...discardPile, card] });
                 logMsg = `${aiPlayer.name} discards ${card.name}.`;
+           } else {
+                logMsg = `${aiPlayer.name} has no cards to discard.`;
            }
       }
       else if (chosenOption.value === 'steal-pot') {
