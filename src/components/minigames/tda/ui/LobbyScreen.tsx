@@ -80,8 +80,19 @@ export const LobbyScreen: React.FC<LobbyScreenProps> = ({
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     {/* BLUFF */}
                     <div
+                      role="button"
+                      tabIndex={checkRequirement('bluff') ? 0 : -1}
+                      aria-selected={selectedSkill === 'bluff'}
+                      aria-disabled={!checkRequirement('bluff')}
+                      aria-label="Skill option: Bluff. Whenever you pay an opponent 2 or more gold, pay 1 less."
                       onClick={() => checkRequirement('bluff') && setSelectedSkill('bluff')}
-                      className={`relative cursor-pointer border-2 rounded-lg p-4 transition-all duration-300 backdrop-blur-md
+                      onKeyDown={(e) => {
+                          if ((e.key === 'Enter' || e.key === ' ') && checkRequirement('bluff')) {
+                              e.preventDefault();
+                              setSelectedSkill('bluff');
+                          }
+                      }}
+                      className={`relative cursor-pointer border-2 rounded-lg p-4 transition-all duration-300 backdrop-blur-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:ring-offset-2 focus-visible:ring-offset-stone-950
                           ${!checkRequirement('bluff') ? 'opacity-40 grayscale cursor-not-allowed border-stone-800' :
                             selectedSkill === 'bluff' ? 'bg-stone-800/80 border-amber-500 shadow-[0_0_20px_rgba(245,158,11,0.3)]' : 'bg-stone-900/60 border-stone-700 hover:bg-stone-800/80'}`}
                     >
@@ -100,8 +111,19 @@ export const LobbyScreen: React.FC<LobbyScreenProps> = ({
 
                     {/* SLEIGHT */}
                     <div
+                      role="button"
+                      tabIndex={checkRequirement('sleight-of-hand') ? 0 : -1}
+                      aria-selected={selectedSkill === 'sleight-of-hand'}
+                      aria-disabled={!checkRequirement('sleight-of-hand')}
+                      aria-label="Skill option: Sleight of Hand. When stealing from the pot, if the pot has gold left, steal 1 extra."
                       onClick={() => checkRequirement('sleight-of-hand') && setSelectedSkill('sleight-of-hand')}
-                      className={`relative cursor-pointer border-2 rounded-lg p-4 transition-all duration-300 backdrop-blur-md
+                      onKeyDown={(e) => {
+                          if ((e.key === 'Enter' || e.key === ' ') && checkRequirement('sleight-of-hand')) {
+                              e.preventDefault();
+                              setSelectedSkill('sleight-of-hand');
+                          }
+                      }}
+                      className={`relative cursor-pointer border-2 rounded-lg p-4 transition-all duration-300 backdrop-blur-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:ring-offset-2 focus-visible:ring-offset-stone-950
                           ${!checkRequirement('sleight-of-hand') ? 'opacity-40 grayscale cursor-not-allowed border-stone-800' :
                             selectedSkill === 'sleight-of-hand' ? 'bg-stone-800/80 border-amber-500 shadow-[0_0_20px_rgba(245,158,11,0.3)]' : 'bg-stone-900/60 border-stone-700 hover:bg-stone-800/80'}`}
                     >
@@ -120,8 +142,19 @@ export const LobbyScreen: React.FC<LobbyScreenProps> = ({
 
                     {/* CONCENTRATION */}
                     <div
+                      role="button"
+                      tabIndex={checkRequirement('concentration') ? 0 : -1}
+                      aria-selected={selectedSkill === 'concentration'}
+                      aria-disabled={!checkRequirement('concentration')}
+                      aria-label="Skill option: Concentration. Pay 1 less gold to the stakes when resolving the Ante."
                       onClick={() => checkRequirement('concentration') && setSelectedSkill('concentration')}
-                      className={`relative cursor-pointer border-2 rounded-lg p-4 transition-all duration-300 backdrop-blur-md
+                      onKeyDown={(e) => {
+                          if ((e.key === 'Enter' || e.key === ' ') && checkRequirement('concentration')) {
+                              e.preventDefault();
+                              setSelectedSkill('concentration');
+                          }
+                      }}
+                      className={`relative cursor-pointer border-2 rounded-lg p-4 transition-all duration-300 backdrop-blur-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:ring-offset-2 focus-visible:ring-offset-stone-950
                           ${!checkRequirement('concentration') ? 'opacity-40 grayscale cursor-not-allowed border-stone-800' :
                             selectedSkill === 'concentration' ? 'bg-stone-800/80 border-amber-500 shadow-[0_0_20px_rgba(245,158,11,0.3)]' : 'bg-stone-900/60 border-stone-700 hover:bg-stone-800/80'}`}
                     >
@@ -148,7 +181,8 @@ export const LobbyScreen: React.FC<LobbyScreenProps> = ({
                       setShowRules(true);
                   }}
                   onMouseEnter={() => playSound('UI_HOVER')}
-                  className="flex items-center gap-2 text-stone-400 hover:text-amber-400 transition-colors border border-stone-700 px-4 py-2 rounded-full bg-stone-900/50"
+                  aria-label="Open Three-Dragon Ante Rulebook"
+                  className="flex items-center gap-2 text-stone-400 hover:text-amber-400 transition-colors border border-stone-700 px-4 py-2 rounded-full bg-stone-900/50 min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:ring-offset-2 focus-visible:ring-offset-stone-950"
                 >
                     {getIcon('ui', 'scroll', { size: 16 })} Rulebook
                 </button>
@@ -179,11 +213,12 @@ export const LobbyScreen: React.FC<LobbyScreenProps> = ({
                       {[1, 2, 3, 4, 5].map((count) => (
                           <button
                               key={count}
+                              aria-pressed={opponentCount === count}
                               onClick={() => {
                                   playSound('UI_CLICK');
                                   setOpponentCount(count);
                               }}
-                              className={`px-5 py-2 rounded-lg font-gothic text-xl transition-all ${opponentCount === count ? 'bg-amber-600 text-stone-950 font-bold' : 'text-stone-400 hover:text-stone-200'}`}
+                              className={`px-5 py-2 rounded-lg font-gothic text-xl transition-all min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:ring-offset-2 focus-visible:ring-offset-stone-950 ${opponentCount === count ? 'bg-amber-600 text-stone-950 font-bold' : 'text-stone-400 hover:text-stone-200'}`}
                           >
                               {count} Opponent{count > 1 ? 's' : ''}
                           </button>
@@ -198,7 +233,8 @@ export const LobbyScreen: React.FC<LobbyScreenProps> = ({
                   }}
                   onMouseEnter={() => playSound('UI_HOVER')}
                   disabled={selectedSkill === 'none'}
-                  className="group relative px-6 py-4 bg-stone-800/90 border-2 border-amber-800/50 hover:border-amber-500 hover:bg-stone-700 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed backdrop-blur-sm"
+                  aria-label="Start Short Match (3 Gambits)"
+                  className="group relative px-6 py-4 bg-stone-800/90 border-2 border-amber-800/50 hover:border-amber-500 hover:bg-stone-700 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed backdrop-blur-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:ring-offset-2 focus-visible:ring-offset-stone-950"
               >
                   <span className="block text-xl text-amber-100 font-bold uppercase tracking-widest mb-1">Short</span>
                   <span className="block text-xs text-stone-400 uppercase tracking-wider">3 Gambits</span>
@@ -210,7 +246,8 @@ export const LobbyScreen: React.FC<LobbyScreenProps> = ({
                   }}
                   onMouseEnter={() => playSound('UI_HOVER')}
                   disabled={selectedSkill === 'none'}
-                  className="group relative px-6 py-4 bg-stone-800/90 border-2 border-amber-600 hover:bg-stone-700 transition-all duration-300 shadow-[0_0_20px_rgba(180,83,9,0.3)] hover:shadow-[0_0_40px_rgba(180,83,9,0.5)] transform hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed backdrop-blur-sm"
+                  aria-label="Start Standard Match (6 Gambits)"
+                  className="group relative px-6 py-4 bg-stone-800/90 border-2 border-amber-600 hover:bg-stone-700 transition-all duration-300 shadow-[0_0_20px_rgba(180,83,9,0.3)] hover:shadow-[0_0_40px_rgba(180,83,9,0.5)] transform hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed backdrop-blur-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:ring-offset-2 focus-visible:ring-offset-stone-950"
               >
                   <span className="block text-xl text-amber-100 font-bold uppercase tracking-widest mb-1">Standard</span>
                   <span className="block text-xs text-stone-400 uppercase tracking-wider">6 Gambits</span>
@@ -222,7 +259,8 @@ export const LobbyScreen: React.FC<LobbyScreenProps> = ({
                   }}
                   onMouseEnter={() => playSound('UI_HOVER')}
                   disabled={selectedSkill === 'none'}
-                  className="group relative px-6 py-4 bg-stone-800/90 border-2 border-amber-800/50 hover:border-amber-500 hover:bg-stone-700 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed backdrop-blur-sm"
+                  aria-label="Start Epic Match (9 Gambits)"
+                  className="group relative px-6 py-4 bg-stone-800/90 border-2 border-amber-800/50 hover:border-amber-500 hover:bg-stone-700 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed backdrop-blur-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:ring-offset-2 focus-visible:ring-offset-stone-950"
               >
                   <span className="block text-xl text-amber-100 font-bold uppercase tracking-widest mb-1">Epic</span>
                   <span className="block text-xs text-stone-400 uppercase tracking-wider">9 Gambits</span>

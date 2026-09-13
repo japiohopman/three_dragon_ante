@@ -60,7 +60,7 @@ This queue is deliberately ordered. Do not skip ahead because a later item looks
   - **Goal:** synchronize visual, motion, audio, and numerical feedback for gold/pot changes, flights, gambit completion, and game end.
   - **Acceptance:** after a meaningful event the player can identify what changed and why; reward feedback has a clear destination and does not obscure the next decision.
 
-- [ ] **Responsive & accessibility polish — final quality pass**
+- [x] **Responsive & accessibility polish — final quality pass**
   - **Problem:** desktop success does not guarantee a readable or usable experience at smaller sizes, reduced motion, or keyboard/focus interactions.
   - **Goal:** verify responsive layout, text/icon readability, focus visibility, hit targets, overflow, reduced-motion behavior where applicable, and non-color-only state cues.
   - **Acceptance:** core game remains usable without overlap or clipped critical controls at supported viewport sizes; important state is not conveyed by color alone; existing tests/build stay green.

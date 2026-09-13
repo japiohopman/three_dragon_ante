@@ -36,8 +36,19 @@ export const MultiplayerSeats: React.FC<MultiplayerSeatsProps> = ({
             return (
                <div
                   key={opp.id}
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`Seat ${actualIdx}: ${opp.name}, ${opp.gold / 100} gold${isTurn ? ', active turn' : ''}${isFocused ? ', currently inspected' : ''}`}
+                  aria-selected={isFocused}
+                  aria-current={isTurn ? "time" : undefined}
                   onClick={() => onSelectOpponent(actualIdx)}
-                  className={`cursor-pointer transition-all duration-300 p-1.5 sm:p-2.5 rounded-xl flex flex-col items-center gap-1 ${isMultiplayer ? 'w-24 sm:w-28 md:w-32 xl:w-36' : 'w-32 sm:w-36'} flex-shrink border-2 relative
+                  onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          onSelectOpponent(actualIdx);
+                      }
+                  }}
+                  className={`cursor-pointer transition-all duration-300 p-1.5 sm:p-2.5 rounded-xl flex flex-col items-center gap-1 ${isMultiplayer ? 'w-24 sm:w-28 md:w-32 xl:w-36' : 'w-32 sm:w-36'} flex-shrink border-2 relative focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:ring-offset-2 focus-visible:ring-offset-stone-900
                       ${isTurn || isTargeted ? 'scale-105 opacity-100 z-20' : isFocused ? 'scale-100 opacity-100 z-10' : 'scale-95 opacity-75 hover:opacity-100 hover:scale-100 z-0'}
                       ${isTargeted ? 'bg-purple-950/50 border-purple-400 ring-2 ring-purple-500 ring-offset-2 ring-offset-stone-900 shadow-[0_0_20px_rgba(168,85,247,0.4)]' : ''}
                       ${isTurn && !isTargeted ? 'bg-amber-950/40 border-amber-400 ring-2 ring-amber-500 ring-offset-2 ring-offset-stone-900 shadow-[0_0_20px_rgba(245,158,11,0.3)]' : ''}

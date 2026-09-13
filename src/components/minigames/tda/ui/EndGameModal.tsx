@@ -75,7 +75,8 @@ export const EndGameModal: React.FC<EndGameModalProps> = ({
                 playSound('UI_CLICK');
                 startNextGambit();
             }}
-            className="px-8 py-4 bg-stone-800 hover:bg-stone-700 border border-stone-600 text-stone-100 rounded shadow-lg flex items-center gap-3 transition-colors text-lg"
+            aria-label="Start Next Gambit"
+            className="px-8 py-4 bg-stone-800 hover:bg-stone-700 border border-stone-600 text-stone-100 rounded shadow-lg flex items-center gap-3 transition-colors text-lg min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:ring-offset-2 focus-visible:ring-offset-stone-950"
            >
                <GameIcon name="refresh" size={24} /> Start Next Gambit
            </button>
@@ -108,7 +109,8 @@ export const EndGameModal: React.FC<EndGameModalProps> = ({
                 resetGame();
                 if (onExit) onExit();
             }}
-            className="px-8 py-4 bg-stone-800 border border-stone-600 hover:bg-stone-700 text-stone-200 rounded text-xl shadow-lg transition-all"
+            aria-label="Return to Lobby"
+            className="px-8 py-4 bg-stone-800 border border-stone-600 hover:bg-stone-700 text-stone-200 rounded text-xl shadow-lg transition-all min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:ring-offset-2 focus-visible:ring-offset-stone-950"
            >
                Return to Lobby
            </button>

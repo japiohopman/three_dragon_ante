@@ -268,6 +268,35 @@
         animation: chromatic-shift 1s linear infinite;
       }
 
+      /* Reduced Motion Preference Accessibility Overrides */
+      @media (prefers-reduced-motion: reduce) {
+        *, ::before, ::after {
+          animation-duration: 0.01ms !important;
+          animation-iteration-count: 1 !important;
+          transition-duration: 0.01ms !important;
+          scroll-behavior: auto !important;
+        }
+        .animate-shake,
+        .animate-slam,
+        .animate-play-player,
+        .animate-play-opponent,
+        .animate-draw-hand,
+        .animate-draw-opponent,
+        .animate-discard-in,
+        .animate-pulse-glow,
+        .animate-coin-fly,
+        .animate-float-coin,
+        .animate-float-up,
+        .animate-slide-in,
+        .animate-divine-spin,
+        .animate-fire-pulse,
+        .animate-slash-draw,
+        .animate-chromatic {
+          animation: none !important;
+          transition: none !important;
+        }
+      }
+
     </style>
 <link rel="stylesheet" href="/index.css">
 </head>

@@ -99,7 +99,8 @@ const RulebookModal: React.FC<RulebookModalProps> = ({ onClose }) => {
                     e.stopPropagation();
                     onClose();
                 }}
-                className="absolute top-4 right-4 z-[100] text-amber-200 hover:text-white bg-black/40 hover:bg-black/60 rounded-full p-2 transition-all hover:scale-110 active:scale-95 pointer-events-auto border border-amber-500/20 shadow-lg"
+                aria-label="Close Rulebook"
+                className="absolute top-4 right-4 z-[100] text-amber-200 hover:text-white bg-black/40 hover:bg-black/60 rounded-full p-2.5 transition-all hover:scale-110 active:scale-95 pointer-events-auto border border-amber-500/20 shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:ring-offset-2 focus-visible:ring-offset-stone-950 min-h-[44px] min-w-[44px] flex items-center justify-center"
                 title="Close Rulebook"
             >
                 <GameIcon name="close" size={28} />
