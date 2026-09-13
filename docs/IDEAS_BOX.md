@@ -183,3 +183,13 @@ Prioritize problems that disrupt:
 - **Evidence:** Code inspection of `InteractionModal.tsx` and `TableTop.tsx` (`pendingInteraction` modal overlay z-index layering).
 - **Confidence:** High
 - **Status:** NEW
+
+### 2025-05-19 — Visual Gold/Pot breakdown summary tooltips on Gambit End banner
+- **Agent:** Jules
+- **Area:** UX / UI
+- **Observation:** In `EndGameModal.tsx`, when `isGambitEnd` is active, the modal displays the total pot won, but does not provide an itemized visual breakdown showing how much was contributed from ante stakes vs card power bets (e.g., Red Dragon / Gold Dragon bets) during that gambit.
+- **Idea:** Add an expandable or hoverable tooltip/accordion inside `EndGameModal.tsx` breaking down pot earnings by source (Antes vs Powers vs Color Flight rewards).
+- **Player value:** Provides clear causality and transparency on how the pot accumulated before being awarded.
+- **Evidence:** Code inspection of `EndGameModal.tsx` lines 42-49.
+- **Confidence:** Medium
+- **Status:** NEW

@@ -55,7 +55,7 @@ This queue is deliberately ordered. Do not skip ahead because a later item looks
   - **Goal:** standardize prompts for card powers and player decisions around context, available actions, consequence, and resolution.
   - **Acceptance:** every player decision clearly states what requires input, available choices, and what happens after selection; no prompt traps the player or competes with unrelated animation.
 
-- [ ] **Reward & game-state feedback — gold, pot, flights and round endings**
+- [x] **Reward & game-state feedback — gold, pot, flights and round endings**
   - **Problem:** rewards and state changes are core reinforcement and should read as consequences of player actions, not incidental number updates.
   - **Goal:** synchronize visual, motion, audio, and numerical feedback for gold/pot changes, flights, gambit completion, and game end.
   - **Acceptance:** after a meaningful event the player can identify what changed and why; reward feedback has a clear destination and does not obscure the next decision.
