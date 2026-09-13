@@ -193,3 +193,13 @@ Prioritize problems that disrupt:
 - **Evidence:** Code inspection of `EndGameModal.tsx` lines 42-49.
 - **Confidence:** Medium
 - **Status:** NEW
+
+### 2025-05-20 — Opponent Inspector Drawer Keyboard Shortcut ('I') for Toggle/Docking
+- **Agent:** Jules
+- **Area:** UX / Accessibility
+- **Observation:** In `TableTop.tsx`, keyboard shortcuts exist for opening the Rulebook ('?' or 'H'), but inspecting or toggling/docking the active opponent's drawer requires mouse clicking on seat chips or aside buttons.
+- **Idea:** Add an 'I' key keyboard listener in `TableTop.tsx` to toggle open/docked state for the currently focused opponent drawer.
+- **Player value:** Enables fast keyboard-only players to inspect and dock opponent details during active gambit turns without breaking input flow.
+- **Evidence:** Code inspection of `TableTop.tsx` keyboard event listeners and `RulebookModal.tsx`.
+- **Confidence:** High
+- **Status:** NEW

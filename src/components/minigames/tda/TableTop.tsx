@@ -38,6 +38,8 @@ const TableTop: React.FC = () => {
   const [showLog, setShowLog] = useState(false);
   const [browsingPile, setBrowsingPile] = useState<'deck' | 'discard' | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [autoOpenDrawer, setAutoOpenDrawer] = useState(false);
   const [direction, setDirection] = useState(0);
 
   // Helper to go to next opponent
@@ -63,8 +65,11 @@ const TableTop: React.FC = () => {
   React.useEffect(() => {
     if (activePlayerIndex > 0 && activePlayerIndex < players.length) {
       setFocusedOpponentIndex(activePlayerIndex);
+      if (autoOpenDrawer && phase === 'opponent-turn') {
+        setIsDrawerOpen(true);
+      }
     }
-  }, [activePlayerIndex, players.length, setFocusedOpponentIndex]);
+  }, [activePlayerIndex, players.length, setFocusedOpponentIndex, autoOpenDrawer, phase]);
 
   const isPlayerTurn = (phase === 'player-turn' && activePlayer === 'player') ||
                        (phase === 'round-start' && currentLeader === 'player');
@@ -115,6 +120,7 @@ const TableTop: React.FC = () => {
                   lastCardPlayed={lastCardPlayed}
                   onSelectOpponent={(idx) => {
                       setFocusedOpponentIndex(idx);
+                      setIsCollapsed(false);
                       setIsDrawerOpen(true);
                   }}
                 />
@@ -153,10 +159,12 @@ const TableTop: React.FC = () => {
         setShowLog={setShowLog}
         onInspect={() => {
             playSound('UI_CLICK');
+            setIsCollapsed(false);
             setIsDrawerOpen(true);
         }}
         discardPile={discardPile}
         onOpenDiscard={() => setBrowsingPile('discard')}
+        isDocked={isDrawerOpen && isCollapsed}
       />
 
       {/* PILE BROWSING OVERLAY */}
@@ -170,6 +178,10 @@ const TableTop: React.FC = () => {
       {/* 4. SLIDE-OUT OPPONENTS CAROUSEL DRAWER */}
       <OpponentInspectorDrawer
         isDrawerOpen={isDrawerOpen}
+        isCollapsed={isCollapsed}
+        onToggleCollapse={() => setIsCollapsed(!isCollapsed)}
+        autoOpenDrawer={autoOpenDrawer}
+        onToggleAutoOpen={() => setAutoOpenDrawer(!autoOpenDrawer)}
         focusedOpponent={focusedOpponent}
         players={players}
         activePlayer={activePlayer}

@@ -70,7 +70,7 @@ This queue is deliberately ordered. Do not skip ahead because a later item looks
   - **Goal:** run the standardized playtest flow after the quality tasks and compare against the audit findings.
   - **Acceptance:** no critical UX blocker remains in the documented flow; remaining issues are captured in `IDEAS_BOX.md` with status; the game is judged ready for the integration phase based on observable criteria rather than optimism.
 
-- [ ] **Opponent drawer auto-open & table status readability**
+- [x] **Opponent drawer auto-open & table status readability**
   - **Problem:** when `phase === 'opponent-turn'`, `OpponentInspectorDrawer` automatically slides in on the right, covering the `TavernRightAside` panel (including the round log button and discard pile shortcut) without an option to minimize or collapse while remaining in turn view.
   - **Goal:** add a collapse/dock toggle to `OpponentInspectorDrawer` or make auto-drawer opening optional in settings so table status remains fully visible during multi-opponent AI turns.
   - **Acceptance:** player can view right-side table status and discard pile during AI turn sequences; drawer overlay does not permanently block primary table controls.
