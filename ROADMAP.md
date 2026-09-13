@@ -65,7 +65,7 @@ This queue is deliberately ordered. Do not skip ahead because a later item looks
   - **Goal:** verify responsive layout, text/icon readability, focus visibility, hit targets, overflow, reduced-motion behavior where applicable, and non-color-only state cues.
   - **Acceptance:** core game remains usable without overlap or clipped critical controls at supported viewport sizes; important state is not conveyed by color alone; existing tests/build stay green.
 
-- [ ] **Full playtest regression — quality gate before embedding**
+- [x] **Full playtest regression — quality gate before embedding**
   - **Problem:** isolated fixes can create interaction regressions when combined in a real game session.
   - **Goal:** run the standardized playtest flow after the quality tasks and compare against the audit findings.
   - **Acceptance:** no critical UX blocker remains in the documented flow; remaining issues are captured in `IDEAS_BOX.md` with status; the game is judged ready for the integration phase based on observable criteria rather than optimism.
