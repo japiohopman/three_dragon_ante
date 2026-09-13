@@ -14,6 +14,7 @@ interface TavernRightAsideProps {
   onInspect: () => void;
   discardPile: CardData[];
   onOpenDiscard: () => void;
+  isDocked?: boolean;
 }
 
 export const TavernRightAside: React.FC<TavernRightAsideProps> = ({
@@ -25,10 +26,11 @@ export const TavernRightAside: React.FC<TavernRightAsideProps> = ({
   setShowLog,
   onInspect,
   discardPile,
-  onOpenDiscard
+  onOpenDiscard,
+  isDocked = false
 }) => {
   return (
-    <aside className="w-56 lg:w-64 xl:w-72 2xl:w-80 h-full border-l border-stone-800 bg-stone-900/40 flex flex-col z-20 backdrop-blur-md shadow-[-10px_0_40px_rgba(0,0,0,0.5)] flex-shrink-0 transition-all duration-300">
+    <aside className={`w-56 lg:w-64 xl:w-72 2xl:w-80 h-full border-l border-stone-800 bg-stone-900/40 flex flex-col z-20 backdrop-blur-md shadow-[-10px_0_40px_rgba(0,0,0,0.5)] flex-shrink-0 transition-all duration-300 ${isDocked ? 'mr-12 sm:mr-14' : 'mr-0'}`}>
         {/* Stakes Header */}
         <div className="p-3 sm:p-4 lg:p-5 xl:p-6 border-b border-stone-800 bg-stone-950/40">
             <div className="flex flex-col">
