@@ -34,8 +34,11 @@ const TableTop: React.FC = () => {
     pot,
     gambitsPlayed,
     maxGambits,
-    round
+    round,
+    pendingInteraction
   } = useGameStore();
+
+  const isHumanInteraction = pendingInteraction?.target === 'player';
 
   const [showLog, setShowLog] = useState(false);
   const [browsingPile, setBrowsingPile] = useState<'deck' | 'discard' | null>(null);
@@ -170,6 +173,7 @@ const TableTop: React.FC = () => {
         deck={deck}
         discardPile={discardPile}
         onClose={() => setBrowsingPile(null)}
+        isDimmed={isHumanInteraction}
       />
 
       {/* 4. SLIDE-OUT OPPONENTS CAROUSEL DRAWER */}
@@ -186,6 +190,7 @@ const TableTop: React.FC = () => {
         autoOpenInspector={autoOpenInspector}
         toggleAutoOpenInspector={toggleAutoOpenInspector}
         onClose={() => setIsDrawerOpen(false)}
+        isDimmed={isHumanInteraction}
       />
 
     </div>

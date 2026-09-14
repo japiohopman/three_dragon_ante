@@ -105,7 +105,7 @@ This queue is deliberately ordered. Do not skip ahead because a later item looks
   - **Goal:** add a "Dialogue History" log inside `OpponentInspectorDrawer` showing recent speech lines spoken by the selected opponent.
   - **Acceptance:** players can open `OpponentInspectorDrawer` and review recent speech lines spoken by the selected opponent; dialogue history preserves NPC persona flavor; unit test suite passes.
 
-- [ ] **Background drawer backdrop dimming during decision prompts**
+- [x] **Background drawer backdrop dimming during decision prompts**
   - **Problem:** when an interruption decision prompt (`InteractionModal`) appears (`pendingInteraction.target === 'player'`), open drawers (`OpponentInspectorDrawer`) or modals (`PileBrowserModal`) can remain visible in background layers (`z-[130]`/`z-[150]`), creating visual competition behind the decision modal (`z-[200]`).
   - **Goal:** dim or temporarily hide background drawers/modals while `pendingInteraction` requires human player input.
   - **Acceptance:** when a human decision prompt triggers, background drawers/modals are dimmed or hidden so player focus is directed solely to `InteractionModal`; background state restores cleanly after decision resolution; tests pass.

@@ -9,13 +9,15 @@ interface PileBrowserModalProps {
   deck: CardData[];
   discardPile: CardData[];
   onClose: () => void;
+  isDimmed?: boolean;
 }
 
 export const PileBrowserModal: React.FC<PileBrowserModalProps> = ({
   browsingPile,
   deck,
   discardPile,
-  onClose
+  onClose,
+  isDimmed = false
 }) => {
   return (
     <AnimatePresence>
@@ -24,7 +26,9 @@ export const PileBrowserModal: React.FC<PileBrowserModalProps> = ({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="absolute inset-0 z-[150] bg-stone-950/95 backdrop-blur-xl p-12 flex flex-col items-center"
+          className={`absolute inset-0 z-[150] bg-stone-950/95 backdrop-blur-xl p-12 flex flex-col items-center transition-all duration-300 ${
+            isDimmed ? 'opacity-30 blur-[1px] pointer-events-none' : ''
+          }`}
         >
           <div className="w-full max-w-6xl flex flex-col h-full">
               <div className="flex justify-between items-center mb-12">
