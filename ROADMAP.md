@@ -100,7 +100,7 @@ This queue is deliberately ordered. Do not skip ahead because a later item looks
   - **Goal:** add a dynamic visual pulse and radiant border flash on the central `Battleground.tsx` Pot element whenever `pot` value increases in `useGameStore`.
   - **Acceptance:** increasing pot value triggers a visible radiant glow/pulse effect on the central pot border; the effect resolves smoothly and does not obscure pot currency text; existing build and tests pass.
 
-- [ ] **AI speech history log in Opponent Inspector Drawer**
+- [x] **AI speech history log in Opponent Inspector Drawer**
   - **Problem:** during multi-opponent games (4–5 AI players), speech line badges on seat chips disappear after 3000ms or are overwritten during fast AI turn transitions before the player can finish reading NPC dialogue.
   - **Goal:** add a "Dialogue History" log inside `OpponentInspectorDrawer` showing recent speech lines spoken by the selected opponent.
   - **Acceptance:** players can open `OpponentInspectorDrawer` and review recent speech lines spoken by the selected opponent; dialogue history preserves NPC persona flavor; unit test suite passes.

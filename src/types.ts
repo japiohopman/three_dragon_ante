@@ -31,6 +31,13 @@ export type PlayerId = string; // e.g. 'player', 'npc_1', 'npc_2', etc.
 
 export type PlayerSkill = 'none' | 'bluff' | 'sleight-of-hand' | 'concentration';
 
+export interface DialogueHistoryEntry {
+  id: string;
+  line: string;
+  timestamp: number;
+  emotion?: NPCEmotion;
+}
+
 export interface PlayerState {
   id: PlayerId;
   name: string;
@@ -43,6 +50,7 @@ export interface PlayerState {
   emotion: NPCEmotion;
   npcLine: string;
   isTalking: boolean;
+  speechHistory?: DialogueHistoryEntry[];
 }
 
 export type GamePhase =
