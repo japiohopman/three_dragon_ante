@@ -85,7 +85,7 @@ This queue is deliberately ordered. Do not skip ahead because a later item looks
   - **Goal:** display a subtle "Thinking..." badge or resolution spinner on targeted opponent seat chips during automated AI-to-AI card power resolution.
   - **Acceptance:** targeted AI-to-AI interactions clearly communicate pending resolution on the affected seat chip; turn pacing remains transparent and readable.
 
-- [ ] **Flight card power preview tooltips**
+- [x] **Flight card power preview tooltips**
   - **Problem:** cards played in player or opponent flights render at scaled-down sizes (`scale-[0.75]`), obscuring card power description text and requiring memory or inspection drawer searching.
   - **Goal:** add an expanded preview tooltip or hover card overlay for cards in active flights showing full power text and round information.
   - **Acceptance:** hovering over any card in a flight displays a readable card description tooltip without requiring full drawer modal inspection; turn flow is uninterrupted.

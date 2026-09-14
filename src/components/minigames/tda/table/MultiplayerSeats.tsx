@@ -4,6 +4,8 @@ import Card from '../Card';
 import { PlayerState, CardData } from '../../../../types';
 import CurrencyDisplay from '../ui/CurrencyDisplay';
 import { useGameStore } from '../../../../store/useGameStore';
+import { useAnimationStore } from '../../../../store/useAnimationStore';
+import { FlightCardTooltip } from '../ui/FlightCardTooltip';
 
 interface MultiplayerSeatsProps {
   players: PlayerState[];
@@ -24,6 +26,7 @@ export const MultiplayerSeats: React.FC<MultiplayerSeatsProps> = ({
 }) => {
   const isMultiplayer = players.length > 2;
   const { pendingInteraction, phase } = useGameStore();
+  const { hoveredCardId, setHoveredCard } = useAnimationStore();
 
   return (
     <div className={`w-full flex justify-center ${isMultiplayer ? 'gap-1.5 sm:gap-2.5 md:gap-4' : 'gap-4'} px-2 sm:px-6 mb-2 sm:mb-4 min-h-[110px] sm:min-h-[140px] pointer-events-auto flex-wrap md:flex-nowrap`}>
@@ -109,10 +112,24 @@ export const MultiplayerSeats: React.FC<MultiplayerSeatsProps> = ({
                        <CurrencyDisplay copper={opp.gold} variant="badge" title={`${opp.name}'s Purse`} />
                    </div>
 
-                   <div className="flex justify-center gap-0.5 min-h-[35px] sm:min-h-[40px] items-center max-w-full overflow-hidden">
+                   <div className="flex justify-center gap-0.5 min-h-[35px] sm:min-h-[40px] items-center max-w-full overflow-visible relative">
                        {opp.flight.map((c) => (
-                           <div key={c.id} className="transform scale-[0.35] sm:scale-[0.4] w-5 sm:w-6 h-7 sm:h-8 flex items-center justify-center -mx-2 sm:-mx-1.5">
-                               <Card card={c} size="sm" glow={lastCardPlayed?.id === c.id ? 'red' : 'none'} disabled />
+                           <div
+                               key={c.id}
+                               className="transform scale-[0.35] sm:scale-[0.4] hover:scale-100 transition-transform w-5 sm:w-6 h-7 sm:h-8 flex items-center justify-center -mx-2 sm:-mx-1.5 cursor-pointer pointer-events-auto relative z-10 hover:z-50"
+                               onMouseEnter={(e) => {
+                                   e.stopPropagation();
+                                   setHoveredCard(c.id);
+                               }}
+                               onMouseLeave={(e) => {
+                                   e.stopPropagation();
+                                   setHoveredCard(null);
+                               }}
+                           >
+                               <Card card={c} size="sm" glow={lastCardPlayed?.id === c.id ? 'red' : 'none'} disableFocus />
+                               {hoveredCardId === c.id && (
+                                   <FlightCardTooltip card={c} position="bottom" ownerName={opp.name} />
+                               )}
                            </div>
                        ))}
                        {opp.flight.length === 0 && (
