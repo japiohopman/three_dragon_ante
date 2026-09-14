@@ -132,11 +132,16 @@ export const PlayerHandArea: React.FC<PlayerHandAreaProps> = ({
                   <motion.div
                       key={card.id}
                       layoutId={card.id}
-                      className="transform scale-[0.75] sm:scale-[0.9] origin-bottom hover:scale-100 transition-transform cursor-pointer relative"
+                      role="button"
+                      tabIndex={0}
+                      aria-label={`${card.name}, strength ${card.strength} played in flight`}
+                      className="transform scale-[0.75] sm:scale-[0.9] origin-bottom hover:scale-100 focus-visible:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:ring-offset-2 focus-visible:ring-offset-stone-900 rounded-lg transition-transform cursor-pointer relative"
                       onMouseEnter={() => setHoveredCard(card.id)}
                       onMouseLeave={() => setHoveredCard(null)}
+                      onFocus={() => setHoveredCard(card.id)}
+                      onBlur={() => setHoveredCard(null)}
                   >
-                       <Card card={card} size="sm" glow={lastCardPlayed?.id === card.id ? 'gold' : 'none'} />
+                       <Card card={card} size="sm" glow={lastCardPlayed?.id === card.id ? 'gold' : 'none'} disableFocus />
                        {hoveredCardId === card.id && (
                            <FlightCardTooltip card={card} position="top" ownerName="You" />
                        )}
