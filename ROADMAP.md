@@ -90,6 +90,31 @@ This queue is deliberately ordered. Do not skip ahead because a later item looks
   - **Goal:** add an expanded preview tooltip or hover card overlay for cards in active flights showing full power text and round information.
   - **Acceptance:** hovering over any card in a flight displays a readable card description tooltip without requiring full drawer modal inspection; turn flow is uninterrupted.
 
+- [ ] **Phase transition audio cues for turn initiative & decision prompts**
+  - **Problem:** visual badges for phase changes (`HeaderHUD.tsx`) and turn initiative banners (`VFXLayer.tsx`) communicate active state changes clearly, but lack dedicated ambient sound cues on phase transitions (e.g. Ante -> Gambit, Player Turn start, or Decision Required prompt), relying solely on visual feedback.
+  - **Goal:** add distinct audio transition triggers in `soundService.ts` when game phase changes or decision prompts appear for the human player.
+  - **Acceptance:** phase transitions and human decision prompts trigger subtle, distinct audio feedback; audio cues do not overlap or disrupt gameplay during fast AI turns; all existing unit tests and build pass.
+
+- [ ] **Table central pot ambient lighting & pulse feedback on pot growth**
+  - **Problem:** in `Battleground.tsx`, the central Pot container is visually dominant, but when gold is added to the pot during ante or card power bets, the pot numerical amount updates instantly without a temporary radiant glow or border pulse animation.
+  - **Goal:** add a dynamic visual pulse and radiant border flash on the central `Battleground.tsx` Pot element whenever `pot` value increases in `useGameStore`.
+  - **Acceptance:** increasing pot value triggers a visible radiant glow/pulse effect on the central pot border; the effect resolves smoothly and does not obscure pot currency text; existing build and tests pass.
+
+- [ ] **AI speech history log in Opponent Inspector Drawer**
+  - **Problem:** during multi-opponent games (4–5 AI players), speech line badges on seat chips disappear after 3000ms or are overwritten during fast AI turn transitions before the player can finish reading NPC dialogue.
+  - **Goal:** add a "Dialogue History" log inside `OpponentInspectorDrawer` showing recent speech lines spoken by the selected opponent.
+  - **Acceptance:** players can open `OpponentInspectorDrawer` and review recent speech lines spoken by the selected opponent; dialogue history preserves NPC persona flavor; unit test suite passes.
+
+- [ ] **Background drawer backdrop dimming during decision prompts**
+  - **Problem:** when an interruption decision prompt (`InteractionModal`) appears (`pendingInteraction.target === 'player'`), open drawers (`OpponentInspectorDrawer`) or modals (`PileBrowserModal`) can remain visible in background layers (`z-[130]`/`z-[150]`), creating visual competition behind the decision modal (`z-[200]`).
+  - **Goal:** dim or temporarily hide background drawers/modals while `pendingInteraction` requires human player input.
+  - **Acceptance:** when a human decision prompt triggers, background drawers/modals are dimmed or hidden so player focus is directed solely to `InteractionModal`; background state restores cleanly after decision resolution; tests pass.
+
+- [ ] **Flight card tooltip keyboard accessibility focus trigger**
+  - **Problem:** `FlightCardTooltip` triggers cleanly on mouse hover across `PlayerHandArea`, `MultiplayerSeats`, and `OpponentInspectorDrawer`, but keyboard focus using `Tab` navigation on flight card elements does not trigger the tooltip overlay.
+  - **Goal:** bind keyboard focus events (`onFocus` / `onBlur`) on flight card buttons/elements across `MultiplayerSeats.tsx` and `PlayerHandArea.tsx` to update `hoveredCardId` in `useAnimationStore`.
+  - **Acceptance:** keyboard users navigating flight cards with Tab key see `FlightCardTooltip` open and close in sync with keyboard focus; mouse hover behavior remains unaffected; tests pass.
+
 ## Integration Gate
 
 - **Integration status:** `BLOCKED`
