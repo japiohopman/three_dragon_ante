@@ -5,6 +5,8 @@ import { CardData, GamePhase } from '../../../../types';
 import { GameIcon } from '../../../../assets/icons';
 import { playSound } from '../../../../services/soundService';
 import { useGameStore } from '../../../../store/useGameStore';
+import { useAnimationStore } from '../../../../store/useAnimationStore';
+import { FlightCardTooltip } from '../ui/FlightCardTooltip';
 
 interface PlayerHandAreaProps {
   playerHand: CardData[];
@@ -28,6 +30,7 @@ export const PlayerHandArea: React.FC<PlayerHandAreaProps> = ({
   isLeader = false
 }) => {
   const { pendingInteraction } = useGameStore();
+  const { hoveredCardId, setHoveredCard } = useAnimationStore();
   const isPlayerDecisionRequired = pendingInteraction?.target === 'player';
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const [committingCardId, setCommittingCardId] = useState<string | null>(null);
@@ -126,8 +129,17 @@ export const PlayerHandArea: React.FC<PlayerHandAreaProps> = ({
       <div className="w-full h-1/3 flex flex-col items-center justify-end relative">
           <div className="flex justify-center gap-2 sm:gap-4 h-24 sm:h-32 mb-2 sm:mb-6">
               {playerFlight.map((card) => (
-                  <motion.div key={card.id} layoutId={card.id} className="transform scale-[0.75] sm:scale-[0.9] origin-bottom hover:scale-100 transition-transform cursor-pointer">
+                  <motion.div
+                      key={card.id}
+                      layoutId={card.id}
+                      className="transform scale-[0.75] sm:scale-[0.9] origin-bottom hover:scale-100 transition-transform cursor-pointer relative"
+                      onMouseEnter={() => setHoveredCard(card.id)}
+                      onMouseLeave={() => setHoveredCard(null)}
+                  >
                        <Card card={card} size="sm" glow={lastCardPlayed?.id === card.id ? 'gold' : 'none'} />
+                       {hoveredCardId === card.id && (
+                           <FlightCardTooltip card={card} position="top" ownerName="You" />
+                       )}
                   </motion.div>
               ))}
           </div>

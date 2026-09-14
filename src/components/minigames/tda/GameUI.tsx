@@ -122,18 +122,19 @@ const GameUI: React.FC<GameUIProps> = ({ onExit }) => {
   const getInfoCardData = (): CardData | undefined => {
       const id = hoveredCardId || focusedCardId;
       if (!id) return undefined;
-      const opponentHandMock = useGameStore.getState().opponentHand;
-      const deckMock = useGameStore.getState().deck;
-      const discardMock = useGameStore.getState().discardPile;
+      const state = useGameStore.getState();
+      const allPlayers = state.players || [];
 
-      return playerHand.find(c => c.id === id)
-          || opponentHandMock.find(c => c.id === id)
-          || playerFlight.find(c => c.id === id)
-          || opponentFlight.find(c => c.id === id)
-          || (playerAnte && playerAnte.id === id ? playerAnte : undefined)
-          || (opponentAnte && opponentAnte.id === id ? opponentAnte : undefined)
-          || deckMock.find(c => c.id === id)
-          || discardMock.find(c => c.id === id);
+      for (const p of allPlayers) {
+          const cardInHand = p.hand?.find(c => c.id === id);
+          if (cardInHand) return cardInHand;
+          const cardInFlight = p.flight?.find(c => c.id === id);
+          if (cardInFlight) return cardInFlight;
+          if (p.ante && p.ante.id === id) return p.ante;
+      }
+
+      return state.deck?.find(c => c.id === id)
+          || state.discardPile?.find(c => c.id === id);
   };
 
   const infoCard = getInfoCardData();
@@ -141,18 +142,19 @@ const GameUI: React.FC<GameUIProps> = ({ onExit }) => {
   const getFocusedCardData = (): CardData | undefined => {
       if (!focusedCardId) return undefined;
       const id = focusedCardId;
-      const opponentHandMock = useGameStore.getState().opponentHand;
-      const deckMock = useGameStore.getState().deck;
-      const discardMock = useGameStore.getState().discardPile;
+      const state = useGameStore.getState();
+      const allPlayers = state.players || [];
 
-      return playerHand.find(c => c.id === id)
-          || opponentHandMock.find(c => c.id === id)
-          || playerFlight.find(c => c.id === id)
-          || opponentFlight.find(c => c.id === id)
-          || (playerAnte && playerAnte.id === id ? playerAnte : undefined)
-          || (opponentAnte && opponentAnte.id === id ? opponentAnte : undefined)
-          || deckMock.find(c => c.id === id)
-          || discardMock.find(c => c.id === id);
+      for (const p of allPlayers) {
+          const cardInHand = p.hand?.find(c => c.id === id);
+          if (cardInHand) return cardInHand;
+          const cardInFlight = p.flight?.find(c => c.id === id);
+          if (cardInFlight) return cardInFlight;
+          if (p.ante && p.ante.id === id) return p.ante;
+      }
+
+      return state.deck?.find(c => c.id === id)
+          || state.discardPile?.find(c => c.id === id);
   };
 
   const focusedCard = getFocusedCardData();

@@ -7,6 +7,8 @@ import { PlayerState, CardData, GamePhase } from '../../../../types';
 import { NPC_LIST } from '../../../../utils/npcConstants';
 import CurrencyDisplay from '../ui/CurrencyDisplay';
 import { playSound } from '../../../../services/soundService';
+import { useAnimationStore } from '../../../../store/useAnimationStore';
+import { FlightCardTooltip } from '../ui/FlightCardTooltip';
 
 interface OpponentInspectorDrawerProps {
   isDrawerOpen: boolean;
@@ -38,6 +40,7 @@ export const OpponentInspectorDrawer: React.FC<OpponentInspectorDrawerProps> = (
   onClose
 }) => {
   const [isCollapsed, setIsCollapsed] = React.useState(false);
+  const { hoveredCardId, setHoveredCard } = useAnimationStore();
 
   React.useEffect(() => {
     if (isDrawerOpen) {
@@ -218,10 +221,18 @@ export const OpponentInspectorDrawer: React.FC<OpponentInspectorDrawerProps> = (
                         {/* Flight Cards list */}
                         <div className="flex flex-col">
                             <span className="text-[9px] uppercase tracking-wider text-stone-500 font-bold mb-3">Flight Played</span>
-                            <div className="flex flex-wrap gap-2.5 justify-center py-2 bg-stone-900/20 rounded-xl border border-stone-800 min-h-[100px] items-center px-4">
+                            <div className="flex flex-wrap gap-2.5 justify-center py-2 bg-stone-900/20 rounded-xl border border-stone-800 min-h-[100px] items-center px-4 relative overflow-visible">
                                 {focusedOpponent.flight.map((c) => (
-                                    <div key={c.id} className="transform hover:scale-105 transition-transform">
+                                    <div
+                                        key={c.id}
+                                        className="transform hover:scale-105 transition-transform relative cursor-pointer"
+                                        onMouseEnter={() => setHoveredCard(c.id)}
+                                        onMouseLeave={() => setHoveredCard(null)}
+                                    >
                                         <Card card={c} size="sm" glow={lastCardPlayed?.id === c.id ? 'red' : 'none'} />
+                                        {hoveredCardId === c.id && (
+                                            <FlightCardTooltip card={c} position="top" ownerName={focusedOpponent.name} />
+                                        )}
                                     </div>
                                 ))}
                                 {focusedOpponent.flight.length === 0 && (

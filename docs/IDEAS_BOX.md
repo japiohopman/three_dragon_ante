@@ -193,3 +193,13 @@ Prioritize problems that disrupt:
 - **Evidence:** Code inspection of `EndGameModal.tsx` lines 42-49.
 - **Confidence:** Medium
 - **Status:** NEW
+
+### 2025-05-19 — Flight card tooltip keyboard accessibility focus trigger
+- **Agent:** Jules
+- **Area:** Accessibility / UX
+- **Observation:** `FlightCardTooltip` triggers cleanly on mouse hover across `PlayerHandArea`, `MultiplayerSeats`, and `OpponentInspectorDrawer`, but keyboard focus using `Tab` navigation on seat chips does not automatically expose the rich `FlightCardTooltip` overlay unless mouse cursor enters.
+- **Idea:** Bind keyboard focus events (`onFocus` / `onBlur`) on flight card elements in `MultiplayerSeats.tsx` and `PlayerHandArea.tsx` to set `hoveredCardId` in `useAnimationStore`.
+- **Player value:** Enables keyboard-only and screen-reader players to inspect active flight card powers across tabletop seats without mouse interaction.
+- **Evidence:** Code inspection of `MultiplayerSeats.tsx` flight card rendering.
+- **Confidence:** High
+- **Status:** NEW
