@@ -23,6 +23,7 @@ interface OpponentInspectorDrawerProps {
   autoOpenInspector?: boolean;
   toggleAutoOpenInspector?: () => void;
   onClose: () => void;
+  isDimmed?: boolean;
 }
 
 export const OpponentInspectorDrawer: React.FC<OpponentInspectorDrawerProps> = ({
@@ -37,7 +38,8 @@ export const OpponentInspectorDrawer: React.FC<OpponentInspectorDrawerProps> = (
   nextOpponent,
   autoOpenInspector = false,
   toggleAutoOpenInspector,
-  onClose
+  onClose,
+  isDimmed = false
 }) => {
   const [isCollapsed, setIsCollapsed] = React.useState(false);
   const { hoveredCardId, setHoveredCard } = useAnimationStore();
@@ -74,20 +76,31 @@ export const OpponentInspectorDrawer: React.FC<OpponentInspectorDrawerProps> = (
             </motion.button>
           ) : (
             <>
+              {/* Dimming backdrop overlay during human decision prompts */}
+              {isDimmed && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="fixed inset-0 bg-black/60 backdrop-blur-xs z-[135] pointer-events-none transition-opacity duration-300"
+                />
+              )}
               {/* Backdrop overlay for smaller screens */}
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 onClick={onClose}
-                className="lg:hidden fixed inset-0 bg-black/50 backdrop-blur-xs z-[125] pointer-events-auto"
+                className={`lg:hidden fixed inset-0 bg-black/50 backdrop-blur-xs z-[125] ${isDimmed ? 'pointer-events-none' : 'pointer-events-auto'}`}
               />
               <motion.div
                 initial={{ x: '100%' }}
                 animate={{ x: 0 }}
                 exit={{ x: '100%' }}
                 transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-                className="fixed top-0 right-0 w-full max-w-[420px] sm:w-[420px] h-full border-l border-stone-800 bg-stone-950/98 backdrop-blur-2xl shadow-[-20px_0_50px_rgba(0,0,0,0.85)] z-[130] flex flex-col pointer-events-auto"
+                className={`fixed top-0 right-0 w-full max-w-[420px] sm:w-[420px] h-full border-l border-stone-800 bg-stone-950/98 backdrop-blur-2xl shadow-[-20px_0_50px_rgba(0,0,0,0.85)] z-[130] flex flex-col transition-all duration-300 ${
+                  isDimmed ? 'opacity-30 blur-[1px] pointer-events-none' : 'pointer-events-auto'
+                }`}
               >
                 {/* Drawer Header with Navigation, Collapse, and Close Buttons */}
                 <div className="p-4 sm:p-6 border-b border-stone-800 flex items-center justify-between bg-stone-900/40">

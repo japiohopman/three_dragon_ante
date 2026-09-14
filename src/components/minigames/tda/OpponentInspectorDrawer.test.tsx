@@ -146,4 +146,27 @@ describe('OpponentInspectorDrawer Component', () => {
     expect(html).toContain('Dialogue History');
     expect(html).toContain('No dialogue history recorded');
   });
+
+  it('applies dimmed and pointer-events-none styling when isDimmed is true', () => {
+    const html = renderToString(
+      <OpponentInspectorDrawer
+        isDrawerOpen={true}
+        focusedOpponent={mockOpponent}
+        players={mockPlayers}
+        activePlayer="npc_1"
+        phase="opponent-turn"
+        lastCardPlayed={null}
+        direction={0}
+        prevOpponent={() => {}}
+        nextOpponent={() => {}}
+        autoOpenInspector={false}
+        toggleAutoOpenInspector={() => {}}
+        onClose={() => {}}
+        isDimmed={true}
+      />
+    );
+
+    expect(html).toContain('opacity-30');
+    expect(html).toContain('pointer-events-none');
+  });
 });
