@@ -1,9 +1,3 @@
 {
-  "activeSession": {
-    "name": "sessions/14086520269532905504",
-    "task": "**Background drawer backdrop dimming during decision prompts**",
-    "issueNumber": null,
-    "startedAt": "2026-09-14T05:05:51.152Z",
-    "recurring": false
-  }
+  "activeSession": null
 }
