@@ -95,7 +95,7 @@ This queue is deliberately ordered. Do not skip ahead because a later item looks
   - **Goal:** add distinct audio transition triggers in `soundService.ts` when game phase changes or decision prompts appear for the human player.
   - **Acceptance:** phase transitions and human decision prompts trigger subtle, distinct audio feedback; audio cues do not overlap or disrupt gameplay during fast AI turns; all existing unit tests and build pass.
 
-- [ ] **Table central pot ambient lighting & pulse feedback on pot growth**
+- [x] **Table central pot ambient lighting & pulse feedback on pot growth**
   - **Problem:** in `Battleground.tsx`, the central Pot container is visually dominant, but when gold is added to the pot during ante or card power bets, the pot numerical amount updates instantly without a temporary radiant glow or border pulse animation.
   - **Goal:** add a dynamic visual pulse and radiant border flash on the central `Battleground.tsx` Pot element whenever `pot` value increases in `useGameStore`.
   - **Acceptance:** increasing pot value triggers a visible radiant glow/pulse effect on the central pot border; the effect resolves smoothly and does not obscure pot currency text; existing build and tests pass.
