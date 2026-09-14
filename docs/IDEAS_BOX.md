@@ -122,7 +122,7 @@ Prioritize problems that disrupt:
 - **Player value:** Improves keyboard navigation accessibility and onboarding clarity for first-time players.
 - **Evidence:** Code inspection of `LobbyScreen.tsx` lines 61-128.
 - **Confidence:** High
-- **Status:** NEW
+- **Status:** PROMOTED
 
 ### 2025-05-19 — Expanded card power preview tooltip on flight cards
 - **Agent:** Jules
@@ -142,7 +142,7 @@ Prioritize problems that disrupt:
 - **Player value:** Reinforces multi-sensory feedback and attention cues for fast-paced multi-opponent AI turns.
 - **Evidence:** Code inspection of `HeaderHUD.tsx` lines 28-56 and `soundService.ts`.
 - **Confidence:** High
-- **Status:** NEW
+- **Status:** PROMOTED
 
 ### 2025-05-19 — Table central pot ambient lighting glow feedback during pot size increases
 - **Agent:** Jules
@@ -152,7 +152,7 @@ Prioritize problems that disrupt:
 - **Player value:** Draws immediate visual attention to reward growth, reinforcing the stakes and consequence of ante/betting actions.
 - **Evidence:** Code inspection of `Battleground.tsx` lines 28-33 and `useGameStore.ts` pot updates.
 - **Confidence:** High
-- **Status:** NEW
+- **Status:** PROMOTED
 
 ### 2025-05-19 — Turn initiative banner entrance anticipation motion curve
 - **Agent:** Jules
@@ -162,7 +162,7 @@ Prioritize problems that disrupt:
 - **Player value:** Enhances anticipation and causal clarity when initiative switches between players during fast multi-opponent turns.
 - **Evidence:** Playtest observation during `tests/audit_playtest_flow.spec.ts` and code inspection of `VFXLayer.tsx` lines 140-144.
 - **Confidence:** High
-- **Status:** NEW
+- **Status:** TRIAGED
 
 ### 2025-05-19 — AI speech history log tab in Opponent Inspector Drawer
 - **Agent:** Jules
@@ -172,7 +172,7 @@ Prioritize problems that disrupt:
 - **Player value:** Prevents players from missing flavor dialogue and personality banter during fast-paced multi-opponent AI turns.
 - **Evidence:** Code inspection of `MultiplayerSeats.tsx` lines 90-94 and `OpponentInspectorDrawer.tsx`.
 - **Confidence:** High
-- **Status:** NEW
+- **Status:** PROMOTED
 
 ### 2025-05-19 — Automatic drawer backdrop dimming during decision prompts
 - **Agent:** Jules
@@ -182,7 +182,7 @@ Prioritize problems that disrupt:
 - **Player value:** Reduces visual distraction and directs player focus solely to the pending rule-driven decision.
 - **Evidence:** Code inspection of `InteractionModal.tsx` and `TableTop.tsx` (`pendingInteraction` modal overlay z-index layering).
 - **Confidence:** High
-- **Status:** NEW
+- **Status:** TRIAGED
 
 ### 2025-05-19 — Visual Gold/Pot breakdown summary tooltips on Gambit End banner
 - **Agent:** Jules
@@ -192,7 +192,7 @@ Prioritize problems that disrupt:
 - **Player value:** Provides clear causality and transparency on how the pot accumulated before being awarded.
 - **Evidence:** Code inspection of `EndGameModal.tsx` lines 42-49.
 - **Confidence:** Medium
-- **Status:** NEW
+- **Status:** TRIAGED
 
 ### 2025-05-19 — Flight card tooltip keyboard accessibility focus trigger
 - **Agent:** Jules
@@ -202,4 +202,4 @@ Prioritize problems that disrupt:
 - **Player value:** Enables keyboard-only and screen-reader players to inspect active flight card powers across tabletop seats without mouse interaction.
 - **Evidence:** Code inspection of `MultiplayerSeats.tsx` flight card rendering.
 - **Confidence:** High
-- **Status:** NEW
+- **Status:** TRIAGED
