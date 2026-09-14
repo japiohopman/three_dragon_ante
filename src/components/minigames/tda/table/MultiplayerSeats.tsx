@@ -116,12 +116,23 @@ export const MultiplayerSeats: React.FC<MultiplayerSeatsProps> = ({
                        {opp.flight.map((c) => (
                            <div
                                key={c.id}
-                               className="transform scale-[0.35] sm:scale-[0.4] hover:scale-100 transition-transform w-5 sm:w-6 h-7 sm:h-8 flex items-center justify-center -mx-2 sm:-mx-1.5 cursor-pointer pointer-events-auto relative z-10 hover:z-50"
+                               role="button"
+                               tabIndex={0}
+                               aria-label={`${c.name}, strength ${c.strength} played by ${opp.name}`}
+                               className="transform scale-[0.35] sm:scale-[0.4] hover:scale-100 focus-visible:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 rounded transition-transform w-5 sm:w-6 h-7 sm:h-8 flex items-center justify-center -mx-2 sm:-mx-1.5 cursor-pointer pointer-events-auto relative z-10 hover:z-50 focus-visible:z-50"
                                onMouseEnter={(e) => {
                                    e.stopPropagation();
                                    setHoveredCard(c.id);
                                }}
                                onMouseLeave={(e) => {
+                                   e.stopPropagation();
+                                   setHoveredCard(null);
+                               }}
+                               onFocus={(e) => {
+                                   e.stopPropagation();
+                                   setHoveredCard(c.id);
+                               }}
+                               onBlur={(e) => {
                                    e.stopPropagation();
                                    setHoveredCard(null);
                                }}

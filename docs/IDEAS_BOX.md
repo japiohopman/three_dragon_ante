@@ -214,3 +214,13 @@ Prioritize problems that disrupt:
 - **Evidence:** Code inspection of `turnSlice.ts` lines 24-27 and `roundSlice.ts` lines 135-139.
 - **Confidence:** High
 - **Status:** NEW
+
+### 2025-05-19 — Keyboard focus z-index elevation and scale expansion for flight card tooltips
+- **Agent:** Jules
+- **Area:** Accessibility / UX
+- **Observation:** In `MultiplayerSeats.tsx` and `PlayerHandArea.tsx`, when keyboard Tab navigation focuses a flight card, the tooltip renders cleanly, but adjacent overlapping flight cards in dense 6-player seat chips can partially overlap the focused card boundary unless z-index elevation and transform scaling are explicitly applied to the focused element (`focus-visible:z-50`).
+- **Idea:** Ensure all flight card containers apply explicit relative z-index stacking (`z-50`) and scale expansion (`scale-110`) during active `:focus-visible` state across all tabletop components.
+- **Player value:** Ensures focused flight cards remain completely unobstructed by adjacent sibling cards during keyboard navigation.
+- **Evidence:** Inspection of `MultiplayerSeats.tsx` seat chip card overlap layout.
+- **Confidence:** Medium
+- **Status:** NEW

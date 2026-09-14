@@ -238,11 +238,16 @@ export const OpponentInspectorDrawer: React.FC<OpponentInspectorDrawerProps> = (
                                 {focusedOpponent.flight.map((c) => (
                                     <div
                                         key={c.id}
-                                        className="transform hover:scale-105 transition-transform relative cursor-pointer"
+                                        role="button"
+                                        tabIndex={0}
+                                        aria-label={`${c.name}, strength ${c.strength} played by ${focusedOpponent.name}`}
+                                        className="transform hover:scale-105 focus-visible:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 rounded-lg transition-transform relative cursor-pointer"
                                         onMouseEnter={() => setHoveredCard(c.id)}
                                         onMouseLeave={() => setHoveredCard(null)}
+                                        onFocus={() => setHoveredCard(c.id)}
+                                        onBlur={() => setHoveredCard(null)}
                                     >
-                                        <Card card={c} size="sm" glow={lastCardPlayed?.id === c.id ? 'red' : 'none'} />
+                                        <Card card={c} size="sm" glow={lastCardPlayed?.id === c.id ? 'red' : 'none'} disableFocus />
                                         {hoveredCardId === c.id && (
                                             <FlightCardTooltip card={c} position="top" ownerName={focusedOpponent.name} />
                                         )}

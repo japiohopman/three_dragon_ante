@@ -110,7 +110,7 @@ This queue is deliberately ordered. Do not skip ahead because a later item looks
   - **Goal:** dim or temporarily hide background drawers/modals while `pendingInteraction` requires human player input.
   - **Acceptance:** when a human decision prompt triggers, background drawers/modals are dimmed or hidden so player focus is directed solely to `InteractionModal`; background state restores cleanly after decision resolution; tests pass.
 
-- [ ] **Flight card tooltip keyboard accessibility focus trigger**
+- [x] **Flight card tooltip keyboard accessibility focus trigger**
   - **Problem:** `FlightCardTooltip` triggers cleanly on mouse hover across `PlayerHandArea`, `MultiplayerSeats`, and `OpponentInspectorDrawer`, but keyboard focus using `Tab` navigation on flight card elements does not trigger the tooltip overlay.
   - **Goal:** bind keyboard focus events (`onFocus` / `onBlur`) on flight card buttons/elements across `MultiplayerSeats.tsx` and `PlayerHandArea.tsx` to update `hoveredCardId` in `useAnimationStore`.
   - **Acceptance:** keyboard users navigating flight cards with Tab key see `FlightCardTooltip` open and close in sync with keyboard focus; mouse hover behavior remains unaffected; tests pass.
