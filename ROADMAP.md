@@ -90,6 +90,26 @@ This queue is deliberately ordered. Do not skip ahead because a later item looks
   - **Goal:** add an expanded preview tooltip or hover card overlay for cards in active flights showing full power text and round information.
   - **Acceptance:** hovering over any card in a flight displays a readable card description tooltip without requiring full drawer modal inspection; turn flow is uninterrupted.
 
+- [ ] **Onboarding skill selection keyboard navigation & ARIA attributes**
+  - **Problem:** on `LobbyScreen.tsx`, when a player has not selected a skill, a visual warning prompts skill selection, but keyboard Tab focus does not cycle skill cards with explicit `aria-selected` and outline styling.
+  - **Goal:** add accessible keyboard focus handlers, outline styles, and ARIA attributes for skill card selection on the lobby setup screen.
+  - **Acceptance:** keyboard Tab navigation cleanly highlights skill choices with readable focus rings and `aria-selected` attributes; first-time player onboarding flow works seamlessly without mouse input.
+
+- [ ] **Central Pot ambient glow & flash visual feedback on gold increases**
+  - **Problem:** when gold is added to the pot during ante or dragon card bets, the numerical amount in `Battleground.tsx` updates instantly without temporary radiant visual feedback.
+  - **Goal:** trigger a radiant glow flash or gold particle emitter on the central Pot container whenever `pot` value increases.
+  - **Acceptance:** gold additions produce immediate visual glow and feedback around the central Pot element, reinforcing reward stakes without obscuring table text.
+
+- [ ] **Phase transition audio cues for turn initiative & decision prompts**
+  - **Problem:** phase transitions (e.g. Ante -> Player Turn) and decision-required interruption prompts rely exclusively on visual HUD/VFX updates without dedicated audio feedback.
+  - **Goal:** add subtle ambient sound triggers (`UI_PHASE_CHANGE`, `DECISION_PROMPT`) whenever game phase changes or an interruption requires player action.
+  - **Acceptance:** multi-opponent turn and phase transitions emit clear, subtle audio cues synchronized with visual HUD changes; sound playback respects audio mute/volume settings.
+
+- [ ] **Dialogue history log in Opponent Inspector Drawer**
+  - **Problem:** dynamic NPC speech line bubbles on seat chips dismiss after 3000ms and can be missed during fast multi-opponent AI turn sequences.
+  - **Goal:** add a "Dialogue History" / "Banter Log" tab inside `OpponentInspectorDrawer.tsx` preserving recent speech lines spoken by each opponent.
+  - **Acceptance:** players can inspect recent dialogue banter from any opponent inside their drawer view; dialogue history persists across round turns.
+
 ## Integration Gate
 
 - **Integration status:** `BLOCKED`
