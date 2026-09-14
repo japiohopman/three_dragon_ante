@@ -115,6 +115,21 @@ This queue is deliberately ordered. Do not skip ahead because a later item looks
   - **Goal:** bind keyboard focus events (`onFocus` / `onBlur`) on flight card buttons/elements across `MultiplayerSeats.tsx` and `PlayerHandArea.tsx` to update `hoveredCardId` in `useAnimationStore`.
   - **Acceptance:** keyboard users navigating flight cards with Tab key see `FlightCardTooltip` open and close in sync with keyboard focus; mouse hover behavior remains unaffected; tests pass.
 
+- [ ] **Turn initiative banner entrance anticipation motion curve**
+  - **Problem:** in `VFXLayer.tsx`, the full-screen editorial turn banner (`showTurnBanner`) animates into view using a standard spring transition (`damping: 15, stiffness: 100`), but starts abruptly without a brief scale-up anticipation or pre-blur flash to signal the turn ownership shift to the player.
+  - **Goal:** add a subtle pre-entrance scale anticipation or entrance transition to `motion.div` in `VFXLayer.tsx` when `triggerTurnBanner` is called.
+  - **Acceptance:** turn banner entrance includes subtle scale/flash anticipation before settling; motion feels smooth and non-blocking; existing build and tests pass.
+
+- [ ] **Audio feedback cue during automatic card draw on empty hand**
+  - **Problem:** when a player or AI opponent has 0 cards in hand at turn start in `turnSlice.ts` and `roundSlice.ts`, `buyCard` is automatically invoked to draw a card, but this automatic state recovery triggers without playing the standard `CARD_DEAL` sound effect, creating a silent card draw event.
+  - **Goal:** trigger `CARD_DEAL` sound effect when `buyCard` is auto-invoked on empty hand state recovery.
+  - **Acceptance:** automatic hand card draws play `CARD_DEAL` audio feedback; audio cue remains non-disruptive; existing unit test suite passes.
+
+- [ ] **Keyboard focus z-index elevation and scale expansion for flight card tooltips**
+  - **Problem:** in `MultiplayerSeats.tsx` and `PlayerHandArea.tsx`, when keyboard Tab navigation focuses a flight card, adjacent overlapping flight cards in dense 6-player seat chips can partially overlap the focused card boundary unless z-index elevation and transform scaling are explicitly applied to the focused element (`focus-visible:z-50`).
+  - **Goal:** ensure all flight card containers apply explicit relative z-index stacking (`z-50`) and scale expansion (`scale-110`) during active `:focus-visible` state across tabletop components.
+  - **Acceptance:** focused flight cards remain completely unobstructed by adjacent sibling cards during keyboard navigation; tests pass.
+
 ## Integration Gate
 
 - **Integration status:** `BLOCKED`
