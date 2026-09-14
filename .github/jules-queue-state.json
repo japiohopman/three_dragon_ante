@@ -1,9 +1,3 @@
 {
-  "activeSession": {
-    "name": "sessions/4285341557623408301",
-    "task": "**Flight card tooltip keyboard accessibility focus trigger**",
-    "issueNumber": null,
-    "startedAt": "2026-09-14T13:00:50.778Z",
-    "recurring": false
-  }
+  "activeSession": null
 }
