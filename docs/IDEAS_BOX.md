@@ -204,3 +204,13 @@ Prioritize problems that disrupt:
 - **Evidence:** Code inspection of `MultiplayerSeats.tsx` flight card rendering.
 - **Confidence:** High
 - **Status:** PROMOTED
+
+### 2025-05-19 — Audio feedback cue during automatic card draw on empty hand
+- **Agent:** Jules
+- **Area:** Audio / UX
+- **Observation:** In `turnSlice.ts` and `roundSlice.ts`, when a player or AI opponent has 0 cards in hand at turn start, `buyCard` is automatically invoked to draw a card, but this automatic state recovery triggers without playing the standard `CARD_DEAL` sound effect, creating a silent card draw event.
+- **Idea:** Trigger `CARD_DEAL` sound effect when `buyCard` is auto-invoked on empty hand in `turnSlice.ts` and `roundSlice.ts`.
+- **Player value:** Reinforces multi-sensory feedback so players hear card drawing when hand replenishment occurs automatically.
+- **Evidence:** Code inspection of `turnSlice.ts` lines 24-27 and `roundSlice.ts` lines 135-139.
+- **Confidence:** High
+- **Status:** NEW

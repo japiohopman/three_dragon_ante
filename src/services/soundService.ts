@@ -37,6 +37,8 @@ export const SOUND_CONFIG = {
   COIN_SACK: { path: 'environment/coin_sack_heavy.mp3', category: 'sfx', volume: 0.7 },
   TURN_START_PLAYER: { path: 'System/tda_turn_player.mp3', category: 'sfx', volume: 0.7 },
   TURN_START_AI: { path: 'System/tda_turn_ai.mp3', category: 'sfx', volume: 0.5 },
+  PHASE_TRANSITION: { path: 'System/tda_phase_transition.mp3', category: 'sfx', volume: 0.6 },
+  DECISION_PROMPT: { path: 'System/tda_decision_prompt.mp3', category: 'sfx', volume: 0.7 },
   GAMBIT_WIN: { path: 'System/tda_gambit_win.mp3', category: 'sfx', volume: 0.8 },
   GAMBIT_LOSS: { path: 'System/tda_gambit_loss.mp3', category: 'sfx', volume: 0.7 },
   MATCH_VICTORY: { path: 'System/tda_match_victory.mp3', category: 'sfx', volume: 0.9 },

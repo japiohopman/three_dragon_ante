@@ -90,7 +90,7 @@ This queue is deliberately ordered. Do not skip ahead because a later item looks
   - **Goal:** add an expanded preview tooltip or hover card overlay for cards in active flights showing full power text and round information.
   - **Acceptance:** hovering over any card in a flight displays a readable card description tooltip without requiring full drawer modal inspection; turn flow is uninterrupted.
 
-- [ ] **Phase transition audio cues for turn initiative & decision prompts**
+- [x] **Phase transition audio cues for turn initiative & decision prompts**
   - **Problem:** visual badges for phase changes (`HeaderHUD.tsx`) and turn initiative banners (`VFXLayer.tsx`) communicate active state changes clearly, but lack dedicated ambient sound cues on phase transitions (e.g. Ante -> Gambit, Player Turn start, or Decision Required prompt), relying solely on visual feedback.
   - **Goal:** add distinct audio transition triggers in `soundService.ts` when game phase changes or decision prompts appear for the human player.
   - **Acceptance:** phase transitions and human decision prompts trigger subtle, distinct audio feedback; audio cues do not overlap or disrupt gameplay during fast AI turns; all existing unit tests and build pass.

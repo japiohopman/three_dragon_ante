@@ -110,6 +110,21 @@ const GameUI: React.FC<GameUIProps> = ({ onExit }) => {
       }
   }, [phase, pendingInteraction, isInteraction, fixGameState]);
 
+  // --- AUDIO CUES FOR PHASE TRANSITIONS AND HUMAN DECISION PROMPTS ---
+  useEffect(() => {
+      if (!showHud) return;
+
+      if (phase === 'ante-selection' || phase === 'round-start' || phase === 'gambit-end') {
+          playSound('PHASE_TRANSITION');
+      }
+  }, [phase, showHud]);
+
+  useEffect(() => {
+      if (pendingInteraction && pendingInteraction.target === 'player') {
+          playSound('DECISION_PROMPT');
+      }
+  }, [pendingInteraction]);
+
   const getSelectableCards = () => {
       if (!pendingInteraction || !pendingInteraction.options) return [];
       const cardOption = pendingInteraction.options.find(o => o.value === 'give-card' || o.value === 'discard-card');
