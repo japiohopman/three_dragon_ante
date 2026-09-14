@@ -2,7 +2,7 @@ import { StateCreator } from 'zustand';
 import { GameStore } from './types';
 import { syncCompatibility } from './helpers';
 import { getNPCPersona } from '../../constants/npcLines';
-import { NPCEmotion } from '../../types';
+import { NPCEmotion, DialogueHistoryEntry } from '../../types';
 
 export interface UISlice {
   autoOpenInspector: boolean;
@@ -40,9 +40,17 @@ export const createUISlice: StateCreator<GameStore, [], [], UISlice> = (set, get
         finalLine = options[Math.floor(Math.random() * options.length)];
     }
 
+    const entry: DialogueHistoryEntry = {
+      id: `${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+      line: finalLine,
+      timestamp: Date.now(),
+      emotion
+    };
+
     const updatedPlayers = state.players.map((p, idx) => {
        if (idx === focusedIdx) {
-          return { ...p, npcLine: finalLine, isTalking: true, emotion };
+          const speechHistory = [entry, ...(p.speechHistory || [])].slice(0, 20);
+          return { ...p, npcLine: finalLine, isTalking: true, emotion, speechHistory };
        }
        return p;
     });

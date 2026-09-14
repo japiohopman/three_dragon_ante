@@ -48,7 +48,8 @@ export const createGameSetupSlice: StateCreator<GameStore, [], [], GameSetupSlic
         ante: null,
         emotion: 'neutral',
         npcLine: '',
-        isTalking: false
+        isTalking: false,
+        speechHistory: []
       }
     ];
 
@@ -64,7 +65,8 @@ export const createGameSetupSlice: StateCreator<GameStore, [], [], GameSetupSlic
         ante: null,
         emotion: 'neutral',
         npcLine: '',
-        isTalking: false
+        isTalking: false,
+        speechHistory: []
       });
     });
 
@@ -114,7 +116,8 @@ export const createGameSetupSlice: StateCreator<GameStore, [], [], GameSetupSlic
         ante: null,
         emotion: 'neutral',
         npcLine: '',
-        isTalking: false
+        isTalking: false,
+        speechHistory: []
       }
     ];
 
@@ -130,7 +133,8 @@ export const createGameSetupSlice: StateCreator<GameStore, [], [], GameSetupSlic
         ante: null,
         emotion: 'neutral',
         npcLine: '',
-        isTalking: false
+        isTalking: false,
+        speechHistory: []
       });
     });
 

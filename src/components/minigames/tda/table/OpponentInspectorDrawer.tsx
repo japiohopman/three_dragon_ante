@@ -241,6 +241,45 @@ export const OpponentInspectorDrawer: React.FC<OpponentInspectorDrawerProps> = (
                             </div>
                         </div>
 
+                        {/* Dialogue History log */}
+                        <div className="flex flex-col gap-2">
+                            <div className="flex items-center justify-between">
+                                <span className="text-[9px] uppercase tracking-wider text-stone-500 font-bold flex items-center gap-1.5">
+                                    <GameIcon name="thinking" size={12} className="text-amber-500" />
+                                    Dialogue History
+                                </span>
+                                {focusedOpponent.speechHistory && focusedOpponent.speechHistory.length > 0 && (
+                                    <span className="text-[9px] text-stone-500 font-mono">
+                                        {focusedOpponent.speechHistory.length} lines
+                                    </span>
+                                )}
+                            </div>
+                            <div className="flex flex-col gap-2 p-3 bg-stone-900/40 rounded-xl border border-stone-800/80 max-h-48 overflow-y-auto custom-scrollbar">
+                                {focusedOpponent.speechHistory && focusedOpponent.speechHistory.length > 0 ? (
+                                    focusedOpponent.speechHistory.map((entry) => (
+                                        <div key={entry.id} className="flex flex-col gap-1 p-2 bg-stone-950/60 rounded-lg border border-stone-800/50">
+                                            <p className="text-xs text-amber-100/90 font-serif italic leading-snug">
+                                                "{entry.line}"
+                                            </p>
+                                            <span className="text-[9px] text-stone-500 font-sans tracking-wide self-end">
+                                                {new Date(entry.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                                            </span>
+                                        </div>
+                                    ))
+                                ) : focusedOpponent.npcLine ? (
+                                    <div className="p-2 bg-stone-950/60 rounded-lg border border-stone-800/50">
+                                        <p className="text-xs text-amber-100/90 font-serif italic leading-snug">
+                                            "{focusedOpponent.npcLine}"
+                                        </p>
+                                    </div>
+                                ) : (
+                                    <div className="py-3 text-center">
+                                        <span className="text-[10px] text-stone-600 uppercase font-bold tracking-widest italic">No dialogue history recorded</span>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
                     </motion.div>
                 </AnimatePresence>
 
