@@ -224,3 +224,13 @@ Prioritize problems that disrupt:
 - **Evidence:** Inspection of `MultiplayerSeats.tsx` seat chip card overlap layout.
 - **Confidence:** Medium
 - **Status:** PROMOTED
+
+### 2025-05-19 — Animated visual countdown ring on active player turn indicator
+- **Agent:** Jules
+- **Area:** UI / UX / Pacing
+- **Observation:** During human player turn in `HeaderHUD.tsx` and `PlayerHandArea.tsx`, the directive banner indicates "Your turn - Play a card to the table", but does not provide a subtle ambient glow intensity pulse or visual timer cue to signal turn duration/pacing in fast-paced tavern play.
+- **Idea:** Add an optional subtle radial breathing ring or pulse indicator around the active turn badge when awaiting player card selection.
+- **Player value:** Enhances visual focus and turn pace awareness for the active player without imposing hard time limits.
+- **Evidence:** Code inspection of `HeaderHUD.tsx` lines 34-40 and `PlayerHandArea.tsx`.
+- **Confidence:** Medium
+- **Status:** NEW

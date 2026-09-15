@@ -115,7 +115,7 @@ This queue is deliberately ordered. Do not skip ahead because a later item looks
   - **Goal:** bind keyboard focus events (`onFocus` / `onBlur`) on flight card buttons/elements across `MultiplayerSeats.tsx` and `PlayerHandArea.tsx` to update `hoveredCardId` in `useAnimationStore`.
   - **Acceptance:** keyboard users navigating flight cards with Tab key see `FlightCardTooltip` open and close in sync with keyboard focus; mouse hover behavior remains unaffected; tests pass.
 
-- [ ] **Turn initiative banner entrance anticipation motion curve**
+- [x] **Turn initiative banner entrance anticipation motion curve**
   - **Problem:** in `VFXLayer.tsx`, the full-screen editorial turn banner (`showTurnBanner`) animates into view using a standard spring transition (`damping: 15, stiffness: 100`), but starts abruptly without a brief scale-up anticipation or pre-blur flash to signal the turn ownership shift to the player.
   - **Goal:** add a subtle pre-entrance scale anticipation or entrance transition to `motion.div` in `VFXLayer.tsx` when `triggerTurnBanner` is called.
   - **Acceptance:** turn banner entrance includes subtle scale/flash anticipation before settling; motion feels smooth and non-blocking; existing build and tests pass.

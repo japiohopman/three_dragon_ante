@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useAnimationStore } from '../store/useAnimationStore';
 import { useGameStore } from '../store/useGameStore';
+import { PlayerId } from '../types';
 
 // Sub-component rendering a coin particle driven purely by CSS keyframes
 const Coin: React.FC<{
@@ -47,8 +48,19 @@ const FloatingText: React.FC<{ x: number; y: number; text: string; color: string
     );
 };
 
-const VFXLayer: React.FC = () => {
-  const { activeCoins, floatingTexts, showTurnBanner, activePlayer, flashColor, specialEffect } = useAnimationStore();
+interface VFXLayerProps {
+  showTurnBanner?: boolean;
+  activePlayer?: PlayerId | null;
+}
+
+const VFXLayer: React.FC<VFXLayerProps> = ({
+  showTurnBanner: propShowTurnBanner,
+  activePlayer: propActivePlayer,
+}) => {
+  const animStore = useAnimationStore();
+  const showTurnBanner = propShowTurnBanner ?? animStore.showTurnBanner;
+  const activePlayer = propActivePlayer ?? animStore.activePlayer;
+  const { activeCoins, floatingTexts, flashColor, specialEffect } = animStore;
   const players = useGameStore(s => s.players);
   const [isMounted, setIsMounted] = useState(true);
 
@@ -140,13 +152,42 @@ const VFXLayer: React.FC = () => {
       <AnimatePresence>
         {showTurnBanner && (
           <motion.div
-            initial={{ opacity: 0, scale: 0.8, x: activePlayer === 'player' ? -200 : 200, skewX: -10 }}
-            animate={{ opacity: 1, scale: 1, x: 0, skewX: -10 }}
-            exit={{ opacity: 0, scale: 1.2, x: activePlayer === 'player' ? 200 : -200, skewX: -10 }}
-            transition={{ type: 'spring', damping: 15, stiffness: 100 }}
+            key={`turn-banner-${activePlayer}`}
+            initial={{
+              opacity: 0,
+              scale: 0.75,
+              x: activePlayer === 'player' ? -250 : 250,
+              skewX: -10,
+              filter: 'blur(8px)',
+            }}
+            animate={{
+              opacity: [0, 1, 1],
+              scale: [0.75, 1.06, 1],
+              x: [activePlayer === 'player' ? -250 : 250, activePlayer === 'player' ? -12 : 12, 0],
+              skewX: -10,
+              filter: ['blur(8px)', 'blur(1px)', 'blur(0px)'],
+            }}
+            exit={{
+              opacity: 0,
+              scale: 1.15,
+              x: activePlayer === 'player' ? 200 : -200,
+              skewX: -10,
+              filter: 'blur(6px)',
+            }}
+            transition={{ duration: 0.45, times: [0, 0.55, 1], ease: ['easeOut', 'easeInOut'] }}
             className="fixed inset-0 flex items-center justify-center pointer-events-none z-[100]"
           >
-            <div className="relative">
+            {/* Pre-entrance radial flash glow behind banner */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.5 }}
+              animate={{ opacity: [0, 0.7, 0], scale: [0.5, 1.4, 1.9] }}
+              transition={{ duration: 0.45, ease: 'easeOut' }}
+              className="absolute inset-0 flex items-center justify-center pointer-events-none z-0"
+            >
+              <div className={`w-[70vw] h-[35vh] rounded-full blur-3xl ${activePlayer === 'player' ? 'bg-amber-400/30' : 'bg-red-500/25'}`} />
+            </motion.div>
+
+            <div className="relative z-10">
               {/* Massive Background Text */}
               <div className="absolute inset-0 flex items-center justify-center opacity-10 select-none">
                 <h1 className="text-[25vw] font-black uppercase leading-none tracking-tighter whitespace-nowrap text-stone-100">
