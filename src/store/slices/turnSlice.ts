@@ -25,6 +25,7 @@ export const createTurnSlice: StateCreator<GameStore, [], [], TurnSlice> = (set,
     if (activePlayerIndex !== 0) return;
 
     if (humanPlayer.hand.length === 0) {
+       playSound('CARD_DEAL');
        get().buyCard('player');
        return;
     }
@@ -105,6 +106,7 @@ export const createTurnSlice: StateCreator<GameStore, [], [], TurnSlice> = (set,
     if (!aiPlayer || !aiPlayer.isNpc) return;
 
     if (aiPlayer.hand.length <= 1) {
+        playSound('CARD_DEAL');
         get().buyCard(aiPlayer.id);
     }
     const currentHand = get().players[activePlayerIndex].hand;

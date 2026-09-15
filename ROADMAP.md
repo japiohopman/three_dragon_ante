@@ -120,7 +120,7 @@ This queue is deliberately ordered. Do not skip ahead because a later item looks
   - **Goal:** add a subtle pre-entrance scale anticipation or entrance transition to `motion.div` in `VFXLayer.tsx` when `triggerTurnBanner` is called.
   - **Acceptance:** turn banner entrance includes subtle scale/flash anticipation before settling; motion feels smooth and non-blocking; existing build and tests pass.
 
-- [ ] **Audio feedback cue during automatic card draw on empty hand**
+- [x] **Audio feedback cue during automatic card draw on empty hand**
   - **Problem:** when a player or AI opponent has 0 cards in hand at turn start in `turnSlice.ts` and `roundSlice.ts`, `buyCard` is automatically invoked to draw a card, but this automatic state recovery triggers without playing the standard `CARD_DEAL` sound effect, creating a silent card draw event.
   - **Goal:** trigger `CARD_DEAL` sound effect when `buyCard` is auto-invoked on empty hand state recovery.
   - **Acceptance:** automatic hand card draws play `CARD_DEAL` audio feedback; audio cue remains non-disruptive; existing unit test suite passes.
