@@ -124,6 +124,7 @@ export const createRoundSlice: StateCreator<GameStore, [], [], RoundSlice> = (se
       if (!nextActive.isNpc && nextActive.hand.length === 0) {
           setTimeout(() => {
               get().addNotification("Empty Hand! Auto-Buying...", 'alert');
+              playSound('CARD_DEAL');
               get().buyCard('player');
           }, 1200);
       }

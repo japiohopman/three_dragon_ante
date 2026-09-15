@@ -24,6 +24,10 @@ describe('soundService', () => {
     expect(playSFXSpy).toHaveBeenCalledTimes(2);
     expect(playSFXSpy.mock.calls[1][0]).toContain('tda_decision_prompt.mp3');
 
+    playSound('CARD_DEAL');
+    expect(playSFXSpy).toHaveBeenCalledTimes(3);
+    expect(playSFXSpy.mock.calls[2][0]).toContain('card_deal.mp3');
+
     playSFXSpy.mockRestore();
   });
 });
