@@ -103,4 +103,39 @@ describe('MultiplayerSeats Component', () => {
     expect(html).toContain('Thinking...');
     expect(html).not.toContain('Resolving Power...');
   });
+
+  it('renders flight card containers with keyboard focus scale and elevation classes', () => {
+    const playersWithFlight: PlayerState[] = [
+      mockPlayers[0],
+      {
+        ...mockPlayers[1],
+        flight: [
+          {
+            id: 'card_red_1',
+            name: 'Red Dragon',
+            type: 'evil',
+            color: 'red',
+            strength: 10,
+            description: 'Test Dragon Power',
+            playedAtRound: 1
+          }
+        ]
+      },
+      mockPlayers[2]
+    ];
+
+    const html = renderToString(
+      <MultiplayerSeats
+        players={playersWithFlight}
+        focusedOpponentIndex={1}
+        activePlayer="npc_1"
+        currentLeader="npc_1"
+        lastCardPlayed={null}
+        onSelectOpponent={() => {}}
+      />
+    );
+
+    expect(html).toContain('focus-visible:scale-110');
+    expect(html).toContain('focus-visible:z-50');
+  });
 });

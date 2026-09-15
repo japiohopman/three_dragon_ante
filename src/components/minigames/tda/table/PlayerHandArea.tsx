@@ -135,7 +135,7 @@ export const PlayerHandArea: React.FC<PlayerHandAreaProps> = ({
                       role="button"
                       tabIndex={0}
                       aria-label={`${card.name}, strength ${card.strength} played in flight`}
-                      className="transform scale-[0.75] sm:scale-[0.9] origin-bottom hover:scale-100 focus-visible:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:ring-offset-2 focus-visible:ring-offset-stone-900 rounded-lg transition-transform cursor-pointer relative"
+                      className="transform scale-[0.75] sm:scale-[0.9] origin-bottom hover:scale-110 focus-visible:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:ring-offset-2 focus-visible:ring-offset-stone-900 rounded-lg transition-transform cursor-pointer relative hover:z-50 focus-visible:z-50"
                       onMouseEnter={() => setHoveredCard(card.id)}
                       onMouseLeave={() => setHoveredCard(null)}
                       onFocus={() => setHoveredCard(card.id)}
