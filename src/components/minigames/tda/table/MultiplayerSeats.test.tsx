@@ -116,6 +116,8 @@ describe('MultiplayerSeats Component', () => {
             type: 'evil',
             color: 'red',
             strength: 10,
+            spriteIndex: 0,
+            owner: 'npc_1',
             description: 'Test Dragon Power',
             playedAtRound: 1
           }
