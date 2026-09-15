@@ -163,7 +163,7 @@ Prioritize problems that disrupt:
 - **Player value:** Enhances anticipation and causal clarity when initiative switches between players during fast multi-opponent turns.
 - **Evidence:** Playtest observation during `tests/audit_playtest_flow.spec.ts` and code inspection of `VFXLayer.tsx` lines 140-144.
 - **Confidence:** High
-- **Status:** NEW
+- **Status:** PROMOTED
 
 ### 2025-05-19 — AI speech history log tab in Opponent Inspector Drawer
 - **Agent:** Jules
@@ -213,7 +213,7 @@ Prioritize problems that disrupt:
 - **Player value:** Reinforces multi-sensory feedback so players hear card drawing when hand replenishment occurs automatically.
 - **Evidence:** Code inspection of `turnSlice.ts` lines 24-27 and `roundSlice.ts` lines 135-139.
 - **Confidence:** High
-- **Status:** NEW
+- **Status:** PROMOTED
 
 ### 2025-05-19 — Keyboard focus z-index elevation and scale expansion for flight card tooltips
 - **Agent:** Jules
@@ -223,4 +223,4 @@ Prioritize problems that disrupt:
 - **Player value:** Ensures focused flight cards remain completely unobstructed by adjacent sibling cards during keyboard navigation.
 - **Evidence:** Inspection of `MultiplayerSeats.tsx` seat chip card overlap layout.
 - **Confidence:** Medium
-- **Status:** NEW
+- **Status:** PROMOTED
