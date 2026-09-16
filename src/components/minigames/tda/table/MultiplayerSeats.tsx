@@ -27,6 +27,33 @@ export const MultiplayerSeats: React.FC<MultiplayerSeatsProps> = ({
   const isMultiplayer = players.length > 2;
   const { pendingInteraction, phase } = useGameStore();
   const { hoveredCardId, setHoveredCard } = useAnimationStore();
+  const hoverTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handleFlightCardMouseEnter = (e: React.MouseEvent, cardId: string) => {
+    e.stopPropagation();
+    if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current);
+    hoverTimerRef.current = setTimeout(() => {
+      setHoveredCard(cardId);
+    }, 220);
+  };
+
+  const handleFlightCardMouseLeave = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current);
+    setHoveredCard(null);
+  };
+
+  const handleFlightCardFocus = (e: React.FocusEvent, cardId: string) => {
+    e.stopPropagation();
+    if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current);
+    setHoveredCard(cardId);
+  };
+
+  const handleFlightCardBlur = (e: React.FocusEvent) => {
+    e.stopPropagation();
+    if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current);
+    setHoveredCard(null);
+  };
 
   return (
     <div className={`w-full flex justify-center ${isMultiplayer ? 'gap-1.5 sm:gap-2.5 md:gap-4' : 'gap-4'} px-2 sm:px-6 mb-2 sm:mb-4 min-h-[110px] sm:min-h-[140px] pointer-events-auto flex-wrap md:flex-nowrap`}>
@@ -120,22 +147,10 @@ export const MultiplayerSeats: React.FC<MultiplayerSeatsProps> = ({
                                tabIndex={0}
                                aria-label={`${c.name}, strength ${c.strength} played by ${opp.name}`}
                                className="transform scale-[0.35] sm:scale-[0.4] hover:scale-110 focus-visible:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 rounded transition-transform w-5 sm:w-6 h-7 sm:h-8 flex items-center justify-center -mx-2 sm:-mx-1.5 cursor-pointer pointer-events-auto relative z-10 hover:z-50 focus-visible:z-50"
-                               onMouseEnter={(e) => {
-                                   e.stopPropagation();
-                                   setHoveredCard(c.id);
-                               }}
-                               onMouseLeave={(e) => {
-                                   e.stopPropagation();
-                                   setHoveredCard(null);
-                               }}
-                               onFocus={(e) => {
-                                   e.stopPropagation();
-                                   setHoveredCard(c.id);
-                               }}
-                               onBlur={(e) => {
-                                   e.stopPropagation();
-                                   setHoveredCard(null);
-                               }}
+                               onMouseEnter={(e) => handleFlightCardMouseEnter(e, c.id)}
+                               onMouseLeave={(e) => handleFlightCardMouseLeave(e)}
+                               onFocus={(e) => handleFlightCardFocus(e, c.id)}
+                               onBlur={(e) => handleFlightCardBlur(e)}
                            >
                                <Card card={c} size="sm" glow={lastCardPlayed?.id === c.id ? 'red' : 'none'} disableFocus />
                                {hoveredCardId === c.id && (

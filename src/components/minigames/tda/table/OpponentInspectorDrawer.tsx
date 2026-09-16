@@ -43,6 +43,29 @@ export const OpponentInspectorDrawer: React.FC<OpponentInspectorDrawerProps> = (
 }) => {
   const [isCollapsed, setIsCollapsed] = React.useState(false);
   const { hoveredCardId, setHoveredCard } = useAnimationStore();
+  const hoverTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handleFlightCardMouseEnter = (cardId: string) => {
+    if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current);
+    hoverTimerRef.current = setTimeout(() => {
+      setHoveredCard(cardId);
+    }, 220);
+  };
+
+  const handleFlightCardMouseLeave = () => {
+    if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current);
+    setHoveredCard(null);
+  };
+
+  const handleFlightCardFocus = (cardId: string) => {
+    if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current);
+    setHoveredCard(cardId);
+  };
+
+  const handleFlightCardBlur = () => {
+    if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current);
+    setHoveredCard(null);
+  };
 
   React.useEffect(() => {
     if (isDrawerOpen) {
@@ -241,11 +264,11 @@ export const OpponentInspectorDrawer: React.FC<OpponentInspectorDrawerProps> = (
                                         role="button"
                                         tabIndex={0}
                                         aria-label={`${c.name}, strength ${c.strength} played by ${focusedOpponent.name}`}
-                                        className="transform hover:scale-105 focus-visible:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 rounded-lg transition-transform relative cursor-pointer"
-                                        onMouseEnter={() => setHoveredCard(c.id)}
-                                        onMouseLeave={() => setHoveredCard(null)}
-                                        onFocus={() => setHoveredCard(c.id)}
-                                        onBlur={() => setHoveredCard(null)}
+                                        className="transform hover:scale-105 focus-visible:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 rounded-lg transition-transform relative cursor-pointer hover:z-50 focus-visible:z-50"
+                                        onMouseEnter={() => handleFlightCardMouseEnter(c.id)}
+                                        onMouseLeave={handleFlightCardMouseLeave}
+                                        onFocus={() => handleFlightCardFocus(c.id)}
+                                        onBlur={handleFlightCardBlur}
                                     >
                                         <Card card={c} size="sm" glow={lastCardPlayed?.id === c.id ? 'red' : 'none'} disableFocus />
                                         {hoveredCardId === c.id && (

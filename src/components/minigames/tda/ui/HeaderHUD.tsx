@@ -113,12 +113,6 @@ export const HeaderHUD: React.FC<HeaderHUDProps> = ({
           ) : (
               <div className="flex flex-col items-center">
                   <div className="flex items-center gap-2 mb-1 relative">
-                      {isHumanTurn && (
-                          <div
-                              data-testid="hud-turn-radial-ring"
-                              className="absolute -inset-1.5 rounded border border-emerald-400/60 bg-emerald-500/10 animate-turn-radial-ring pointer-events-none blur-[1px]"
-                          />
-                      )}
                       <span
                           data-testid="hud-phase-badge"
                           className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider border flex items-center gap-1 relative z-10 ${badge.color}`}

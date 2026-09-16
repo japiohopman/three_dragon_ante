@@ -95,4 +95,28 @@ describe('PlayerHandArea Component Affordances', () => {
 
     expect(html).toContain('⚔️ Str');
   });
+
+  it('renders stable player hand fan without neighbor reflow shifts', () => {
+    const cards: CardData[] = [
+      { ...mockCard, id: 'c1' },
+      { ...mockCard, id: 'c2' },
+      { ...mockCard, id: 'c3' },
+    ];
+
+    const html = renderToString(
+      <PlayerHandArea
+        playerHand={cards}
+        playerFlight={[]}
+        lastCardPlayed={null}
+        phase="player-turn"
+        isPlayerTurn={true}
+        selectAnte={() => {}}
+        playCard={() => {}}
+      />
+    );
+
+    expect(html).toContain('data-testid="player-card-0"');
+    expect(html).toContain('data-testid="player-card-1"');
+    expect(html).toContain('data-testid="player-card-2"');
+  });
 });

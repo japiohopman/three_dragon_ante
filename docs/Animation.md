@@ -79,3 +79,34 @@ This store handles transient visual events.
 1.  **CSS Classes:** Define `shake`, `slam`, `draw-curve` in `index.html`.
 2.  **React Spring / Framer Motion:** (Optional) If CSS is too rigid, use `framer-motion` for the Coin Particle system.
 3.  **Sound Triggers:** The Animation Store should also dispatch sound events (future phase).
+
+---
+
+## 7. Interaction Stabilization & Motion Hierarchy Rules
+
+To maintain a calm, stable, playable tabletop interaction model:
+
+### A. Player Hand Geometry Stability
+- **No Reflow on Hover:** Hovering a card must never translate, rotate, or shift neighboring cards.
+- **Subtle Affordance:** Hovering a hand card applies only a subtle lift (`y: -24px`, `scale: 1.08`), preserving the static fan geometry.
+- **No Large Transforms:** Transforms exceeding scale 1.15+ or y-translation exceeding -45px are forbidden for passive mouse hover.
+
+### B. Card Hover Ownership
+- `Card.tsx` must not directly mutate the global `useAnimationStore` `hoveredCardId` state during ordinary mouse hovers.
+- Hover ownership remains local to the UI component governing the interaction context.
+
+### C. Tooltip Behavior & Dwell Delay
+- **Dwell Delay for Mouse:** Normal mouse hover displays `FlightCardTooltip` only after a ~200ms–250ms dwell delay to prevent tooltip cascades during fast pointer travel.
+- **Instant Focus:** Keyboard `focus-visible` activates tooltips immediately without dwell delay.
+- **Pointer Events:** Tooltips must retain `pointer-events-none` to prevent pointer blocking.
+
+### D. Focus & Accessibility
+- Visible keyboard focus (`focus-visible:ring-2 focus-visible:ring-amber-400`) elevates z-index (`z-50`) without pushing neighboring cards.
+- Respect `@media (prefers-reduced-motion: reduce)` across all transition rules.
+
+### E. Motion Hierarchy
+1. **Gameplay Event:** Strong animation allowed (e.g. card slam, ante reveal, coin shower).
+2. **Explicit Player Action:** Moderate animation allowed (e.g. card play commit).
+3. **Keyboard Focus:** Clear, controlled indication (`focus-visible` ring + `z-50`).
+4. **Normal Mouse Hover:** Subtle indication only (`scale: 1.08`, `y: -24px`).
+5. **Passive Pointer Travel:** No significant visual reaction (no continuous mousemove 3D tilt/gleam).

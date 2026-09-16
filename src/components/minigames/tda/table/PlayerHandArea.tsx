@@ -35,7 +35,30 @@ export const PlayerHandArea: React.FC<PlayerHandAreaProps> = ({
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const [committingCardId, setCommittingCardId] = useState<string | null>(null);
   const handContainerRef = useRef<HTMLDivElement>(null);
+  const hoverTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isAntePhase = phase === 'ante-selection';
+
+  const handleFlightCardMouseEnter = (cardId: string) => {
+    if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current);
+    hoverTimerRef.current = setTimeout(() => {
+      setHoveredCard(cardId);
+    }, 220);
+  };
+
+  const handleFlightCardMouseLeave = () => {
+    if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current);
+    setHoveredCard(null);
+  };
+
+  const handleFlightCardFocus = (cardId: string) => {
+    if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current);
+    setHoveredCard(cardId);
+  };
+
+  const handleFlightCardBlur = () => {
+    if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current);
+    setHoveredCard(null);
+  };
 
   const handleCardClick = (cardId: string) => {
     playSound('UI_CLICK');
@@ -77,7 +100,6 @@ export const PlayerHandArea: React.FC<PlayerHandAreaProps> = ({
     let zIndex = index + 1;
 
     // Dynamic horizontal step scaling based on total cards in hand (max 10 cards)
-    // Ensures full 10-card hand fits inside table container without clipping
     const step = total > 6 ? Math.max(35, Math.min(90, 520 / total)) : 110;
     const xOffset = dist * step;
 
@@ -86,31 +108,12 @@ export const PlayerHandArea: React.FC<PlayerHandAreaProps> = ({
     if (isHovered) {
         return {
             x: xOffset,
-            y: isMobile ? -45 : -120,
-            rotate: 0,
-            scale: total > 6 ? (isMobile ? 1.15 : 1.4) : (isMobile ? 1.25 : 1.55),
-            zIndex: 100,
-            filter: 'brightness(1.1) contrast(1.1) drop-shadow(0 20.1px 40px rgba(0,0,0,0.8))',
+            y: isMobile ? -20 : -24,
+            rotate: rotate,
+            scale: 1.08,
+            zIndex: 50,
+            filter: 'brightness(1.1) drop-shadow(0 10px 20px rgba(0,0,0,0.5))',
         };
-    } else if (hoveredIndex !== null) {
-        const distFromHover = index - hoveredIndex;
-        const absDist = Math.abs(distFromHover);
-        if (absDist <= 2) {
-            const shiftX = distFromHover * (
-                absDist === 1
-                    ? (total > 6 ? (isMobile ? 35 : 50) : (isMobile ? 55 : 80))
-                    : (total > 6 ? (isMobile ? 18 : 25) : (isMobile ? 28 : 40))
-            );
-            const rOffset = distFromHover * (absDist === 1 ? 12 : 8);
-            return {
-                x: xOffset + shiftX,
-                y: yOffset,
-                rotate: rotate + rOffset,
-                scale: scale * 1.05,
-                zIndex: zIndex,
-                filter: 'brightness(1.05) drop-shadow(0 10.1px 20px rgba(0,0,0,0.5))',
-            };
-        }
     }
 
     return {
@@ -136,10 +139,10 @@ export const PlayerHandArea: React.FC<PlayerHandAreaProps> = ({
                       tabIndex={0}
                       aria-label={`${card.name}, strength ${card.strength} played in flight`}
                       className="transform scale-[0.75] sm:scale-[0.9] origin-bottom hover:scale-110 focus-visible:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:ring-offset-2 focus-visible:ring-offset-stone-900 rounded-lg transition-transform cursor-pointer relative hover:z-50 focus-visible:z-50"
-                      onMouseEnter={() => setHoveredCard(card.id)}
-                      onMouseLeave={() => setHoveredCard(null)}
-                      onFocus={() => setHoveredCard(card.id)}
-                      onBlur={() => setHoveredCard(null)}
+                      onMouseEnter={() => handleFlightCardMouseEnter(card.id)}
+                      onMouseLeave={handleFlightCardMouseLeave}
+                      onFocus={() => handleFlightCardFocus(card.id)}
+                      onBlur={handleFlightCardBlur}
                   >
                        <Card card={card} size="sm" glow={lastCardPlayed?.id === card.id ? 'gold' : 'none'} disableFocus />
                        {hoveredCardId === card.id && (
@@ -168,12 +171,6 @@ export const PlayerHandArea: React.FC<PlayerHandAreaProps> = ({
           {/* TURN & LEADER INDICATOR BANNER */}
           {(isPlayerTurn || phase === 'ante-selection' || isPlayerDecisionRequired) && playerHand.length < 10 && (
               <div className="absolute -top-10 left-1/2 -translate-x-1/2 z-40 pointer-events-none">
-                  {isPlayerTurn && !isPlayerDecisionRequired && phase !== 'ante-selection' && (
-                      <div
-                          data-testid="turn-radial-breathing-ring"
-                          className="absolute -inset-1 rounded-full border border-emerald-400/60 bg-emerald-500/10 animate-turn-radial-ring pointer-events-none blur-[1px]"
-                      />
-                  )}
                   <div
                       data-testid="turn-directive-banner"
                       className={`relative px-3.5 py-1 rounded-full text-xs font-bold uppercase tracking-widest shadow-xl flex items-center gap-1.5 backdrop-blur-md border ${
