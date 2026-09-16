@@ -1,3 +1,9 @@
 {
-  "activeSession": null
+  "activeSession": {
+    "name": "sessions/9038819923695595524",
+    "task": "**🔁 Experience Triage Cycle — recurring planning trigger (DO NOT CHECK OFF)**",
+    "issueNumber": null,
+    "startedAt": "2026-09-16T20:54:01.770Z",
+    "recurring": true
+  }
 }
