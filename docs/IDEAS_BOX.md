@@ -193,7 +193,7 @@ Prioritize problems that disrupt:
 - **Player value:** Provides clear causality and transparency on how the pot accumulated before being awarded.
 - **Evidence:** Code inspection of `EndGameModal.tsx` lines 42-49.
 - **Confidence:** Medium
-- **Status:** NEW
+- **Status:** PROMOTED
 
 ### 2025-05-19 — Flight card tooltip keyboard accessibility focus trigger
 - **Agent:** Jules
@@ -233,4 +233,14 @@ Prioritize problems that disrupt:
 - **Player value:** Enhances visual focus and turn pace awareness for the active player without imposing hard time limits.
 - **Evidence:** Code inspection of `HeaderHUD.tsx` lines 34-40 and `PlayerHandArea.tsx`.
 - **Confidence:** Medium
-- **Status:** NEW
+- **Status:** PROMOTED
+
+### 2025-05-19 — Game log narrative entry for automatic card draw on empty hand state
+- **Agent:** Jules
+- **Area:** UX / Content
+- **Observation:** In `turnSlice.ts` and `roundSlice.ts`, when a player or AI opponent starts their turn with an empty hand (0 cards), `buyCard` automatically executes state recovery and draws a card, but no explicit narrative log entry (e.g., "[Player/NPC] drew a card to replenish an empty hand") is appended to `history`, leaving the event absent from Tavern Records.
+- **Idea:** Append a clear narrative log entry to `history` when `buyCard` is automatically invoked on an empty hand.
+- **Player value:** Provides transparency in the round log so players reviewing Tavern Records can trace why an opponent's card count increased at turn start.
+- **Evidence:** Code inspection of `turnSlice.ts` lines 24-27 and `roundSlice.ts` lines 135-139.
+- **Confidence:** High
+- **Status:** PROMOTED
