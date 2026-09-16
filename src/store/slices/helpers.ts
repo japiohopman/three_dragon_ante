@@ -22,11 +22,13 @@ export const addBreakdownItem = (
 
 // DYNAMIC SCREEN COORDINATES
 export const getPos = (playerIndex: number, totalPlayers: number) => {
+  const width = typeof window !== 'undefined' ? window.innerWidth : 1024;
+  const height = typeof window !== 'undefined' ? window.innerHeight : 768;
   if (playerIndex === 0) {
-    return { x: window.innerWidth / 2, y: window.innerHeight - 150 };
+    return { x: width / 2, y: height - 150 };
   }
   const opponentCount = totalPlayers - 1;
-  const slotWidth = window.innerWidth / (opponentCount + 1);
+  const slotWidth = width / (opponentCount + 1);
   const x = slotWidth * playerIndex;
   return { x, y: 150 };
 };
