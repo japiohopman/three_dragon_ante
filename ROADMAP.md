@@ -125,7 +125,7 @@ This queue is deliberately ordered. Do not skip ahead because a later item looks
   - **Goal:** trigger `CARD_DEAL` sound effect when `buyCard` is auto-invoked on empty hand state recovery.
   - **Acceptance:** automatic hand card draws play `CARD_DEAL` audio feedback; audio cue remains non-disruptive; existing unit test suite passes.
 
-- [ ] **Keyboard focus z-index elevation and scale expansion for flight card tooltips**
+- [x] **Keyboard focus z-index elevation and scale expansion for flight card tooltips**
   - **Problem:** in `MultiplayerSeats.tsx` and `PlayerHandArea.tsx`, when keyboard Tab navigation focuses a flight card, adjacent overlapping flight cards in dense 6-player seat chips can partially overlap the focused card boundary unless z-index elevation and transform scaling are explicitly applied to the focused element (`focus-visible:z-50`).
   - **Goal:** ensure all flight card containers apply explicit relative z-index stacking (`z-50`) and scale expansion (`scale-110`) during active `:focus-visible` state across tabletop components.
   - **Acceptance:** focused flight cards remain completely unobstructed by adjacent sibling cards during keyboard navigation; tests pass.
