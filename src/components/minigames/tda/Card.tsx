@@ -101,33 +101,17 @@ const Card: React.FC<CardProps> = ({
     }
   }, [animationType, card?.id]);
 
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (disabled || !isFaceUp) return;
-    const rect = cardRef.current?.getBoundingClientRect();
-    if (!rect) return;
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    const centerX = rect.width / 2;
-    const centerY = rect.height / 2;
-    const rotateX = ((y - centerY) / centerY) * -8;
-    const rotateY = ((x - centerX) / centerX) * 8;
-    setRotate({ x: rotateX, y: rotateY });
-    setGleam({ x: (x / rect.width) * 100, y: (y / rect.height) * 100, opacity: 0.6 });
+  const handleMouseMove = () => {
+    // Disabled mousemove 3D tilt and gleam tracking for card stability
   };
 
   const handleMouseLeave = () => {
     setRotate({ x: 0, y: 0 });
     setGleam(prev => ({ ...prev, opacity: 0 }));
-    if (card && variant === 'tda') {
-        useAnimationStore.getState().setHoveredCard(null);
-    }
   };
 
   const handleMouseEnter = () => {
-    if (disabled || !isFaceUp) return;
-    if (card && variant === 'tda') {
-        useAnimationStore.getState().setHoveredCard(card.id);
-    }
+    // Card.tsx does not directly mutate global hoveredCardId for normal mouse hover
   };
 
   const getBackgroundPosition = (index: number) => {

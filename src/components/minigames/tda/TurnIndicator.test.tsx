@@ -33,7 +33,7 @@ vi.mock('../../../store/useGameStore', () => ({
 }));
 
 describe('Active Player Turn Breathing Ring Indicator', () => {
-  it('renders breathing pulse ring and badge keyframe classes in HeaderHUD during human turn', () => {
+  it('renders turn badge keyframe classes in HeaderHUD during human turn', () => {
     mockStoreState = {
       playerGold: 1000,
       playerHand: [sampleCard],
@@ -56,14 +56,12 @@ describe('Active Player Turn Breathing Ring Indicator', () => {
       />
     );
 
-    expect(html).toContain('data-testid="hud-turn-radial-ring"');
-    expect(html).toContain('animate-turn-radial-ring');
     expect(html).toContain('data-testid="hud-phase-badge"');
     expect(html).toContain('animate-turn-breathing-ring');
     expect(html).toContain('YOUR TURN');
   });
 
-  it('omits turn radial ring in HeaderHUD during opponent turn', () => {
+  it('omits turn breathing badge class in HeaderHUD during opponent turn', () => {
     mockStoreState = {
       playerGold: 1000,
       playerHand: [],
@@ -86,12 +84,11 @@ describe('Active Player Turn Breathing Ring Indicator', () => {
       />
     );
 
-    expect(html).not.toContain('data-testid="hud-turn-radial-ring"');
     expect(html).not.toContain('animate-turn-breathing-ring');
     expect(html).toContain('KAVA&#x27;S TURN');
   });
 
-  it('renders breathing pulse ring and banner keyframe classes in PlayerHandArea during human turn', () => {
+  it('renders turn directive banner in PlayerHandArea during human turn', () => {
     mockStoreState = {
       pendingInteraction: null
     };
@@ -108,14 +105,12 @@ describe('Active Player Turn Breathing Ring Indicator', () => {
       />
     );
 
-    expect(html).toContain('data-testid="turn-radial-breathing-ring"');
-    expect(html).toContain('animate-turn-radial-ring');
     expect(html).toContain('data-testid="turn-directive-banner"');
     expect(html).toContain('animate-turn-breathing-ring');
     expect(html).toContain('Your Turn — Play Card');
   });
 
-  it('omits turn radial ring in PlayerHandArea when it is not human player turn', () => {
+  it('omits turn directive banner in PlayerHandArea when it is not human player turn', () => {
     mockStoreState = {
       pendingInteraction: null
     };
@@ -132,7 +127,6 @@ describe('Active Player Turn Breathing Ring Indicator', () => {
       />
     );
 
-    expect(html).not.toContain('data-testid="turn-radial-breathing-ring"');
     expect(html).not.toContain('data-testid="turn-directive-banner"');
   });
 });
