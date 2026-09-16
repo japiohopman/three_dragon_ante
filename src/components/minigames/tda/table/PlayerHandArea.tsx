@@ -36,6 +36,7 @@ export const PlayerHandArea: React.FC<PlayerHandAreaProps> = ({
   const [committingCardId, setCommittingCardId] = useState<string | null>(null);
   const handContainerRef = useRef<HTMLDivElement>(null);
   const isAntePhase = phase === 'ante-selection';
+  const hasPowerTriggerInHand = isPlayerTurn && Boolean(lastCardPlayed) && playerHand.some(card => card.strength <= lastCardPlayed!.strength);
 
   const handleCardClick = (cardId: string) => {
     playSound('UI_CLICK');
@@ -171,7 +172,11 @@ export const PlayerHandArea: React.FC<PlayerHandAreaProps> = ({
                   {isPlayerTurn && !isPlayerDecisionRequired && phase !== 'ante-selection' && (
                       <div
                           data-testid="turn-radial-breathing-ring"
-                          className="absolute -inset-1 rounded-full border border-emerald-400/60 bg-emerald-500/10 animate-turn-radial-ring pointer-events-none blur-[1px]"
+                          className={`absolute -inset-1 rounded-full border ${
+                              hasPowerTriggerInHand
+                                  ? 'border-amber-400/60 bg-amber-500/10'
+                                  : 'border-emerald-400/60 bg-emerald-500/10'
+                          } animate-turn-radial-ring pointer-events-none blur-[1px]`}
                       />
                   )}
                   <div
@@ -183,6 +188,8 @@ export const PlayerHandArea: React.FC<PlayerHandAreaProps> = ({
                               ? 'bg-amber-900/90 border-amber-500/80 text-amber-200 animate-pulse'
                               : isLeader
                               ? 'bg-amber-500 border-amber-300 text-stone-950 shadow-[0_0_15px_rgba(245,158,11,0.5)] animate-turn-breathing-ring'
+                              : hasPowerTriggerInHand
+                              ? 'bg-amber-950/90 border-amber-500/80 text-amber-200 shadow-[0_0_12px_rgba(245,158,11,0.3)] animate-turn-breathing-ring'
                               : 'bg-emerald-950/90 border-emerald-500/80 text-emerald-200 shadow-[0_0_12px_rgba(16,185,129,0.3)] animate-turn-breathing-ring'
                       }`}
                   >
@@ -203,7 +210,7 @@ export const PlayerHandArea: React.FC<PlayerHandAreaProps> = ({
                           </>
                       ) : (
                           <>
-                              <GameIcon name="sparkles" size={12} className="text-emerald-400" />
+                              <GameIcon name="sparkles" size={12} className={hasPowerTriggerInHand ? 'text-amber-400' : 'text-emerald-400'} />
                               <span>Your Turn — Play Card</span>
                           </>
                       )}
@@ -212,7 +219,7 @@ export const PlayerHandArea: React.FC<PlayerHandAreaProps> = ({
           )}
           <AnimatePresence>
               {playerHand.map((card, i) => {
-                  const isPowerTriggered = isPlayerTurn && (!lastCardPlayed || card.strength <= lastCardPlayed.strength);
+                  const isPowerTriggered = isPlayerTurn && Boolean(lastCardPlayed) && card.strength <= lastCardPlayed!.strength;
                   const isInteractive = isPlayerTurn || isAntePhase;
                   const isCommitting = committingCardId === card.id;
 

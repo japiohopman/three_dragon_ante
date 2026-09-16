@@ -145,7 +145,7 @@ This queue is deliberately ordered. Do not skip ahead because a later item looks
   - **Goal:** append a clear narrative log entry to `history` when `buyCard` is automatically invoked on an empty hand.
   - **Acceptance:** Tavern Records history log displays clear entries when cards are automatically drawn for empty hands; unit test suite passes.
 
-- [ ] **Dynamic breathing pulse color shift based on playable card power triggers in hand**
+- [x] **Dynamic breathing pulse color shift based on playable card power triggers in hand**
   - **Problem:** `HeaderHUD.tsx` and `PlayerHandArea.tsx` active turn breathing rings always pulse emerald green, without visually shifting to amber/gold when the human player holds a dragon card whose power will trigger (`isPowerTriggered`).
   - **Goal:** dynamically update active turn breathing ring classes/styling in `HeaderHUD.tsx` and `PlayerHandArea.tsx` to shift to amber/gold when `isPlayerTurn` is active and `playerHand` contains at least one card where `!lastCardPlayed || card.strength <= lastCardPlayed.strength`.
   - **Acceptance:** active turn directive and breathing ring switch from emerald to amber/gold when playable power triggers are present in hand; existing tests and build pass.

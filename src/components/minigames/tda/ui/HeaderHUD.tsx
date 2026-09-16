@@ -22,10 +22,11 @@ export const HeaderHUD: React.FC<HeaderHUDProps> = ({
   getPhaseInstruction,
   longTurn
 }) => {
-  const { playerGold, playerHand, fixGameState, phase, players, activePlayerIndex, pendingInteraction } = useGameStore();
+  const { playerGold, playerHand, lastCardPlayed, fixGameState, phase, players, activePlayerIndex, pendingInteraction } = useGameStore();
 
   const activeP = players[activePlayerIndex];
   const isHumanTurn = (phase === 'player-turn' || (phase === 'round-start' && activeP?.id === 'player')) && !pendingInteraction;
+  const hasPowerTriggerInHand = isHumanTurn && Boolean(lastCardPlayed) && playerHand.some(card => card.strength <= lastCardPlayed!.strength);
 
   const getPhaseBadge = () => {
     if (pendingInteraction) {
@@ -41,6 +42,9 @@ export const HeaderHUD: React.FC<HeaderHUDProps> = ({
       return { label: 'ANTE REVEAL', color: 'bg-amber-900/60 border-amber-600/60 text-amber-300', icon: '👁️' };
     }
     if (phase === 'player-turn' || (phase === 'round-start' && activeP?.id === 'player')) {
+      if (hasPowerTriggerInHand) {
+        return { label: 'YOUR TURN', color: 'bg-amber-950/90 border-amber-500/80 text-amber-200 animate-turn-breathing-ring shadow-[0_0_12px_rgba(245,158,11,0.3)]', icon: '⚡' };
+      }
       return { label: 'YOUR TURN', color: 'bg-emerald-950/90 border-emerald-500/80 text-emerald-200 animate-turn-breathing-ring shadow-[0_0_12px_rgba(16,185,129,0.3)]', icon: '⚔️' };
     }
     if (phase === 'opponent-turn' || (phase === 'round-start' && activeP?.isNpc)) {
@@ -116,7 +120,11 @@ export const HeaderHUD: React.FC<HeaderHUDProps> = ({
                       {isHumanTurn && (
                           <div
                               data-testid="hud-turn-radial-ring"
-                              className="absolute -inset-1.5 rounded border border-emerald-400/60 bg-emerald-500/10 animate-turn-radial-ring pointer-events-none blur-[1px]"
+                              className={`absolute -inset-1.5 rounded border ${
+                                  hasPowerTriggerInHand
+                                      ? 'border-amber-400/60 bg-amber-500/10'
+                                      : 'border-emerald-400/60 bg-emerald-500/10'
+                              } animate-turn-radial-ring pointer-events-none blur-[1px]`}
                           />
                       )}
                       <span
