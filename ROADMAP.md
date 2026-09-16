@@ -130,6 +130,21 @@ This queue is deliberately ordered. Do not skip ahead because a later item looks
   - **Goal:** ensure all flight card containers apply explicit relative z-index stacking (`z-50`) and scale expansion (`scale-110`) during active `:focus-visible` state across tabletop components.
   - **Acceptance:** focused flight cards remain completely unobstructed by adjacent sibling cards during keyboard navigation; tests pass.
 
+- [ ] **Visual Gold/Pot breakdown summary tooltips on Gambit End banner**
+  - **Problem:** in `EndGameModal.tsx`, when `isGambitEnd` is active, the modal displays the total pot won, but does not provide an itemized visual breakdown showing how much was contributed from ante stakes vs card power bets (e.g. Red Dragon / Gold Dragon bets) during that gambit.
+  - **Goal:** add an expandable or hoverable tooltip/accordion inside `EndGameModal.tsx` breaking down pot earnings by source (Antes vs Powers vs Color Flight rewards).
+  - **Acceptance:** gambit end summary displays a clear, itemized breakdown of pot contributions; test suite passes.
+
+- [ ] **Animated visual countdown ring on active player turn indicator**
+  - **Problem:** during human player turn in `HeaderHUD.tsx` and `PlayerHandArea.tsx`, the directive banner indicates "Your turn - Play a card to the table", but does not provide a subtle ambient glow intensity pulse or visual timer cue to signal turn duration/pacing in fast-paced tavern play.
+  - **Goal:** add an optional subtle radial breathing ring or pulse indicator around the active turn badge when awaiting player card selection.
+  - **Acceptance:** active turn badge features a smooth ambient breathing pulse indicator when awaiting human player input; tests pass.
+
+- [ ] **Game log narrative entry for automatic card draw on empty hand state**
+  - **Problem:** in `turnSlice.ts` and `roundSlice.ts`, when a player or AI opponent starts their turn with an empty hand (0 cards), `buyCard` automatically executes state recovery and draws a card, but no explicit narrative log entry (e.g., "[Player/NPC] drew a card to replenish an empty hand") is appended to `history`, leaving the event absent from Tavern Records.
+  - **Goal:** append a clear narrative log entry to `history` when `buyCard` is automatically invoked on an empty hand.
+  - **Acceptance:** Tavern Records history log displays clear entries when cards are automatically drawn for empty hands; unit test suite passes.
+
 ## Integration Gate
 
 - **Integration status:** `BLOCKED`
