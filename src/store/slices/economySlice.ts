@@ -1,6 +1,6 @@
 import { StateCreator } from 'zustand';
 import { GameStore } from './types';
-import { syncCompatibility, getPos } from './helpers';
+import { syncCompatibility, getPos, addBreakdownItem } from './helpers';
 import { playSound } from '../../services/soundService';
 import { useAnimationStore } from '../useAnimationStore';
 import { formatPrice } from '../../utils/currency';
@@ -86,7 +86,8 @@ export const createEconomySlice: StateCreator<GameStore, [], [], EconomySlice> =
             players: updatedPlayers,
             deck: workingDeck,
             discardPile: newDiscard,
-            pot: pot + costCp
+            pot: pot + costCp,
+            potBreakdown: addBreakdownItem(get().potBreakdown || [], 'Card Purchases', costCp)
         }, get()));
       }
   }

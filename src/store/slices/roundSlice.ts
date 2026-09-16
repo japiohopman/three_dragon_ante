@@ -1,6 +1,6 @@
 import { StateCreator } from 'zustand';
 import { GameStore } from './types';
-import { syncCompatibility, getPos } from './helpers';
+import { syncCompatibility, getPos, addBreakdownItem } from './helpers';
 import { playSound } from '../../services/soundService';
 import { useAnimationStore } from '../useAnimationStore';
 import { formatPrice } from '../../utils/currency';
@@ -28,6 +28,7 @@ export const createRoundSlice: StateCreator<GameStore, [], [], RoundSlice> = (se
 
       let updatedPlayers = [...state.players];
       let updatedPot = state.pot;
+      let updatedBreakdown = state.potBreakdown || [];
 
       if (lastPlayed) {
           const specialFlight = checkFlightFormation(flight, lastPlayed);
@@ -95,6 +96,7 @@ export const createRoundSlice: StateCreator<GameStore, [], [], RoundSlice> = (se
 
                  updatedPlayers[pIdx].hand = [...updatedPlayers[pIdx].hand, ...collectedAntes];
                  updatedPot = Math.max(0, state.pot - finalRewardCp);
+                 updatedBreakdown = addBreakdownItem(updatedBreakdown, 'Strength Flight Payout', -finalRewardCp);
 
                  get().addNotification(`${playerState.name.toUpperCase()} STRENGTH FLIGHT! Steals ${formatPrice(rewardCp)}${bonusMsg} + Todos Antes.`, 'gold-gain');
             }
@@ -112,6 +114,7 @@ export const createRoundSlice: StateCreator<GameStore, [], [], RoundSlice> = (se
       set(syncCompatibility({
           players: updatedPlayers,
           pot: updatedPot,
+          potBreakdown: updatedBreakdown,
           activePlayerIndex: nextActiveIndex,
           focusedOpponentIndex: newFocusedOpponentIndex,
           lastCardPlayed: lastPlayed || state.lastCardPlayed,
@@ -225,12 +228,18 @@ export const createRoundSlice: StateCreator<GameStore, [], [], RoundSlice> = (se
           useAnimationStore.getState().spawnCoins(15, { x: window.innerWidth / 2, y: window.innerHeight / 2 }, winnerPOS);
           useAnimationStore.getState().triggerFloatingText(winnerPOS.x, winnerPOS.y, `+${formatPrice(pot)}`, 'gold');
 
+          const rawBreakdown = get().potBreakdown || [];
+          const finalBreakdown = rawBreakdown.length > 0
+              ? rawBreakdown
+              : [{ source: 'Ante Stakes', amount: pot }];
+
           const result = {
               winnerId,
               winnerName,
               scores,
               potWon: pot,
-              reason
+              reason,
+              potBreakdown: finalBreakdown
           };
 
           const newGambitsPlayed = gambitsPlayed + 1;

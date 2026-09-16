@@ -1,5 +1,24 @@
-import { GameState, CardData } from '../../types';
+import { GameState, CardData, PotBreakdownItem } from '../../types';
 import { SpecialEffectType } from '../useAnimationStore';
+
+export const addBreakdownItem = (
+  current: PotBreakdownItem[] = [],
+  source: string,
+  delta: number
+): PotBreakdownItem[] => {
+  if (delta === 0) return current;
+  const existingIdx = current.findIndex(item => item.source === source);
+  if (existingIdx > -1) {
+    const updated = [...current];
+    const newAmount = updated[existingIdx].amount + delta;
+    updated[existingIdx] = {
+      ...updated[existingIdx],
+      amount: newAmount
+    };
+    return updated.filter(item => item.amount !== 0);
+  }
+  return [...current, { source, amount: delta }];
+};
 
 // DYNAMIC SCREEN COORDINATES
 export const getPos = (playerIndex: number, totalPlayers: number) => {
@@ -46,6 +65,7 @@ export const getInitialState = (): GameState => ({
   lastCardPlayed: null,
   activeSpecialRules: {},
   gambitResult: null,
+  potBreakdown: [],
   pendingInteraction: null,
   notification: null,
   history: [],

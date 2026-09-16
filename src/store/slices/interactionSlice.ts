@@ -1,6 +1,6 @@
 import { StateCreator } from 'zustand';
 import { GameStore } from './types';
-import { syncCompatibility, getPos } from './helpers';
+import { syncCompatibility, getPos, addBreakdownItem } from './helpers';
 import { playSound } from '../../services/soundService';
 import { useAnimationStore } from '../useAnimationStore';
 import { formatPrice } from '../../utils/currency';
@@ -119,9 +119,15 @@ export const createInteractionSlice: StateCreator<GameStore, [], [], Interaction
         }
     }
 
+    const potDelta = updatedPot - pot;
+    const updatedBreakdown = potDelta !== 0
+      ? addBreakdownItem(state.potBreakdown || [], 'Card Powers & Bets', potDelta)
+      : state.potBreakdown;
+
     set(syncCompatibility({
       players: updatedPlayers,
       pot: updatedPot,
+      potBreakdown: updatedBreakdown,
       pendingInteraction: null
     }, get()));
 
@@ -265,9 +271,15 @@ export const createInteractionSlice: StateCreator<GameStore, [], [], Interaction
           logMsg = `${aiPlayer.name} demands you pay ${formatPrice(amountCp)}.`;
       }
 
+      const potDeltaAi = updatedPot - pot;
+      const updatedBreakdownAi = potDeltaAi !== 0
+        ? addBreakdownItem(state.potBreakdown || [], 'Card Powers & Bets', potDeltaAi)
+        : state.potBreakdown;
+
       set(syncCompatibility({
         players: updatedPlayers,
         pot: updatedPot,
+        potBreakdown: updatedBreakdownAi,
         pendingInteraction: null
       }, get()));
 
