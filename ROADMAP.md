@@ -145,6 +145,21 @@ This queue is deliberately ordered. Do not skip ahead because a later item looks
   - **Goal:** append a clear narrative log entry to `history` when `buyCard` is automatically invoked on an empty hand.
   - **Acceptance:** Tavern Records history log displays clear entries when cards are automatically drawn for empty hands; unit test suite passes.
 
+- [ ] **Dynamic breathing pulse color shift based on playable card power triggers in hand**
+  - **Problem:** `HeaderHUD.tsx` and `PlayerHandArea.tsx` active turn breathing rings always pulse emerald green, without visually shifting to amber/gold when the human player holds a dragon card whose power will trigger (`isPowerTriggered`).
+  - **Goal:** dynamically update active turn breathing ring classes/styling in `HeaderHUD.tsx` and `PlayerHandArea.tsx` to shift to amber/gold when `isPlayerTurn` is active and `playerHand` contains at least one card where `!lastCardPlayed || card.strength <= lastCardPlayed.strength`.
+  - **Acceptance:** active turn directive and breathing ring switch from emerald to amber/gold when playable power triggers are present in hand; existing tests and build pass.
+
+- [ ] **Itemized coin denomination tooltip breakdown on EndGameModal currency totals**
+  - **Problem:** `EndGameModal.tsx` pot breakdown rows show total copper converted to gold/silver, but do not provide hovering/tooltip access to exact coin denomination breakdowns (e.g., 3 Platinum, 5 Gold, 2 Silver, 0 Copper).
+  - **Goal:** add coin breakdown tooltips on each breakdown row in `EndGameModal.tsx` using `fromCopper()` from `currency.ts`.
+  - **Acceptance:** hovering or focusing breakdown rows in `EndGameModal.tsx` displays an itemized coin denomination breakdown; unit tests verify tooltip rendering and currency conversion.
+
+- [ ] **Pre-capacity warning badge on HeaderHUD hand count indicator at 9 cards**
+  - **Problem:** in `HeaderHUD.tsx`, when `playerHand.length >= 10`, a `FULL` warning badge appears next to `10/10`, but when the hand contains 9 cards, no pre-warning badge is rendered, giving the player no immediate visual cue that their next card draw will cap their hand.
+  - **Goal:** render a subtle `WARN` badge next to `9/10` in `HeaderHUD.tsx` when `playerHand.length === 9`.
+  - **Acceptance:** `HeaderHUD.tsx` displays a `WARN` badge when hand size reaches 9 cards; existing tests and build remain green.
+
 ## Integration Gate
 
 - **Integration status:** `BLOCKED`

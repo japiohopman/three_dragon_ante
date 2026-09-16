@@ -223,7 +223,7 @@ Prioritize problems that disrupt:
 - **Player value:** Instantly signals strategic power opportunities in hand at turn start, helping players recognize high-value tactical plays.
 - **Evidence:** Code inspection of `PlayerHandArea.tsx` power trigger calculation (`card.strength <= lastCardPlayed.strength`).
 - **Confidence:** High
-- **Status:** NEW
+- **Status:** PROMOTED
 
 ### 2025-05-19 — Itemized coin denomination tooltip breakdown on EndGameModal currency totals
 - **Agent:** Jules
@@ -233,7 +233,17 @@ Prioritize problems that disrupt:
 - **Player value:** Enhances immersion and financial transparency for players who enjoy D&D 5e coinage mechanics and inventory management.
 - **Evidence:** Code inspection of `EndGameModal.tsx` lines 105-120 and `currency.ts`.
 - **Confidence:** High
-- **Status:** NEW
+- **Status:** PROMOTED
+
+### 2025-05-19 — Pre-capacity warning badge on HeaderHUD hand count indicator at 9 cards
+- **Agent:** Jules
+- **Area:** UX / UI
+- **Observation:** In `HeaderHUD.tsx`, when `playerHand.length >= 10`, a `FULL` warning badge appears next to `10/10`, but when the hand contains 9 cards, no pre-warning badge is rendered, giving the player no immediate visual cue that their next card draw will cap their hand.
+- **Idea:** Add a subtle `WARN` badge next to the `9/10` hand count indicator in `HeaderHUD.tsx` when `playerHand.length === 9`.
+- **Player value:** Gives players clear advance notice before reaching the 10-card hand capacity limit, preventing unexpected card draw blockage.
+- **Evidence:** Code inspection of `HeaderHUD.tsx` lines 120-132.
+- **Confidence:** High
+- **Status:** PROMOTED
 
 ### 2025-05-19 — Keyboard focus z-index elevation and scale expansion for flight card tooltips
 - **Agent:** Jules
