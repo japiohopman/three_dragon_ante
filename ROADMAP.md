@@ -140,7 +140,7 @@ This queue is deliberately ordered. Do not skip ahead because a later item looks
   - **Goal:** add an optional subtle radial breathing ring or pulse indicator around the active turn badge when awaiting player card selection.
   - **Acceptance:** active turn badge features a smooth ambient breathing pulse indicator when awaiting human player input; tests pass.
 
-- [ ] **Game log narrative entry for automatic card draw on empty hand state**
+- [x] **Game log narrative entry for automatic card draw on empty hand state**
   - **Problem:** in `turnSlice.ts` and `roundSlice.ts`, when a player or AI opponent starts their turn with an empty hand (0 cards), `buyCard` automatically executes state recovery and draws a card, but no explicit narrative log entry (e.g., "[Player/NPC] drew a card to replenish an empty hand") is appended to `history`, leaving the event absent from Tavern Records.
   - **Goal:** append a clear narrative log entry to `history` when `buyCard` is automatically invoked on an empty hand.
   - **Acceptance:** Tavern Records history log displays clear entries when cards are automatically drawn for empty hands; unit test suite passes.

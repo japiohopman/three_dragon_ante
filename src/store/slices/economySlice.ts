@@ -59,6 +59,7 @@ export const createEconomySlice: StateCreator<GameStore, [], [], EconomySlice> =
       const needed = 4 - pState.hand.length;
 
       if (needed > 0) {
+        const wasEmpty = pState.hand.length === 0;
         const drawnCards = [];
         let workingDeck = [...deckAfterCost];
 
@@ -74,7 +75,9 @@ export const createEconomySlice: StateCreator<GameStore, [], [], EconomySlice> =
         get().addNotification(`${pState.name} buys cards. Paid ${formatPrice(costCp)}.`);
         playSound('GOLD_LOSS');
         playSound('CARD_DEAL');
-        useAnimationStore.getState().spawnCoins(3, POS, { x: window.innerWidth / 2, y: window.innerHeight / 2 });
+        const centerX = typeof window !== 'undefined' ? window.innerWidth / 2 : 512;
+        const centerY = typeof window !== 'undefined' ? window.innerHeight / 2 : 384;
+        useAnimationStore.getState().spawnCoins(3, POS, { x: centerX, y: centerY });
         useAnimationStore.getState().triggerFloatingText(POS.x, POS.y, `-${formatPrice(costCp)}`, 'red');
 
         const updatedPlayers = players.map((p, idx) => {
@@ -82,12 +85,17 @@ export const createEconomySlice: StateCreator<GameStore, [], [], EconomySlice> =
             return p;
         });
 
+        const logMsg = wasEmpty
+            ? `${pState.name} drew cards to replenish an empty hand.`
+            : `${pState.name} bought cards (${formatPrice(costCp)}).`;
+
         set(syncCompatibility({
             players: updatedPlayers,
             deck: workingDeck,
             discardPile: newDiscard,
             pot: pot + costCp,
-            potBreakdown: addBreakdownItem(get().potBreakdown || [], 'Card Purchases', costCp)
+            potBreakdown: addBreakdownItem(get().potBreakdown || [], 'Card Purchases', costCp),
+            history: [...get().history, logMsg]
         }, get()));
       }
   }
