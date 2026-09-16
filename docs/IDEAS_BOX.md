@@ -215,6 +215,16 @@ Prioritize problems that disrupt:
 - **Confidence:** High
 - **Status:** PROMOTED
 
+### 2025-05-19 — Dynamic breathing pulse color shift based on playable card power triggers in hand
+- **Agent:** Jules
+- **Area:** UX / Visual Feedback
+- **Observation:** In `HeaderHUD.tsx` and `PlayerHandArea.tsx`, the active turn breathing ring pulses with emerald green (`emerald-400`), but does not visually shift to amber/gold when the human player holds a playable dragon card that will trigger its card power (`isPowerTriggered`).
+- **Idea:** Dynamically tint the active turn breathing ring and directive banner pulse glow from emerald to amber/gold when the active player's hand contains one or more cards whose powers will trigger if played.
+- **Player value:** Instantly signals strategic power opportunities in hand at turn start, helping players recognize high-value tactical plays.
+- **Evidence:** Code inspection of `PlayerHandArea.tsx` power trigger calculation (`card.strength <= lastCardPlayed.strength`).
+- **Confidence:** High
+- **Status:** NEW
+
 ### 2025-05-19 — Itemized coin denomination tooltip breakdown on EndGameModal currency totals
 - **Agent:** Jules
 - **Area:** UX / UI

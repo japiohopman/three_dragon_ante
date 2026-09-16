@@ -167,36 +167,47 @@ export const PlayerHandArea: React.FC<PlayerHandAreaProps> = ({
 
           {/* TURN & LEADER INDICATOR BANNER */}
           {(isPlayerTurn || phase === 'ante-selection' || isPlayerDecisionRequired) && playerHand.length < 10 && (
-              <div className={`absolute -top-10 left-1/2 -translate-x-1/2 px-3.5 py-1 rounded-full text-xs font-bold uppercase tracking-widest shadow-xl flex items-center gap-1.5 z-40 pointer-events-none backdrop-blur-md border ${
-                  isPlayerDecisionRequired
-                      ? 'bg-purple-950/95 border-purple-400 text-purple-200 animate-pulse shadow-[0_0_20px_rgba(168,85,247,0.5)]'
-                      : phase === 'ante-selection'
-                      ? 'bg-amber-900/90 border-amber-500/80 text-amber-200 animate-pulse'
-                      : isLeader
-                      ? 'bg-amber-500 border-amber-300 text-stone-950 shadow-[0_0_15px_rgba(245,158,11,0.5)]'
-                      : 'bg-emerald-950/90 border-emerald-500/80 text-emerald-200 shadow-[0_0_12px_rgba(16,185,129,0.3)]'
-              }`}>
-                  {isPlayerDecisionRequired ? (
-                      <>
-                          <GameIcon name="alert" size={12} className="text-purple-400" />
-                          <span>Action Required — Resolve Card Power</span>
-                      </>
-                  ) : phase === 'ante-selection' ? (
-                      <>
-                          <GameIcon name="sparkles" size={12} className="text-amber-400" />
-                          <span>Ante Phase — Choose Card to Ante</span>
-                      </>
-                  ) : isLeader ? (
-                      <>
-                          <GameIcon name="crown" size={12} className="text-stone-950" />
-                          <span>Your Turn — Round Leader</span>
-                      </>
-                  ) : (
-                      <>
-                          <GameIcon name="sparkles" size={12} className="text-emerald-400" />
-                          <span>Your Turn — Play Card</span>
-                      </>
+              <div className="absolute -top-10 left-1/2 -translate-x-1/2 z-40 pointer-events-none">
+                  {isPlayerTurn && !isPlayerDecisionRequired && phase !== 'ante-selection' && (
+                      <div
+                          data-testid="turn-radial-breathing-ring"
+                          className="absolute -inset-1 rounded-full border border-emerald-400/60 bg-emerald-500/10 animate-turn-radial-ring pointer-events-none blur-[1px]"
+                      />
                   )}
+                  <div
+                      data-testid="turn-directive-banner"
+                      className={`relative px-3.5 py-1 rounded-full text-xs font-bold uppercase tracking-widest shadow-xl flex items-center gap-1.5 backdrop-blur-md border ${
+                          isPlayerDecisionRequired
+                              ? 'bg-purple-950/95 border-purple-400 text-purple-200 animate-pulse shadow-[0_0_20px_rgba(168,85,247,0.5)]'
+                              : phase === 'ante-selection'
+                              ? 'bg-amber-900/90 border-amber-500/80 text-amber-200 animate-pulse'
+                              : isLeader
+                              ? 'bg-amber-500 border-amber-300 text-stone-950 shadow-[0_0_15px_rgba(245,158,11,0.5)] animate-turn-breathing-ring'
+                              : 'bg-emerald-950/90 border-emerald-500/80 text-emerald-200 shadow-[0_0_12px_rgba(16,185,129,0.3)] animate-turn-breathing-ring'
+                      }`}
+                  >
+                      {isPlayerDecisionRequired ? (
+                          <>
+                              <GameIcon name="alert" size={12} className="text-purple-400" />
+                              <span>Action Required — Resolve Card Power</span>
+                          </>
+                      ) : phase === 'ante-selection' ? (
+                          <>
+                              <GameIcon name="sparkles" size={12} className="text-amber-400" />
+                              <span>Ante Phase — Choose Card to Ante</span>
+                          </>
+                      ) : isLeader ? (
+                          <>
+                              <GameIcon name="crown" size={12} className="text-stone-950" />
+                              <span>Your Turn — Round Leader</span>
+                          </>
+                      ) : (
+                          <>
+                              <GameIcon name="sparkles" size={12} className="text-emerald-400" />
+                              <span>Your Turn — Play Card</span>
+                          </>
+                      )}
+                  </div>
               </div>
           )}
           <AnimatePresence>

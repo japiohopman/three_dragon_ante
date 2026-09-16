@@ -268,6 +268,36 @@
         animation: chromatic-shift 1s linear infinite;
       }
 
+      /* Breathing Turn Pulse Ring */
+      @keyframes turn-breathing-ring {
+        0%, 100% {
+          box-shadow: 0 0 8px rgba(16, 185, 129, 0.3), inset 0 0 4px rgba(16, 185, 129, 0.2);
+          transform: scale(1);
+        }
+        50% {
+          box-shadow: 0 0 20px rgba(16, 185, 129, 0.7), 0 0 35px rgba(16, 185, 129, 0.4), inset 0 0 10px rgba(16, 185, 129, 0.4);
+          transform: scale(1.03);
+        }
+      }
+      .animate-turn-breathing-ring {
+        animation: turn-breathing-ring 2.4s ease-in-out infinite;
+      }
+
+      /* Breathing Turn Pulse Radial Ring */
+      @keyframes turn-radial-ring {
+        0%, 100% {
+          opacity: 0.2;
+          transform: scale(0.95);
+        }
+        50% {
+          opacity: 0.8;
+          transform: scale(1.18);
+        }
+      }
+      .animate-turn-radial-ring {
+        animation: turn-radial-ring 2.4s ease-in-out infinite;
+      }
+
       /* Reduced Motion Preference Accessibility Overrides */
       @media (prefers-reduced-motion: reduce) {
         *, ::before, ::after {
@@ -291,7 +321,9 @@
         .animate-divine-spin,
         .animate-fire-pulse,
         .animate-slash-draw,
-        .animate-chromatic {
+        .animate-chromatic,
+        .animate-turn-breathing-ring,
+        .animate-turn-radial-ring {
           animation: none !important;
           transition: none !important;
         }

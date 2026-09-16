@@ -25,6 +25,7 @@ export const HeaderHUD: React.FC<HeaderHUDProps> = ({
   const { playerGold, playerHand, fixGameState, phase, players, activePlayerIndex, pendingInteraction } = useGameStore();
 
   const activeP = players[activePlayerIndex];
+  const isHumanTurn = (phase === 'player-turn' || (phase === 'round-start' && activeP?.id === 'player')) && !pendingInteraction;
 
   const getPhaseBadge = () => {
     if (pendingInteraction) {
@@ -34,13 +35,13 @@ export const HeaderHUD: React.FC<HeaderHUDProps> = ({
       return { label: 'AI RESOLVING', color: 'bg-purple-950/70 border-purple-500/60 text-purple-300', icon: '⏳' };
     }
     if (phase === 'ante-selection') {
-      return { label: 'ANTE PHASE', color: 'bg-amber-950/80 border-amber-500/80 text-amber-200', icon: '✨' };
+      return { label: 'ANTE PHASE', color: 'bg-amber-950/80 border-amber-500/80 text-amber-200 animate-pulse', icon: '✨' };
     }
     if (phase === 'ante-reveal') {
       return { label: 'ANTE REVEAL', color: 'bg-amber-900/60 border-amber-600/60 text-amber-300', icon: '👁️' };
     }
     if (phase === 'player-turn' || (phase === 'round-start' && activeP?.id === 'player')) {
-      return { label: 'YOUR TURN', color: 'bg-emerald-950/90 border-emerald-500/80 text-emerald-200 shadow-[0_0_10px_rgba(16,185,129,0.2)]', icon: '⚔️' };
+      return { label: 'YOUR TURN', color: 'bg-emerald-950/90 border-emerald-500/80 text-emerald-200 animate-turn-breathing-ring shadow-[0_0_12px_rgba(16,185,129,0.3)]', icon: '⚔️' };
     }
     if (phase === 'opponent-turn' || (phase === 'round-start' && activeP?.isNpc)) {
       const name = activeP?.name ? activeP.name.toUpperCase() : 'AI';
@@ -111,8 +112,17 @@ export const HeaderHUD: React.FC<HeaderHUDProps> = ({
               </div>
           ) : (
               <div className="flex flex-col items-center">
-                  <div className="flex items-center gap-2 mb-1">
-                      <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider border flex items-center gap-1 ${badge.color}`}>
+                  <div className="flex items-center gap-2 mb-1 relative">
+                      {isHumanTurn && (
+                          <div
+                              data-testid="hud-turn-radial-ring"
+                              className="absolute -inset-1.5 rounded border border-emerald-400/60 bg-emerald-500/10 animate-turn-radial-ring pointer-events-none blur-[1px]"
+                          />
+                      )}
+                      <span
+                          data-testid="hud-phase-badge"
+                          className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider border flex items-center gap-1 relative z-10 ${badge.color}`}
+                      >
                           <span>{badge.icon}</span>
                           <span>{badge.label}</span>
                       </span>

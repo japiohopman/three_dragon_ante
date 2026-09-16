@@ -135,7 +135,7 @@ This queue is deliberately ordered. Do not skip ahead because a later item looks
   - **Goal:** add an expandable or hoverable tooltip/accordion inside `EndGameModal.tsx` breaking down pot earnings by source (Antes vs Powers vs Color Flight rewards).
   - **Acceptance:** gambit end summary displays a clear, itemized breakdown of pot contributions; test suite passes.
 
-- [ ] **Animated visual countdown ring on active player turn indicator**
+- [x] **Animated visual countdown ring on active player turn indicator**
   - **Problem:** during human player turn in `HeaderHUD.tsx` and `PlayerHandArea.tsx`, the directive banner indicates "Your turn - Play a card to the table", but does not provide a subtle ambient glow intensity pulse or visual timer cue to signal turn duration/pacing in fast-paced tavern play.
   - **Goal:** add an optional subtle radial breathing ring or pulse indicator around the active turn badge when awaiting player card selection.
   - **Acceptance:** active turn badge features a smooth ambient breathing pulse indicator when awaiting human player input; tests pass.
