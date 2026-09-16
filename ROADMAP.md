@@ -130,7 +130,7 @@ This queue is deliberately ordered. Do not skip ahead because a later item looks
   - **Goal:** ensure all flight card containers apply explicit relative z-index stacking (`z-50`) and scale expansion (`scale-110`) during active `:focus-visible` state across tabletop components.
   - **Acceptance:** focused flight cards remain completely unobstructed by adjacent sibling cards during keyboard navigation; tests pass.
 
-- [ ] **Visual Gold/Pot breakdown summary tooltips on Gambit End banner**
+- [x] **Visual Gold/Pot breakdown summary tooltips on Gambit End banner**
   - **Problem:** in `EndGameModal.tsx`, when `isGambitEnd` is active, the modal displays the total pot won, but does not provide an itemized visual breakdown showing how much was contributed from ante stakes vs card power bets (e.g. Red Dragon / Gold Dragon bets) during that gambit.
   - **Goal:** add an expandable or hoverable tooltip/accordion inside `EndGameModal.tsx` breaking down pot earnings by source (Antes vs Powers vs Color Flight rewards).
   - **Acceptance:** gambit end summary displays a clear, itemized breakdown of pot contributions; test suite passes.

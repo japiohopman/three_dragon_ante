@@ -215,6 +215,16 @@ Prioritize problems that disrupt:
 - **Confidence:** High
 - **Status:** PROMOTED
 
+### 2025-05-19 — Itemized coin denomination tooltip breakdown on EndGameModal currency totals
+- **Agent:** Jules
+- **Area:** UX / UI
+- **Observation:** In `EndGameModal.tsx`, the pot breakdown lists source totals in primary currency (e.g. `+35 gp`), and title tooltips show currency weight in lbs, but hovering over individual breakdown source items does not display the exact D&D 5e coin denomination breakdown (e.g., 3 Platinum, 5 Gold).
+- **Idea:** Add coin icon hover tooltips on each breakdown row in `EndGameModal.tsx` showing exact coin denomination counts via `fromCopper()`.
+- **Player value:** Enhances immersion and financial transparency for players who enjoy D&D 5e coinage mechanics and inventory management.
+- **Evidence:** Code inspection of `EndGameModal.tsx` lines 105-120 and `currency.ts`.
+- **Confidence:** High
+- **Status:** NEW
+
 ### 2025-05-19 — Keyboard focus z-index elevation and scale expansion for flight card tooltips
 - **Agent:** Jules
 - **Area:** Accessibility / UX

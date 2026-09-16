@@ -162,12 +162,18 @@ export interface PlayerGambitScore {
   strength: number;
 }
 
+export interface PotBreakdownItem {
+  source: string;
+  amount: number; // In copper (e.g., 100 CP = 1 Gold)
+}
+
 export interface GambitResult {
   winnerId: PlayerId | 'tie';
   winnerName: string;
   scores: PlayerGambitScore[];
   potWon: number;
   reason: string;
+  potBreakdown?: PotBreakdownItem[];
 }
 
 export type NPCEmotion =
@@ -254,6 +260,7 @@ export interface GameState {
   // Rules for current gambit
   activeSpecialRules: ActiveSpecialRules;
   gambitResult: GambitResult | null; // Detailed results for the end screen
+  potBreakdown?: PotBreakdownItem[];
 
   // Pending Interaction (For Green Dragon, etc.)
   pendingInteraction: InteractionRequest | null;

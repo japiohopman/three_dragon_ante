@@ -1,6 +1,6 @@
 import { StateCreator } from 'zustand';
 import { GameStore } from './types';
-import { syncCompatibility, getPos } from './helpers';
+import { syncCompatibility, getPos, addBreakdownItem } from './helpers';
 import { playSound } from '../../services/soundService';
 import { useAnimationStore } from '../useAnimationStore';
 import { formatPrice } from '../../utils/currency';
@@ -56,7 +56,10 @@ export const createEffectSlice: StateCreator<GameStore, [], [], EffectSlice> = (
           });
 
           updates.players = updatedPlayers;
-          if (potDelta) updates.pot = Math.max(0, (state.pot || 0) + potDelta);
+          if (potDelta) {
+              updates.pot = Math.max(0, (state.pot || 0) + potDelta);
+              updates.potBreakdown = addBreakdownItem(state.potBreakdown || [], 'Card Powers & Bets', potDelta);
+          }
 
           if (pDelta && pDelta > 0 && potDelta && potDelta < 0 && state.playerSkill === 'sleight-of-hand') {
               if (pDelta === 200) {

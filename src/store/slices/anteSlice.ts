@@ -1,6 +1,6 @@
 import { StateCreator } from 'zustand';
 import { GameStore } from './types';
-import { syncCompatibility, getPos } from './helpers';
+import { syncCompatibility, getPos, addBreakdownItem } from './helpers';
 import { playSound } from '../../services/soundService';
 import { useAnimationStore } from '../useAnimationStore';
 import { formatPrice } from '../../utils/currency';
@@ -37,6 +37,7 @@ export const createAnteSlice: StateCreator<GameStore, [], [], AnteSlice> = (set,
         pendingInteraction: null,
         lastCardPlayed: null,
         gambitResult: null,
+        potBreakdown: [],
         notification: { message: "New Gambit Begins!", type: 'info' }
     }, get()));
   },
@@ -126,6 +127,7 @@ export const createAnteSlice: StateCreator<GameStore, [], [], AnteSlice> = (set,
       currentLeaderIndex: bestLeaderIndex,
       activePlayerIndex: bestLeaderIndex,
       pot: get().pot + totalStakeGold,
+      potBreakdown: addBreakdownItem(get().potBreakdown || [], 'Ante Stakes', totalStakeGold),
       players: updatedPlayers,
       history: [...get().history, msg]
     }, get()));
