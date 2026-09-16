@@ -1,9 +1,3 @@
 {
-  "activeSession": {
-    "name": "sessions/9490551144928702675",
-    "task": "**Game log narrative entry for automatic card draw on empty hand state**",
-    "issueNumber": null,
-    "startedAt": "2026-09-16T17:23:53.856Z",
-    "recurring": false
-  }
+  "activeSession": null
 }
