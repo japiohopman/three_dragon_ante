@@ -132,5 +132,63 @@ describe('EndGameModal & Pot Breakdown System', () => {
       expect(html).toContain(formatPrice(8000));
       expect(html).toContain('Return to Lobby');
     });
+
+    it('renders itemized coin denomination breakdown tooltips and accessibility attributes on pot breakdown rows when breakdown is visible', () => {
+      const html = renderToString(
+        <EndGameModal
+          isGambitEnd={true}
+          isGameOver={false}
+          gambitResult={mockGambitResult}
+          playerGold={5000}
+          opponentGold={3000}
+          npcName="Aris"
+          startNextGambit={() => {}}
+          resetGame={() => {}}
+          initialShowBreakdown={true}
+        />
+      );
+
+      expect(html).toContain('Pot Breakdown by Source');
+      expect(html).toContain('Ante Stakes');
+      expect(html).toContain('tabindex="0"');
+      expect(html).toContain('cursor-help');
+      // 2000 cp = 2pp = 2 Platinum, 0 Gold, 0 Electrum, 0 Silver, 0 Copper
+      expect(html).toContain('2 Platinum, 0 Gold, 0 Electrum, 0 Silver, 0 Copper');
+      // 1000 cp = 1pp = 1 Platinum, 0 Gold, 0 Electrum, 0 Silver, 0 Copper
+      expect(html).toContain('1 Platinum, 0 Gold, 0 Electrum, 0 Silver, 0 Copper');
+      // 500 cp = 5gp = 0 Platinum, 5 Gold, 0 Electrum, 0 Silver, 0 Copper
+      expect(html).toContain('0 Platinum, 5 Gold, 0 Electrum, 0 Silver, 0 Copper');
+    });
+
+    it('calculates coin conversion accurately for mixed denomination copper values on breakdown rows', () => {
+      const mixedResult: GambitResult = {
+        winnerId: 'player',
+        winnerName: 'You',
+        scores: [{ playerId: 'player', name: 'You', strength: 25 }],
+        potWon: 3522,
+        reason: 'Strongest flight wins.',
+        potBreakdown: [
+          { source: 'Mixed Reward', amount: 3522 }
+        ]
+      };
+
+      const html = renderToString(
+        <EndGameModal
+          isGambitEnd={true}
+          isGameOver={false}
+          gambitResult={mixedResult}
+          playerGold={5000}
+          opponentGold={3000}
+          npcName="Aris"
+          startNextGambit={() => {}}
+          resetGame={() => {}}
+          initialShowBreakdown={true}
+        />
+      );
+
+      // 3522 cp = 3pp 5gp 2sp 2cp -> 3 Platinum, 5 Gold, 0 Electrum, 2 Silver, 2 Copper
+      expect(html).toContain('3 Platinum, 5 Gold, 0 Electrum, 2 Silver, 2 Copper');
+      expect(html).toContain('3pp 5gp 2sp 2cp');
+    });
   });
 });

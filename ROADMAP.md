@@ -150,7 +150,7 @@ This queue is deliberately ordered. Do not skip ahead because a later item looks
   - **Goal:** dynamically update active turn breathing ring classes/styling in `HeaderHUD.tsx` and `PlayerHandArea.tsx` to shift to amber/gold when `isPlayerTurn` is active and `playerHand` contains at least one card where `!lastCardPlayed || card.strength <= lastCardPlayed.strength`.
   - **Acceptance:** active turn directive and breathing ring switch from emerald to amber/gold when playable power triggers are present in hand; existing tests and build pass.
 
-- [ ] **Itemized coin denomination tooltip breakdown on EndGameModal currency totals**
+- [x] **Itemized coin denomination tooltip breakdown on EndGameModal currency totals**
   - **Problem:** `EndGameModal.tsx` pot breakdown rows show total copper converted to gold/silver, but do not provide hovering/tooltip access to exact coin denomination breakdowns (e.g., 3 Platinum, 5 Gold, 2 Silver, 0 Copper).
   - **Goal:** add coin breakdown tooltips on each breakdown row in `EndGameModal.tsx` using `fromCopper()` from `currency.ts`.
   - **Acceptance:** hovering or focusing breakdown rows in `EndGameModal.tsx` displays an itemized coin denomination breakdown; unit tests verify tooltip rendering and currency conversion.

@@ -235,6 +235,16 @@ Prioritize problems that disrupt:
 - **Confidence:** High
 - **Status:** PROMOTED
 
+### 2025-05-19 — Match statistics summary card on game over screen
+- **Agent:** Jules
+- **Area:** UX / Presentation
+- **Observation:** On the final `VICTORY` or `DEFEAT` game over screen (`EndGameModal.tsx`), the view displays final gold balances but omits a match summary of total gambits won, highest flight strength achieved, or total pot gold accumulated across all gambits.
+- **Idea:** Render an end-of-match summary card on the game over screen showing total gambits won, personal best flight score, and total gold won across all gambits.
+- **Player value:** Provides satisfying match progression feedback and closure after competing through multi-gambit matches.
+- **Evidence:** Inspection of `EndGameModal.tsx` lines 128-150 (`isGameOver` block).
+- **Confidence:** High
+- **Status:** NEW
+
 ### 2025-05-19 — Pre-capacity warning badge on HeaderHUD hand count indicator at 9 cards
 - **Agent:** Jules
 - **Area:** UX / UI

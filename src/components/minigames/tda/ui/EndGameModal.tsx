@@ -14,6 +14,7 @@ interface EndGameModalProps {
   startNextGambit: () => void;
   resetGame: () => void;
   onExit?: () => void;
+  initialShowBreakdown?: boolean;
 }
 
 export const EndGameModal: React.FC<EndGameModalProps> = ({
@@ -25,9 +26,10 @@ export const EndGameModal: React.FC<EndGameModalProps> = ({
   npcName,
   startNextGambit,
   resetGame,
-  onExit
+  onExit,
+  initialShowBreakdown = false
 }) => {
-  const [showBreakdown, setShowBreakdown] = useState(false);
+  const [showBreakdown, setShowBreakdown] = useState(initialShowBreakdown);
 
   useEffect(() => {
     if (isGameOver) {
@@ -44,8 +46,11 @@ export const EndGameModal: React.FC<EndGameModalProps> = ({
       ? gambitResult.potBreakdown
       : [{ source: 'Ante Stakes', amount: gambitResult.potWon }];
 
-    const weightLbs = calculateCurrencyWeight(fromCopper(gambitResult.potWon, true)).toFixed(2);
-    const moneyFormatted = formatMoney(fromCopper(gambitResult.potWon, true));
+    const potMoney = fromCopper(gambitResult.potWon, true);
+    const weightLbs = calculateCurrencyWeight(potMoney).toFixed(2);
+    const moneyFormatted = formatMoney(potMoney);
+    const potCoinDetails = `${potMoney.pp} Platinum, ${potMoney.gp} Gold, ${potMoney.ep} Electrum, ${potMoney.sp} Silver, ${potMoney.cp} Copper`;
+    const potTooltip = `Pot Won: ${formatPrice(gambitResult.potWon)} (${moneyFormatted}: ${potCoinDetails}) — Weight: ${weightLbs} lbs`;
 
     return (
       <div className="absolute inset-0 bg-black/90 flex flex-col items-center justify-center z-[200] pointer-events-auto animate-in fade-in duration-700 p-4">
@@ -74,8 +79,10 @@ export const EndGameModal: React.FC<EndGameModalProps> = ({
            {/* Total Pot display with Breakdown toggle */}
            <div className="flex flex-col items-center mb-6 w-full max-w-lg">
                <div
-                 className="flex items-center gap-2 text-amber-400 font-gothic text-2xl cursor-help mb-2"
-                 title={`Pot Won: ${formatPrice(gambitResult.potWon)} (${moneyFormatted}) — Weight: ${weightLbs} lbs`}
+                 tabIndex={0}
+                 className="flex items-center gap-2 text-amber-400 font-gothic text-2xl cursor-help mb-2 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-amber-400/60 rounded px-1"
+                 title={potTooltip}
+                 aria-label={potTooltip}
                >
                    <GameIcon name="currency/coins" size={28} className="text-amber-400" />
                    <span>{gambitResult.winnerId === 'player' ? `+${formatPrice(gambitResult.potWon)}` : `-${formatPrice(gambitResult.potWon)}`}</span>
@@ -110,22 +117,42 @@ export const EndGameModal: React.FC<EndGameModalProps> = ({
                    </div>
 
                    <div className="space-y-1.5">
-                     {breakdownItems.map((item, idx) => (
-                       <div key={idx} className="flex justify-between items-center text-sm">
-                         <span className="text-stone-300 font-serif flex items-center gap-2">
-                           <span className="text-amber-500/70">•</span>
-                           {item.source}
-                         </span>
-                         <span className={`font-mono font-semibold ${item.amount >= 0 ? 'text-amber-300' : 'text-rose-400'}`}>
-                           {item.amount >= 0 ? `+${formatPrice(item.amount)}` : formatPrice(item.amount)}
-                         </span>
-                       </div>
-                     ))}
+                     {breakdownItems.map((item, idx) => {
+                       const itemCopper = Math.abs(item.amount);
+                       const itemMoney = fromCopper(itemCopper, true);
+                       const itemFormatted = formatMoney(itemMoney);
+                       const itemWeight = calculateCurrencyWeight(itemMoney).toFixed(2);
+                       const coinDetails = `${itemMoney.pp} Platinum, ${itemMoney.gp} Gold, ${itemMoney.ep} Electrum, ${itemMoney.sp} Silver, ${itemMoney.cp} Copper`;
+                       const rowTooltip = `${item.source}: ${item.amount >= 0 ? '+' : ''}${formatPrice(item.amount)} (${itemFormatted}: ${coinDetails}) — Weight: ${itemWeight} lbs`;
+
+                       return (
+                         <div
+                           key={idx}
+                           tabIndex={0}
+                           title={rowTooltip}
+                           aria-label={`${item.source}: ${item.amount >= 0 ? '+' : ''}${formatPrice(item.amount)}, breakdown ${coinDetails}`}
+                           className="flex justify-between items-center text-sm cursor-help hover:bg-stone-900/60 focus-visible:bg-stone-900/80 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-amber-400/60 rounded px-1.5 py-0.5 -mx-1.5 transition-colors"
+                         >
+                           <span className="text-stone-300 font-serif flex items-center gap-2">
+                             <span className="text-amber-500/70">•</span>
+                             {item.source}
+                           </span>
+                           <span className={`font-mono font-semibold ${item.amount >= 0 ? 'text-amber-300' : 'text-rose-400'}`}>
+                             {item.amount >= 0 ? `+${formatPrice(item.amount)}` : formatPrice(item.amount)}
+                           </span>
+                         </div>
+                       );
+                     })}
                    </div>
 
                    <div className="mt-3 pt-2 border-t border-stone-800 flex justify-between items-center text-xs text-stone-400 font-serif italic">
                      <span>Total Pot Awarded</span>
-                     <span className="font-gothic text-amber-400 font-bold text-sm">
+                     <span
+                       tabIndex={0}
+                       title={potTooltip}
+                       aria-label={potTooltip}
+                       className="font-gothic text-amber-400 font-bold text-sm cursor-help hover:text-amber-300 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-amber-400/60 rounded px-1"
+                     >
                        {formatPrice(gambitResult.potWon)}
                      </span>
                    </div>
@@ -148,6 +175,18 @@ export const EndGameModal: React.FC<EndGameModalProps> = ({
   }
 
   if (isGameOver) {
+    const playerMoney = fromCopper(playerGold, true);
+    const playerWeight = calculateCurrencyWeight(playerMoney).toFixed(2);
+    const playerFormatted = formatMoney(playerMoney);
+    const playerCoinDetails = `${playerMoney.pp} Platinum, ${playerMoney.gp} Gold, ${playerMoney.ep} Electrum, ${playerMoney.sp} Silver, ${playerMoney.cp} Copper`;
+    const playerGoldTooltip = `Player Balance: ${formatPrice(playerGold)} (${playerFormatted}: ${playerCoinDetails}) — Weight: ${playerWeight} lbs`;
+
+    const opponentMoney = fromCopper(opponentGold, true);
+    const opponentWeight = calculateCurrencyWeight(opponentMoney).toFixed(2);
+    const opponentFormatted = formatMoney(opponentMoney);
+    const opponentCoinDetails = `${opponentMoney.pp} Platinum, ${opponentMoney.gp} Gold, ${opponentMoney.ep} Electrum, ${opponentMoney.sp} Silver, ${opponentMoney.cp} Copper`;
+    const opponentGoldTooltip = `${npcName}'s Balance: ${formatPrice(opponentGold)} (${opponentFormatted}: ${opponentCoinDetails}) — Weight: ${opponentWeight} lbs`;
+
     return (
       <div className="absolute inset-0 bg-black/95 flex flex-col items-center justify-center z-[200] pointer-events-auto animate-in zoom-in duration-500">
            {playerGold > opponentGold ? (
@@ -155,14 +194,34 @@ export const EndGameModal: React.FC<EndGameModalProps> = ({
                    <GameIcon name="crown" size={80} className="text-yellow-400 mb-6 drop-shadow-lg animate-pulse" />
                    <h2 className="text-6xl font-gothic text-transparent bg-clip-text bg-gradient-to-t from-yellow-600 to-yellow-200 mb-4">VICTORY</h2>
                    <p className="text-2xl text-stone-300 mb-2">Match Complete!</p>
-                   <p className="text-lg text-stone-400 mb-8">You have bested {npcName} with {formatPrice(playerGold)}.</p>
+                   <p className="text-lg text-stone-400 mb-8">
+                     You have bested {npcName} with{' '}
+                     <span
+                       tabIndex={0}
+                       title={playerGoldTooltip}
+                       aria-label={playerGoldTooltip}
+                       className="font-bold text-amber-300 underline underline-offset-4 cursor-help focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-amber-400 rounded px-1"
+                     >
+                       {formatPrice(playerGold)}
+                     </span>.
+                   </p>
                </>
            ) : (
                <>
                    <GameIcon name="skull" size={80} className="text-stone-500 mb-6 drop-shadow-lg" />
                    <h2 className="text-6xl font-gothic text-stone-600 mb-4">DEFEAT</h2>
                    <p className="text-2xl text-stone-400 mb-2">Match Complete.</p>
-                   <p className="text-lg text-stone-500 mb-8">{npcName} wins with {formatPrice(opponentGold)}.</p>
+                   <p className="text-lg text-stone-500 mb-8">
+                     {npcName} wins with{' '}
+                     <span
+                       tabIndex={0}
+                       title={opponentGoldTooltip}
+                       aria-label={opponentGoldTooltip}
+                       className="font-bold text-amber-300 underline underline-offset-4 cursor-help focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-amber-400 rounded px-1"
+                     >
+                       {formatPrice(opponentGold)}
+                     </span>.
+                   </p>
                </>
            )}
 
