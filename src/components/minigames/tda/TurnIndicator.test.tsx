@@ -37,6 +37,7 @@ describe('Active Player Turn Breathing Ring Indicator', () => {
     mockStoreState = {
       playerGold: 1000,
       playerHand: [sampleCard],
+      lastCardPlayed: null,
       fixGameState: () => {},
       phase: 'player-turn',
       players: [
@@ -61,6 +62,100 @@ describe('Active Player Turn Breathing Ring Indicator', () => {
     expect(html).toContain('data-testid="hud-phase-badge"');
     expect(html).toContain('animate-turn-breathing-ring');
     expect(html).toContain('YOUR TURN');
+  });
+
+  it('renders amber/gold breathing ring shift in HeaderHUD and PlayerHandArea when power triggers exist', () => {
+    // sampleCard strength is 8, lastCardPlayed strength is 10 -> 8 <= 10 -> power triggers
+    const highCard: CardData = { ...sampleCard, id: 'high-1', strength: 10 };
+    mockStoreState = {
+      playerGold: 1000,
+      playerHand: [sampleCard],
+      lastCardPlayed: highCard,
+      fixGameState: () => {},
+      phase: 'player-turn',
+      players: [
+        { id: 'player', name: 'You', isNpc: false, gold: 1000, hand: [sampleCard], flight: [], ante: null },
+        { id: 'opp-1', name: 'Kava', isNpc: true, gold: 1000, hand: [], flight: [], ante: null }
+      ],
+      activePlayerIndex: 0,
+      pendingInteraction: null
+    };
+
+    const hudHtml = renderToString(
+      <HeaderHUD
+        setShowRules={() => {}}
+        isAiThinking={false}
+        getPhaseInstruction={() => 'Your turn - Play a card to the table'}
+        longTurn={false}
+      />
+    );
+
+    expect(hudHtml).toContain('border-amber-400/60');
+    expect(hudHtml).toContain('bg-amber-500/10');
+    expect(hudHtml).toContain('bg-amber-950/90');
+
+    const handHtml = renderToString(
+      <PlayerHandArea
+        playerHand={[sampleCard]}
+        playerFlight={[]}
+        lastCardPlayed={highCard}
+        phase="player-turn"
+        isPlayerTurn={true}
+        selectAnte={() => {}}
+        playCard={() => {}}
+      />
+    );
+
+    expect(handHtml).toContain('border-amber-400/60');
+    expect(handHtml).toContain('bg-amber-500/10');
+    expect(handHtml).toContain('bg-amber-950/90');
+  });
+
+  it('renders emerald breathing ring in HeaderHUD and PlayerHandArea when no power triggers exist', () => {
+    // sampleCard strength is 8, lastCardPlayed strength is 5 -> 8 > 5 -> power does NOT trigger
+    const lowCard: CardData = { ...sampleCard, id: 'low-1', strength: 5 };
+    mockStoreState = {
+      playerGold: 1000,
+      playerHand: [sampleCard],
+      lastCardPlayed: lowCard,
+      fixGameState: () => {},
+      phase: 'player-turn',
+      players: [
+        { id: 'player', name: 'You', isNpc: false, gold: 1000, hand: [sampleCard], flight: [], ante: null },
+        { id: 'opp-1', name: 'Kava', isNpc: true, gold: 1000, hand: [], flight: [], ante: null }
+      ],
+      activePlayerIndex: 0,
+      pendingInteraction: null
+    };
+
+    const hudHtml = renderToString(
+      <HeaderHUD
+        setShowRules={() => {}}
+        isAiThinking={false}
+        getPhaseInstruction={() => 'Your turn - Play a card to the table'}
+        longTurn={false}
+      />
+    );
+
+    expect(hudHtml).toContain('border-emerald-400/60');
+    expect(hudHtml).toContain('bg-emerald-500/10');
+    expect(hudHtml).toContain('bg-emerald-950/90');
+
+    const handHtml = renderToString(
+      <PlayerHandArea
+        playerHand={[sampleCard]}
+        playerFlight={[]}
+        lastCardPlayed={lowCard}
+        phase="player-turn"
+        isPlayerTurn={true}
+        selectAnte={() => {}}
+        playCard={() => {}}
+      />
+    );
+
+    expect(handHtml).toContain('border-emerald-400/60');
+    expect(handHtml).toContain('bg-emerald-500/10');
+    expect(handHtml).toContain('bg-emerald-950/90');
   });
 
   it('omits turn radial ring in HeaderHUD during opponent turn', () => {
